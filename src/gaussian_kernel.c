@@ -10,7 +10,7 @@
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_generate_gaussian_kernel(float *kernel,
                                     uint32_t kernel_size,
-                                    uint32_t kernerl_rad,
+                                    uint32_t kernel_rad,
                                     float sigma)
 {
     // Compute Gaussian filter coefficients
