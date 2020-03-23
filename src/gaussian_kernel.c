@@ -2,9 +2,6 @@
 
 
 int ethsift_generate_gaussian_kernel(float *kernel, uint32_t kernel_size, uint32_t kernerl_rad, float sigma){
-
-    kernel = malloc(kernel_size*sizeof(double));
-
     // Compute Gaussian filter coefficients
     float accu = 0.0f;
     float tmp;
