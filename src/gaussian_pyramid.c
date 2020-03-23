@@ -22,7 +22,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     int layers_count = gaussian_count - 3;
     int w, h;
     
-    float** kernel_pts[gaussian_count]; 
+    float* kernel_ptrs[gaussian_count]; 
     uint32_t kernel_rads[gaussian_count];
     uint32_t kernel_sizes[gaussian_count];
 
@@ -42,9 +42,9 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     // Create first kernel.
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
     // sequential dependencies in the section where we calculate the gaussian pyramids.
-    float *kernel = malloc(kernel_sizes[0]*sizeof(double)); 
+    float *kernel = (float*) malloc(kernel_sizes[0]*sizeof(float)); 
     ethsift_generate_gaussian_kernel(kernel, kernel_sizes[0], kernel_rads[0], sigma_i);
-    kernel_pts[0] = kernel;
+    kernel_ptrs[0] = kernel;
 
     //Calculate all other sigmas and create the according kernel
     for (int i = 1; i < gaussian_count; ++i) {
@@ -59,9 +59,9 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
         kernel_sizes[i] = kernel_rads[i] * 2 + 1;
 
         // Create kernel and store it in kernels for next step.
-        kernel = malloc(kernel_sizes[i]*sizeof(double)); 
+        kernel = (float*) malloc(kernel_sizes[i]*sizeof(float)); 
         ethsift_generate_gaussian_kernel(kernel, kernel_sizes[i], kernel_rads[i], sigma_i);
-        kernel_pts[i] = kernel;
+        kernel_ptrs[i] = kernel;
     }
 
 
@@ -70,7 +70,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
         for (int j = 0; j < gaussian_count; ++j) {
             // OPT TODO: Optimize these checks, expensive and optimization potential is there !  
             if (i == 0 && j == 0) {
-                ethsift_apply_kernel(octaves[0], kernel_pts[0], kernel_sizes[0], kernel_rads[0], 
+                ethsift_apply_kernel(octaves[0], kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], 
                                     gaussians[0]);
             }
             else if (i > 0 && j == 0) {
@@ -78,7 +78,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
                                          gaussians[i * gaussian_count]);
             }
             else {
-                ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], kernel_pts[j], kernel_sizes[j], 
+                ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], kernel_ptrs[j], kernel_sizes[j], 
                                     kernel_rads[j], gaussians[i * gaussian_count + j]);
             }
         }
@@ -87,7 +87,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
 
     //free kernels!
     for (int i = 1; i < gaussian_count; ++i) {
-        free(kernel_pts[i]);
+        free(kernel_ptrs[i]);
     }
 
     return 1;
