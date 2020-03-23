@@ -12,9 +12,9 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_co
 //   return 0;
 // }
 
-int ethsift_downscale_linear(struct ethsift_image image, struct ethsift_image output){
-  return 0;
-}
+// int ethsift_downscale_linear(struct ethsift_image image, struct ethsift_image output){
+//   return 0;
+// }
 
 int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image differences[], uint32_t layers){
   return 0;
