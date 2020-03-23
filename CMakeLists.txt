@@ -20,7 +20,10 @@ set_property(TARGET ezsift PROPERTY CXX_STANDARD 14)
 add_library(ethsift STATIC
   "include/ethsift.h"
   "src/internal.h"
-  "src/stub.c")
+  "src/stub.c"
+  "src/gaussian_kernel.c"
+  "src/gaussian_pyramid.c"
+  "src/octaves.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 
