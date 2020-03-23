@@ -23,7 +23,8 @@ add_library(ethsift STATIC
   "src/stub.c"
   "src/gaussian_kernel.c"
   "src/gaussian_pyramid.c"
-  "src/octaves.c")
+  "src/octaves.c"
+  "src/downscale.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 
