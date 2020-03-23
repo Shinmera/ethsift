@@ -1,5 +1,11 @@
 build/
+CMakeFiles/
 *.o
 *.s
 *.S
+*.a
+*.cmake
 .DS_Store
+tester
+Makefile
+CMakeCache.txt

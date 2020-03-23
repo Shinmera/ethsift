@@ -44,7 +44,7 @@ extern "C" {
   int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_count);
 
   // Compute the gaussian kernel weights of a given size.
-  int ethsift_generate_gaussian_kernel(float *kernel, uint32_t kernel_size);
+  int ethsift_generate_gaussian_kernel(float *kernel, uint32_t kernel_size, uint32_t kernerl_rad, float sigma);
 
   // Apply the gaussian kernel to the image and write the result to the output.
   int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, struct ethsift_image output);
