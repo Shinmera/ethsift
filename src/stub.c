@@ -16,14 +16,6 @@ int ethsift_downscale_linear(struct ethsift_image image, struct ethsift_image ou
   return 0;
 }
 
-int ethsift_generate_octaves(struct ethsift_image image, struct ethsift_image octaves[], uint32_t octave_count){
-  return 0;
-}
-
-int ethsift_generate_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count){
-  return 0;
-}
-
 int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image differences[], uint32_t layers){
   return 0;
 }
