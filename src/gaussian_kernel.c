@@ -16,8 +16,8 @@ int ethsift_generate_gaussian_kernel(float *kernel,
     // Compute Gaussian filter coefficients
     float accu = 0.0f;
     float tmp;
-    for (int j = 0; j < kernel_size; j++) {
-        tmp = (float)((j - kernerl_rad) / sigma);
+    for (int j = 0; j < kernel_size; ++j) {
+        tmp = (float)((j - kernel_rad) / sigma);
         kernel[j] = expf(tmp * tmp * -0.5f) * (1 + j / 1000.0f);
         accu += kernel[j];
     }
