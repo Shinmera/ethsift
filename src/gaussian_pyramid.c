@@ -42,6 +42,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     // Create first kernel.
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
     // sequential dependencies in the section where we calculate the gaussian pyramids.
+    // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
     float *kernel = (float*) malloc(kernel_sizes[0]*sizeof(float)); 
     ethsift_generate_gaussian_kernel(kernel, kernel_sizes[0], kernel_rads[0], sigma_i);
     kernel_ptrs[0] = kernel;
@@ -59,6 +60,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
         kernel_sizes[i] = kernel_rads[i] * 2 + 1;
 
         // Create kernel and store it in kernels for next step.
+        // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
         kernel = (float*) malloc(kernel_sizes[i]*sizeof(float)); 
         ethsift_generate_gaussian_kernel(kernel, kernel_sizes[i], kernel_rads[i], sigma_i);
         kernel_ptrs[i] = kernel;
