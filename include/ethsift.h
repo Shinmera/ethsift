@@ -1,7 +1,5 @@
 #define FAST_CODE 1
 #include <stdint.h>
-#include <stdlib.h>
-#include <math.h>
 
 #define DESCRIPTORS 128
 
