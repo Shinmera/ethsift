@@ -21,7 +21,7 @@ int convert_image(const ezsift::Image<unsigned char> &input,
 }
 
 void fail(const char *message){
-  fprintf(stderr, "[ERROR] %s\n", message);
+  fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);
 }
 
@@ -31,14 +31,14 @@ struct test{
 };
 
 int run_test(struct test test){
-  fprintf(stderr, "Running %-32s ... ", test.title);
+  fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
   auto t1 = std::chrono::high_resolution_clock::now();
   int ret = test.func();
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
   fprintf(stderr, " %10iµs ", duration);
-  fprintf(stderr, (ret==0)?"[FAIL]":"[OK  ]");
-  fprintf(stderr, "\n");
+  fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
+  fprintf(stderr, "\033[0;0m\n");
   return ret;
 }
 
@@ -47,7 +47,7 @@ int run_tests(struct test *tests, uint32_t count){
   int failures = 0;
   int passes = 0;
 
-  fprintf(stderr, "Prunning %i tests\n", count);
+  fprintf(stderr, "\033[1;33m --> \033[0;0mRunning %i tests\n", count);
   for(int i=0; i<count; ++i){
     if(run_test(tests[i])){
       passes++;
@@ -59,7 +59,7 @@ int run_tests(struct test *tests, uint32_t count){
   fprintf(stderr, "\nPassed: %3i", passes);
   fprintf(stderr, "\nFailed: %3i", failures);
   if(failures){
-    fprintf(stderr, "\nThe following tests failed:\n");
+    fprintf(stderr, "\n\033[1;33m --> \033[0;0mThe following tests failed:\n");
     for(int i=0; i<failures; ++i){
       fprintf(stderr, "%s\n", failed[i]);
     }
