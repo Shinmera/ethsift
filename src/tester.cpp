@@ -31,7 +31,7 @@ struct test{
 };
 
 int run_test(struct test test){
-  fprintf(stderr, "Running %-16s ... ", test.title);
+  fprintf(stderr, "Running %-32s ... ", test.title);
   auto t1 = std::chrono::high_resolution_clock::now();
   int ret = test.func();
   auto t2 = std::chrono::high_resolution_clock::now();
@@ -58,9 +58,11 @@ int run_tests(struct test *tests, uint32_t count){
   }
   fprintf(stderr, "\nPassed: %3i", passes);
   fprintf(stderr, "\nFailed: %3i", failures);
-  fprintf(stderr, "\nThe following tests failed:\n");
-  for(int i=0; i<failures; ++i){
-    fprintf(stderr, "%s\n", failed[i]);
+  if(failures){
+    fprintf(stderr, "\nThe following tests failed:\n");
+    for(int i=0; i<failures; ++i){
+      fprintf(stderr, "%s\n", failed[i]);
+    }
   }
   return (failures == 0);
 }
@@ -108,8 +110,8 @@ int main(int argc, char *argv[]){
   if(argc <= 1){
     int test_count = 2;
     struct test tests[2] = 
-      {{"Dummy", [](){return 1;}},
-       {"Dummy", [](){return 1;}}};
+      {{"Dummy pass", [](){return 1;}},
+       {"Dummy fail", [](){return 0;}}};
     return (run_tests(tests, test_count) == 0)? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;
