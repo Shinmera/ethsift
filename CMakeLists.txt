@@ -25,7 +25,8 @@ add_library(ethsift STATIC
   "src/gaussian_pyramid.c"
   "src/octaves.c"
   "src/downscale.c"
-  "src/apply_kernel.c")
+  "src/apply_kernel.c"
+  "src/detect_keypoints.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 
