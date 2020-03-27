@@ -62,7 +62,7 @@ int run_tests(struct test *tests, uint32_t count){
   for(int i=0; i<failures; ++i){
     fprintf(stderr, "%s\n", failed[i]);
   }
-  return 1;
+  return (failures == 0);
 }
 
 void compute_keypoints(char *file, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
@@ -109,8 +109,8 @@ int main(int argc, char *argv[]){
     int test_count = 2;
     struct test tests[2] = 
       {{"Dummy", [](){return 1;}},
-       {"Dummy", [](){return 0;}}};
-    run_tests(tests, test_count);
+       {"Dummy", [](){return 1;}}};
+    return (run_tests(tests, test_count) == 0)? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;
     char *file2 = (2 < argc)? argv[2] : 0;
