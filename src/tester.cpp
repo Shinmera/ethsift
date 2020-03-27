@@ -3,6 +3,7 @@
 #include "ezsift.h"
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <chrono>
 
 int convert_image(const ezsift::Image<unsigned char> &input,
@@ -108,10 +109,11 @@ int main(int argc, char *argv[]){
     fail("Failed to initialise ETHSIFT");
 
   if(argc <= 1){
-    int test_count = 2;
-    struct test tests[2] = 
+    int test_count = 3;
+    struct test tests[test_count] = 
       {{"Dummy pass", [](){return 1;}},
-       {"Dummy fail", [](){return 0;}}};
+       {"Dummy fail", [](){return 0;}},
+       {"Dummy wait", [](){sleep(1); return 1;}}};
     return (run_tests(tests, test_count) == 0)? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;
