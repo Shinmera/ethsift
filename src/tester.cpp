@@ -1,10 +1,9 @@
 // File implementing a test harness of some kind.
-#include "ethsift.h"
-#include "ezsift.h"
-#include <string.h>
-#include <stdio.h>
-#include <unistd.h>
+#include "tester.h"
 #include <chrono>
+
+int test_count = 0;
+struct test tests[1024] = {0};
 
 int convert_image(const ezsift::Image<unsigned char> &input,
                   struct ethsift_image *output){
@@ -21,15 +20,23 @@ int convert_image(const ezsift::Image<unsigned char> &input,
   return 1;
 }
 
+int load_image(const char *file, struct ethsift_image &image){
+  ezsift::Image<unsigned char> img;
+  if(img.read_pgm(file) != 0) return 0;
+  if(!convert_image(img, &image)) return 0;
+  return 1;
+}
+
+int compare_image(struct ethsift_image a, struct ethsift_image b){
+  return (a.width == b.width)
+    && (b.height == b.height)
+    && (memcmp(a.pixels, b.pixels, a.width*a.height*sizeof(float)) == 0);
+}
+
 void fail(const char *message){
   fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);
 }
-
-struct test{
-  const char *title;
-  int (*func)();
-};
 
 int run_test(struct test test){
   fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
@@ -58,9 +65,9 @@ int run_tests(struct test *tests, uint32_t count){
     }
   }
   fprintf(stderr, "\nPassed: %3i", passes);
-  fprintf(stderr, "\nFailed: %3i", failures);
+  fprintf(stderr, "\nFailed: %3i\n", failures);
   if(failures){
-    fprintf(stderr, "\n\033[1;33m --> \033[0;0mThe following tests failed:\n");
+    fprintf(stderr, "\033[1;33m --> \033[0;0mThe following tests failed:\n");
     for(int i=0; i<failures; ++i){
       fprintf(stderr, "%s\n", failed[i]);
     }
@@ -109,11 +116,6 @@ int main(int argc, char *argv[]){
     fail("Failed to initialise ETHSIFT");
 
   if(argc <= 1){
-    int test_count = 3;
-    struct test tests[test_count] = 
-      {{"Dummy pass", [](){return 1;}},
-       {"Dummy fail", [](){return 0;}},
-       {"Dummy wait", [](){sleep(1); return 1;}}};
     return (run_tests(tests, test_count) == 0)? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;

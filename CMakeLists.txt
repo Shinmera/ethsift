@@ -26,6 +26,7 @@ set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 
 ## Test Harness Build
 add_executable(tester
-  "src/tester.cpp")
+  "src/tester.cpp"
+  "src/tests.cpp")
 set_property(TARGET tester PROPERTY CXX_STANDARD 11)
 target_link_libraries(tester PRIVATE ezsift ethsift)
