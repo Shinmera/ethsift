@@ -1,12 +1,14 @@
 // File implementing a test harness of some kind.
 #include "tester.h"
-#include <chrono>
 
 struct test{
   const char *title;
   int (*func)();
 };
 
+std::chrono::time_point<std::chrono::high_resolution_clock> start;
+size_t duration = 0;
+bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
 
@@ -51,10 +53,18 @@ void fail(const char *message){
 
 int run_test(struct test test){
   fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
-  auto t1 = std::chrono::high_resolution_clock::now();
+  duration = 0;
+  // Start measurement without the pending check to allow user override
+  start = std::chrono::high_resolution_clock::now();
+  // Run the check.
   int ret = test.func();
-  auto t2 = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+  // If we had no other measurement so far, force our start by setting the pending now.
+  if(duration == 0) measurement_pending = true;
+  // End any possible measurement that might still be going on now.
+  // We have to do this here in order to allow correct measurement even in the face
+  // of early returns from within measurement blocks. We do not have an unwind-protect
+  // operator in C after all.
+  end_measurement();
   fprintf(stderr, " %10iµs ", duration);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
