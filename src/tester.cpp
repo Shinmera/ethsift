@@ -42,7 +42,7 @@ int load_image(const char *file, struct ethsift_image &image){
 
 int compare_image(struct ethsift_image a, struct ethsift_image b){
   return (a.width == b.width)
-    && (b.height == b.height)
+    && (a.height == b.height)
     && (memcmp(a.pixels, b.pixels, a.width*a.height*sizeof(float)) == 0);
 }
 
