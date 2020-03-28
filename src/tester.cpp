@@ -2,8 +2,19 @@
 #include "tester.h"
 #include <chrono>
 
+struct test{
+  const char *title;
+  int (*func)();
+};
+
 int test_count = 0;
 struct test tests[1024] = {0};
+
+int register_test(const char *title, int (*func)()){
+  tests[test_count].title = title;
+  tests[test_count].func = func;
+  return ++test_count;
+}
 
 int convert_image(const ezsift::Image<unsigned char> &input,
                   struct ethsift_image *output){

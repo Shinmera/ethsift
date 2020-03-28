@@ -4,19 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-struct test{
-  const char *title;
-  int (*func)();
-};
-
-extern struct test tests[1024];
-extern int test_count;
-
-static int register_test(const char *title, int (*func)()){
-  tests[test_count].title = title;
-  tests[test_count].func = func;
-  return ++test_count;
-}
+int register_test(const char *title, int (*func)());
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
