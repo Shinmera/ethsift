@@ -1,0 +1,20 @@
+name: Test
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install prerequisites
+      run: |
+        sudo apt-get -qq update | true
+        sudo apt-get -qq install cmake extra-cmake-modules gcc
+    - name: Configure project
+      run: |
+        mkdir build && cd build && cmake ..
+    - name: Build project
+      run: |
+        cmake --build build
+    - name: Run tests
+      run: |
+        ./build/tester
