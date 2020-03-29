@@ -1,4 +1,5 @@
-#define FAST_CODE 1
+#ifndef ETHSIFT_H
+#define ETHSIFT_H 1
 #include <stdint.h>
 
 #define DESCRIPTORS 128
@@ -94,3 +95,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif 
+#endif

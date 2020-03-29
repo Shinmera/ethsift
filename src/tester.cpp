@@ -24,8 +24,8 @@ int convert_image(const ezsift::Image<unsigned char> &input,
   output->height = input.h;
   output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
   if(output->pixels == 0) return 0;
-  for(size_t y=0; y<input.h; ++y){
-    for(size_t x=0; x<input.w; ++x){
+  for(int y=0; y<input.h; ++y){
+    for(int x=0; x<input.w; ++x){
       size_t idx = y*input.w+x;
       output->pixels[idx] = (float) input.data[idx];
     }
@@ -54,6 +54,25 @@ int compare_image(struct ethsift_image a, struct ethsift_image b){
     && (memcmp(a.pixels, b.pixels, a.width*a.height*sizeof(float)) == 0);
 }
 
+int compare_image_approx(const ezsift::Image<unsigned char> &ez_img,
+                  struct ethsift_image &eth_img){
+               
+  struct ethsift_image conv_ez_img = {0};     
+  convert_image(ez_img, &conv_ez_img);
+  return compare_image_approx(conv_ez_img, eth_img);
+}
+
+int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){
+  if(a.width != b.width) return 0;
+  if(a.height != b.height) return 0;
+  for(size_t i=0; i<a.width*a.height; ++i){
+    float diff = a.pixels[i] - b.pixels[i];
+    if(diff < 0.0) diff *= -1;
+    if(eps < diff) return 0;
+  }
+  return 1;
+}
+
 void fail(const char *message){
   fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);
@@ -73,7 +92,7 @@ int run_test(struct test test){
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  fprintf(stderr, " %10iµs ", duration);
+  fprintf(stderr, " %10liµs ", duration);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
@@ -85,7 +104,7 @@ int run_tests(struct test *tests, uint32_t count){
   int passes = 0;
 
   fprintf(stderr, "\033[1;33m --> \033[0;0mRunning %i tests\n", count);
-  for(int i=0; i<count; ++i){
+  for(uint32_t i=0; i<count; ++i){
     if(run_test(tests[i])){
       passes++;
     }else{

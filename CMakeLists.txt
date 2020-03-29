@@ -29,6 +29,7 @@ add_library(ethsift STATIC
   "src/detect_keypoints.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
+target_compile_options(ethsift PRIVATE -O3 -Wall -Wno-unused-variable -mfma -mavx2)
 
 ## Test Harness Build
 add_executable(tester
@@ -36,3 +37,4 @@ add_executable(tester
   "src/tests.cpp")
 set_property(TARGET tester PROPERTY CXX_STANDARD 11)
 target_link_libraries(tester PRIVATE ezsift ethsift)
+target_compile_options(tester PRIVATE -Wall -Wno-unused-variable)

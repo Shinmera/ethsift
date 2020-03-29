@@ -27,7 +27,7 @@ define_test(TestDownscale, {
   const ezsift::Image<unsigned char> ez_img_downscaled = ez_img.downsample_2x();
   
   //compare files 
-  return compare_image(ez_img_downscaled, eth_img);
+  return compare_image_approx(ez_img_downscaled, eth_img);
   })
 
 define_test(TestConvolution, {  
@@ -77,7 +77,7 @@ define_test(TestOctaves, {
     int res = 0;
     //Compare obtained Octaves in a loop
     for(int i = 1; i < nOctaves; ++i){
-      res += compare_image(ez_octaves[i], eth_octaves[i]);
+      res += compare_image_approx(ez_octaves[i], eth_octaves[i]);
     }
     if(res == nOctaves)
       return 1;
