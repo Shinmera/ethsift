@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ethsift.h"
 #include "ezsift.h"
 #include <string.h>
@@ -25,7 +27,7 @@ int load_image(const char *file, struct ethsift_image &image);
 
 
 // Compare two images for pixel precise equality
-int compare_image(ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
+int compare_image(const ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
 
 // Compare two images for pixel precise equality
 int compare_image(struct ethsift_image a, struct ethsift_image b);
