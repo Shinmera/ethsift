@@ -71,7 +71,7 @@ define_test(TestOctaves, {
     if(!convert_image(ez_img, &eth_img)) return 0;
 
     //Init Octaves
-    int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
+    const int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
 
     std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
 
@@ -118,8 +118,8 @@ define_test(TestGaussianPyramid, {
 
 
     //Init Octaves
-    int nGpyrLayers = 6;
-    int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
+    const int nGpyrLayers = 6;
+    const int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
 
     std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
 
