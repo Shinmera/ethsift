@@ -20,10 +20,10 @@ define_test(TestDownscale, {
   }
 
   //Downscale ETH Image
-  struct ethsift_image eth_img_downscaled = {0};
   int srcW = eth_img.width;
   int srcH = eth_img.height;
-  if(!allocate_image(&eth_img_downscaled)) return 0;
+  struct ethsift_image eth_img_downscaled = allocate_image(srcW, srcH);
+  if(!eth_img_downscaled.pixels) return 0;
   int dstW = srcW >> 1;
   int dstH = srcH >> 1;
   eth_img_downscaled.width = srcW;

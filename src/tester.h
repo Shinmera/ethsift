@@ -21,7 +21,7 @@ int register_test(const char *title, int (*func)());
 #define define_test(TITLE,...) static int __test_ ## TITLE = register_test(# TITLE, []()__VA_ARGS__);
 
 // Allocate the pixel array in the given output image according to its width and height.
-int allocate_image(struct ethsift_image *output);
+struct ethsift_image allocate_image(uint32_t width, uint32_t height);
 
 // Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_image *output);

@@ -18,9 +18,12 @@ int register_test(const char *title, int (*func)()){
   return ++test_count;
 }
 
-int allocate_image(struct ethsift_image *output){
-  output->pixels = (float*) calloc(sizeof(float), output->width*output->height);
-  return (output->pixels != 0);
+struct ethsift_image allocate_image(uint32_t width, uint32_t height){
+  struct ethsift_image output = {0};
+  output.width = width;
+  output.height = height;
+  output.pixels = (float*) calloc(sizeof(float), width*height);
+  return output;
 }
 
 int convert_image(const ezsift::Image<unsigned char> &input,
