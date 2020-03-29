@@ -11,7 +11,7 @@
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;
 extern bool measurement_pending;
-#define EPS 0.00001
+#define EPS 0.001
 
 int register_test(const char *title, int (*func)());
 

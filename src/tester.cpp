@@ -59,7 +59,7 @@ int compare_image_approx(const ezsift::Image<unsigned char> &ez_img,
                
   struct ethsift_image conv_ez_img = {0};     
   convert_image(ez_img, &conv_ez_img);
-  return compare_image_approx(conv_ez_img, eth_img);
+  return compare_image_approx(conv_ez_img, eth_img, EPS);
 }
 
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){

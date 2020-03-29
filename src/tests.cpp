@@ -5,13 +5,19 @@ define_test(Dummy, {
   })
 
 define_test(TestDownscale, {
-  char const *file = "./data/lena.pgm";
+  char const *file = "../data/lena.pgm";
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
   
-  if(ez_img.read_pgm(file) != 0) return 0;  
-  if(!convert_image(ez_img, &eth_img)) return 0;
+  if(ez_img.read_pgm(file) != 0) {
+    printf("ERROR: reading failed and returned.");
+    return 0;
+  } 
+  if(!convert_image(ez_img, &eth_img)){
+    printf("ERROR: conversion failed and returned.");
+    return 0;
+  } 
 
   //Downscale ETH Image
   struct ethsift_image eth_img_downscaled = {0};
@@ -27,7 +33,9 @@ define_test(TestDownscale, {
   const ezsift::Image<unsigned char> ez_img_downscaled = ez_img.downsample_2x();
   
   //compare files 
-  return compare_image_approx(ez_img_downscaled, eth_img);
+  int res = compare_image_approx(ez_img_downscaled, eth_img);
+  printf("TESTDOWNSCALE compared the two images and found %d", res);
+  return res;
   })
 
 define_test(TestConvolution, {  
