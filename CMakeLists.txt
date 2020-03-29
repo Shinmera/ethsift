@@ -26,7 +26,8 @@ add_library(ethsift STATIC
   "src/octaves.c"
   "src/downscale.c"
   "src/apply_kernel.c"
-  "src/detect_keypoints.c")
+  "src/detect_keypoints.c"
+  "src/refine_local_extrema.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)
@@ -38,3 +39,4 @@ add_executable(tester
 set_property(TARGET tester PROPERTY CXX_STANDARD 11)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
+target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
