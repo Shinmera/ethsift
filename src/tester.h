@@ -23,6 +23,10 @@ int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_imag
 // Directly load an ethsift image
 int load_image(const char *file, struct ethsift_image &image);
 
+
+// Compare two images for pixel precise equality
+int compare_image(ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
+
 // Compare two images for pixel precise equality
 int compare_image(struct ethsift_image a, struct ethsift_image b);
 

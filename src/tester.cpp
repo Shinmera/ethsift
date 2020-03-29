@@ -40,6 +40,14 @@ int load_image(const char *file, struct ethsift_image &image){
   return 1;
 }
 
+int compare_image(const ezsift::Image<unsigned char> &ez_img,
+                  struct ethsift_image &eth_img){
+               
+  struct ethsift_image conv_ez_img = {0};     
+  convert_image(ez_img, &conv_ez_img);
+  return compare_image(conv_ez_img, eth_img);
+}
+
 int compare_image(struct ethsift_image a, struct ethsift_image b){
   return (a.width == b.width)
     && (a.height == b.height)
