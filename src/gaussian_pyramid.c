@@ -76,7 +76,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
                                     gaussians[0]);
             }
             else if (i > 0 && j == 0) {
-                ethsift_downscale_linear(gaussians[(i - 1) * gaussian_count + layers_count],
+                ethsift_downscale_half(gaussians[(i - 1) * gaussian_count + layers_count],
                                          gaussians[i * gaussian_count]);
             }
             else {
