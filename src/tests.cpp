@@ -4,14 +4,8 @@
 //     return 1;
 //   })
 
-<<<<<<< HEAD
-
 define_test(TestCompareImageApprox, {
-  char const *file = "../data/lena.pgm";
-=======
-define_test(TestDownscale, {
-    char const *file = data_file("lena.pgm");
->>>>>>> 62219b9add21dc14ba0c841f979badcc60a3dc68
+  char const *file = data_file("lena.pgm");
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
@@ -26,7 +20,7 @@ define_test(TestDownscale, {
 })
 
 define_test(TestDownscale, {
-  char const *file = "../data/lena.pgm";
+  char const *file = data_file("lena.pgm");
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
@@ -54,24 +48,14 @@ define_test(TestDownscale, {
   return res;
   })
 
-<<<<<<< HEAD
+
 // define_test(TestConvolution, {  
-//     char const *file = "./data/lena.pgm";
-//     //init files 
+//     char const *file = data_file("lena.pgm");
+    //init files 
 //     ezsift::Image<unsigned char> ez_img;
 //     struct ethsift_image eth_img = {0};
 //     if(ez_img.read_pgm(file) != 0) return 0;  
 //     if(!convert_image(ez_img, &eth_img)) return 0;
-=======
-define_test(TestConvolution, {  
-    char const *file = data_file("lena.pgm");
-    //init files 
-    ezsift::Image<unsigned char> ez_img;
-    struct ethsift_image eth_img = {0};
-    if(ez_img.read_pgm(file) != 0) return 0;  
-    if(!convert_image(ez_img, &eth_img)) return 0;
->>>>>>> 62219b9add21dc14ba0c841f979badcc60a3dc68
-
 //     //TODO: implement TEST
 
 //     return 1;
@@ -79,19 +63,11 @@ define_test(TestConvolution, {
 
 // define_test(TestOctaves, {
   
-<<<<<<< HEAD
-//     char const *file = "./data/lena.pgm";
+//     char const *file = data_file("lena.pgm");
 //     //init files 
 //     ezsift::Image<unsigned char> ez_img;
 //     struct ethsift_image eth_img = {0};
 //     if(ez_img.read_pgm(file) != 0) return 0;  
-=======
-    char const *file = data_file("lena.pgm");
-    //init files 
-    ezsift::Image<unsigned char> ez_img;
-    struct ethsift_image eth_img = {0};
-    if(ez_img.read_pgm(file) != 0) return 0;  
->>>>>>> 62219b9add21dc14ba0c841f979badcc60a3dc68
 
 //     //Init Octaves
 //     int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
@@ -127,9 +103,8 @@ define_test(TestConvolution, {
 //   })
 
 // define_test(TestGaussianPyramid, {
-  
-<<<<<<< HEAD
-//     char const *file = "./data/lena.pgm";
+
+//     char const *file = data_file("lena.pgm");
 //     //init files 
 //     ezsift::Image<unsigned char> ez_img;
 //     struct ethsift_image eth_img = {0};
@@ -137,16 +112,6 @@ define_test(TestConvolution, {
 //     if(!convert_image(ez_img, &eth_img)) return 0;
 
 //     //TODO: implement TEST
-=======
-    char const *file = data_file("lena.pgm");
-    //init files 
-    ezsift::Image<unsigned char> ez_img;
-    struct ethsift_image eth_img = {0};
-    if(ez_img.read_pgm(file) != 0) return 0;  
-    if(!convert_image(ez_img, &eth_img)) return 0;
-
-    //TODO: implement TEST
->>>>>>> 62219b9add21dc14ba0c841f979badcc60a3dc68
     
 //     return 1;
 //   })
