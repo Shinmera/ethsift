@@ -40,6 +40,21 @@ int convert_image(const ezsift::Image<unsigned char> &input,
   return 1;
 }
 
+int convert_image(const ezsift::Image<float> &input,
+                  struct ethsift_image *output){
+  output->width = input.w;
+  output->height = input.h;
+  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
+  if(output->pixels == 0) return 0;
+  for(int y=0; y<input.h; ++y){
+    for(int x=0; x<input.w; ++x){
+      size_t idx = y*input.w+x;
+      output->pixels[idx] = (float) input.data[idx];
+    }
+  }
+  return 1;
+}
+
 int load_image(const char *file, struct ethsift_image &image){
   ezsift::Image<unsigned char> img;
   if(img.read_pgm(file) != 0) return 0;
@@ -62,6 +77,14 @@ int compare_image(struct ethsift_image a, struct ethsift_image b){
 }
 
 int compare_image_approx(const ezsift::Image<unsigned char> &ez_img,
+                  struct ethsift_image &eth_img){
+               
+  struct ethsift_image conv_ez_img = {0};     
+  convert_image(ez_img, &conv_ez_img);
+  return compare_image_approx(conv_ez_img, eth_img, EPS);
+}
+
+int compare_image_approx(const ezsift::Image<float> &ez_img,
                   struct ethsift_image &eth_img){
                
   struct ethsift_image conv_ez_img = {0};     
