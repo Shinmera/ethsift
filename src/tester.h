@@ -1,4 +1,7 @@
 #pragma once
+#ifndef ETHSIFT_DATA
+#error "ETHSIFT_DATA must be defined."
+#endif
 
 #include "ethsift.h"
 #include "ezsift.h"
@@ -19,6 +22,16 @@ int register_test(const char *title, int (*func)());
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
 #define define_test(TITLE,...) static int __test_ ## TITLE = register_test(# TITLE, []()__VA_ARGS__);
+
+// Return an absolute path to a file within the project root's data/ directory.
+static char *data_file(const char *file){
+  const char *data = ETHSIFT_DATA;
+  char *path = (char*)calloc(sizeof(char), strlen(data)+strlen(file)+1);
+  path = strcat(path, data);
+  path = strcat(path, "/");
+  path = strcat(path, file);
+  return path;
+}
 
 // Allocate the pixel array in the given output image according to its width and height.
 struct ethsift_image allocate_image(uint32_t width, uint32_t height);

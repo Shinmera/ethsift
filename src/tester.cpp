@@ -1,4 +1,3 @@
-// File implementing a test harness of some kind.
 #include "tester.h"
 
 struct test{

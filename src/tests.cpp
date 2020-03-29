@@ -5,7 +5,7 @@ define_test(Dummy, {
   })
 
 define_test(TestDownscale, {
-  char const *file = "../data/lena.pgm";
+    char const *file = data_file("lena.pgm");
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
@@ -40,7 +40,7 @@ define_test(TestDownscale, {
   })
 
 define_test(TestConvolution, {  
-    char const *file = "./data/lena.pgm";
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -54,7 +54,7 @@ define_test(TestConvolution, {
 
 define_test(TestOctaves, {
   
-    char const *file = "./data/lena.pgm";
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -95,7 +95,7 @@ define_test(TestOctaves, {
 
 define_test(TestGaussianPyramid, {
   
-    char const *file = "./data/lena.pgm";
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
