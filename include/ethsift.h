@@ -49,8 +49,8 @@ extern "C" {
   // Apply the gaussian kernel to the image and write the result to the output.
   int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output);
 
-  // Downscale the image linearly by half and write the result to the output.
-  int ethsift_downscale_linear(struct ethsift_image image, struct ethsift_image output);
+  // Downscale the image by half and write the result to the output.
+  int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image output);
 
   // Fill the octave pyramid by downsampling repeatedly.
   int ethsift_generate_octaves(struct ethsift_image image, struct ethsift_image octaves[], uint32_t octave_count);

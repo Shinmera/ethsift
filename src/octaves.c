@@ -30,7 +30,7 @@ int ethsift_generate_octaves(struct ethsift_image image,
             octaves[i] = image;
         }
         else {
-            ethsift_downscale_linear(octaves[i-1], octaves[i]);
+            ethsift_downscale_half(octaves[i-1], octaves[i]);
             // Zsombors optimization (since downscaled image is not needed in any case):
             // octaves[i].width = octaves[i-1].width * 0.5f;
             // octaves[i].height = octaves[i-1].height * 0.5f;
