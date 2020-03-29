@@ -25,9 +25,10 @@ int ethsift_generate_octaves(struct ethsift_image image,
     // of the original image before processing.
     // Also some (seemingly) irrelevant divisions were left out in our implementation. 
 
-    for (int i = 1; i < octave_count; i++) {
+
+    for (int i = 0; i < octave_count; i++) {
         if (i == 0) {
-            octaves[i] = image;
+            octaves[i].pixels = image.pixels;
         }
         else {
             ethsift_downscale_half(octaves[i-1], octaves[i]);

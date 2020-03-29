@@ -51,7 +51,7 @@ define_test(TestDownscale, {
 
 // define_test(TestConvolution, {  
 //     char const *file = data_file("lena.pgm");
-    //init files 
+//     init files 
 //     ezsift::Image<unsigned char> ez_img;
 //     struct ethsift_image eth_img = {0};
 //     if(ez_img.read_pgm(file) != 0) return 0;  
@@ -61,46 +61,51 @@ define_test(TestDownscale, {
 //     return 1;
 //   })
 
-// define_test(TestOctaves, {
+define_test(TestOctaves, {
   
-//     char const *file = data_file("lena.pgm");
-//     //init files 
-//     ezsift::Image<unsigned char> ez_img;
-//     struct ethsift_image eth_img = {0};
-//     if(ez_img.read_pgm(file) != 0) return 0;  
+    char const *file = data_file("lena.pgm");
+    //init files 
+    ezsift::Image<unsigned char> ez_img;
+    struct ethsift_image eth_img = {0};
+    if(ez_img.read_pgm(file) != 0) return 0;     
+    if(!convert_image(ez_img, &eth_img)) return 0;
 
-//     //Init Octaves
-//     int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
+    //Init Octaves
+    int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
 
-//     std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
+    std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
 
-//     struct ethsift_image eth_octaves[nOctaves];
-//     for(int i = 1; i < nOctaves; ++i){
-//       eth_octaves[i] = {0};
-      
-//       int srcW = eth_octaves[i-1].width; 
-//       int srcH = eth_octaves[i-1].height;
-//       int dstW = srcW >> 1;
-//       int dstH = srcH >> 1;
-//       eth_octaves[i].width = dstW;
-//       eth_octaves[i].height = dstH;
-//     }
+    struct ethsift_image eth_octaves[nOctaves];
+    int srcW = eth_img.width; 
+    int srcH = eth_img.height;
+    int dstW = srcW;
+    int dstH = srcH;
+    eth_octaves[0] = allocate_image(dstW, dstH);
+    for(int i = 1; i < nOctaves; ++i){
+      eth_octaves[i] = {0};
+      srcW = dstW;
+      srcH = dstH;
+      dstW = srcW >> 1;
+      dstH = srcH >> 1;
+      eth_octaves[i] = allocate_image(dstW, dstH);
+    }
 
-//     //Create Octaves for ethSift    
-//     ethsift_generate_octaves(eth_img, eth_octaves, nOctaves);
+    //Create Octaves for ethSift    
+    ethsift_generate_octaves(eth_img, eth_octaves, nOctaves);
 
-//     //Create Octaves for ezSift    
-//     build_octaves(ez_img, ez_octaves, 0, nOctaves);
+    //Create Octaves for ezSift    
+    build_octaves(ez_img, ez_octaves, 0, nOctaves);
 
-//     int res = 0;
-//     //Compare obtained Octaves in a loop
-//     for(int i = 1; i < nOctaves; ++i){
-//       res += compare_image_approx(ez_octaves[i], eth_octaves[i]);
-//     }
-//     if(res == nOctaves)
-//       return 1;
-//     else return 0;
-//   })
+    int res = 0;
+    //Compare obtained Octaves in a loop
+    for(int i = 0; i < nOctaves; ++i){
+      res += compare_image_approx(ez_octaves[i], eth_octaves[i]);
+    }
+    //printf("TEST OCTAVE RETURN: %d\n", res);
+    if(res == nOctaves)
+      return 1;
+    else return 0;
+  })
 
 // define_test(TestGaussianPyramid, {
 
