@@ -7,7 +7,7 @@
 /// <param name="output"> OUT: Downscaled image. </param>
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image output){
-  // int srcW = image.width, srcH = image.height;
+  int srcW = image.width, srcH = image.height;
   int dstW = output.width, dstH = output.height;
   // output.width = srcW;
   // output.height = srcH;
