@@ -17,7 +17,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   int layersDoG = layers - 1;
 
   // Requested number of keypoints and actual number of keypoints
-  uint32_t keypoints_required = keypoint_count;
+  uint32_t keypoints_required = *keypoint_count;
   uint32_t keypoints_found = 0;
   uint32_t keypoints_current = 0;
 
@@ -124,7 +124,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   }
 
   // Update count with actual number of keypoints found
-  keypoint_count = keypoints_found;
+  keypoint_count = &keypoints_found;
   
   return 0;
 }
