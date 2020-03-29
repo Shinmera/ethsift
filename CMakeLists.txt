@@ -26,7 +26,8 @@ add_library(ethsift STATIC
   "src/octaves.c"
   "src/downscale.c"
   "src/apply_kernel.c"
-  "src/detect_keypoints.c")
+  "src/detect_keypoints.c"
+  "src/refine_local_extrema.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)
