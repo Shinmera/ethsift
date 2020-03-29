@@ -2,7 +2,7 @@
 
 
 // Apply Gaussian row filter to image and then transpose the image
-int row_filter_transpose(float *pixels, float *output, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, uint32_t w, uint32_t h) {
+int row_filter_transpose(float *pixels, float *output, int w, int h, float *kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
   // TODO Work in progress
@@ -11,7 +11,7 @@ int row_filter_transpose(float *pixels, float *output, float *kernel, uint32_t k
   int elemSize = sizeof(float);
 
   float *row_start;
-  float *coef;
+  float *coef = kernel;
   float *prow;
 
   float *srcData = pixels;
@@ -58,13 +58,16 @@ int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t ker
   uint32_t w = image.width;
   uint32_t h = image.height;
 
-  output.height = w;
-  output.width = h;
-  
-  float* temp = (float*)malloc(w * h * sizeof(float));
-  row_filter_transpose(image.pixels, temp, kernel, kernel_size, kernel_rad, w, h);
-  row_filter_transpose(temp, output.pixels, kernel, kernel_size, kernel_rad, h, w);
+  //output.height = h;
+  //output.width = w;
 
+  float *out = output.pixels;
+
+  float* temp = (float*)malloc(w * h * sizeof(float));
+  
+  row_filter_transpose(image.pixels, temp, w, h, kernel, kernel_size, kernel_rad);
+  row_filter_transpose(temp, out, w, h, kernel, kernel_size, kernel_rad);
+  
   free(temp);
 
   return 1;
