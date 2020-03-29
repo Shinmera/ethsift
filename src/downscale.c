@@ -17,7 +17,7 @@ int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image outp
     for (int c = 0; c < dstW; c++) {
       int ori_r = r << 1;
       int ori_c = c << 1;
-      output.pixels[r * dstW + c] = output.pixels[ori_r * srcW + ori_c];
+      output.pixels[r * dstW + c] = image.pixels[ori_r * srcW + ori_c];
     }
   }
   return 1;

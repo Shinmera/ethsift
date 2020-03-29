@@ -71,12 +71,21 @@ int compare_image_approx(const ezsift::Image<unsigned char> &ez_img,
 }
 
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){
-  if(a.width != b.width) return 0;
-  if(a.height != b.height) return 0;
+  if(a.width != b.width){
+    //printf("COMPARE_IMAGE_APPROX WIDTH: a.w = %d ; b.w = %d\n", a.width, b.width);
+    return 0;
+  }
+  if(a.height != b.height){
+    //printf("COMPARE_IMAGE_APPROX HEIGHT: a.h = %d ; b.h = %d\n", a.height, b.height);
+    return 0;
+  }
   for(size_t i=0; i<a.width*a.height; ++i){
     float diff = a.pixels[i] - b.pixels[i];
     if(diff < 0.0) diff *= -1;
-    if(eps < diff) return 0;
+    if(eps < diff) {
+      //printf("COMPARE_IMAGE_APPROX PIXEL: index = %d ; val a = %f ; val b = %f\n", (int)i, a.pixels[i], b.pixels[i]);
+      return 0;
+    }
   }
   return 1;
 }
