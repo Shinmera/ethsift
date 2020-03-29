@@ -76,7 +76,7 @@ int run_test(struct test test){
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  fprintf(stderr, " %10iµs ", duration);
+  fprintf(stderr, " %10liµs ", duration);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
