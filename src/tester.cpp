@@ -46,6 +46,17 @@ int compare_image(struct ethsift_image a, struct ethsift_image b){
     && (memcmp(a.pixels, b.pixels, a.width*a.height*sizeof(float)) == 0);
 }
 
+int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){
+  if(a.width != b.width) return 0;
+  if(a.height != b.height) return 0;
+  for(size_t i=0; i<a.width*a.height; ++i){
+    float diff = a.pixels[i] - b.pixels[i];
+    if(diff < 0.0) diff *= -1;
+    if(eps < diff) return 0;
+  }
+  return 1;
+}
+
 void fail(const char *message){
   fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);

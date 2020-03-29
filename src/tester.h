@@ -9,6 +9,7 @@
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;
 extern bool measurement_pending;
+#define EPS 0.00001
 
 int register_test(const char *title, int (*func)());
 
@@ -23,8 +24,12 @@ int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_imag
 // Directly load an ethsift image
 int load_image(const char *file, struct ethsift_image &image);
 
-// Compare two images for pixel precise equality
+// Compare two images for pixel precise equality. Returns 1 if they match, 0 otherwise.
 int compare_image(struct ethsift_image a, struct ethsift_image b);
+
+// Compare two images for approximate equality. Returns 1 if they match, 0 otherwise.
+// Pixels are considered to be equal if their difference is smaller than eps.
+int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps);
 
 // Start a time measurement section.
 // Note: If no explicit measurement sections are defined, the entire test
