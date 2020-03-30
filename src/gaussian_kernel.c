@@ -41,7 +41,15 @@ int ethsift_generate_gaussian_kernel(float *kernel,
 }
 
 
-
+/// <summary> 
+/// Creates a gaussian kernel for image filtering.
+/// </summary>
+/// <param name="layers_count"> IN: Amount of layers. </param>
+/// <param name="gaussian_count"> IN: Amount of gaussian kernels to generate. </param>
+/// <param name="kernel_ptrs"> OUT: Pointers to the kernels </param>
+/// <param name="kernel_rads"> OUT: The radii of all the kernels stored in an array. </param> 
+/// <param name="kernel_sizes"> OUT: The sizes of all the kernels stored in an array. </param> 
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_generate_all_kernels(int layers_count, 
                                 uint32_t gaussian_count, 
                                 float **kernel_ptrs, 
@@ -92,7 +100,12 @@ int ethsift_generate_all_kernels(int layers_count,
     return 1;
 }
 
-
+/// <summary> 
+/// Frees up the allocated memory of the kernels
+/// </summary>
+/// <param name="kernel_ptrs"> IN: Pointers to the kernels for freeing up</param>
+/// <param name="gaussian_count"> IN: Amount of gaussian kernels. </param>
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_free_kernels(float** kernel_ptrs, uint32_t gaussian_count){
     //free kernels!
     for (int i = 1; i < gaussian_count; ++i) {

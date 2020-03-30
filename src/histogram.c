@@ -1,12 +1,12 @@
 #include "internal.h"
 
 /// <summary> 
-/// Compute the histogram for the given keypoint in the image
+/// Compute the histogram for the given keypoints in the image.
 /// </summary>
 /// <param name="gradient"> IN: DOG pyramid. </param>
-/// <param name="rotation"> IN: Number of octaves. </param>
-/// <param name="keypoint"> IN: Struct of gaussians to compute.
-/// <param name="histogram"> OUT: Number of gaussian blurred images per layer. </param> 
+/// <param name="rotation"> IN: Rotations?. </param>
+/// <param name="keypoint"> IN: Detected Keypoints.
+/// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
 /// <returns> max value in the histogram IF computation was successful, ELSE 0. </returns>
 int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram, float *max_histval){
     int bin_count = ETHSIFT_ORI_HIST_BINS;
