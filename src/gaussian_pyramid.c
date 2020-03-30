@@ -23,8 +23,8 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     
     
     float* kernel_ptrs[gaussian_count]; 
-    uint32_t kernel_rads[gaussian_count];
-    uint32_t kernel_sizes[gaussian_count];
+    int kernel_rads[gaussian_count];
+    int kernel_sizes[gaussian_count];
 
 
     ethsift_generate_all_kernels(layers_count, gaussian_count, kernel_ptrs, kernel_rads, kernel_sizes);
