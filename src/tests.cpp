@@ -93,10 +93,7 @@ define_test(TestConvolution, {
     // // Write blurred ezsift image
     // ez_img_blurred.write_pgm("ez.pgm");
     
-    struct ethsift_image conv_ez_img = {0};     
-    convert_image(ez_img_blurred.to_uchar(), &conv_ez_img);
-    int res = compare_image_approx(conv_ez_img, output, 1.0f);
-
+    int res = compare_image_approx(ez_img_blurred, output);
     return res;
   })
 
@@ -152,7 +149,6 @@ define_test(TestGaussianPyramid, {
     struct ethsift_image eth_img = {0};
     if(ez_img.read_pgm(file) != 0) return 0;  
     if(!convert_image(ez_img, &eth_img)) return 0;
-
 
     //Init Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);

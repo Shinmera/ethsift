@@ -42,7 +42,7 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
       output[dst_ind] = partialSum;
       dst_ind += h;
     }
-    
+
     row_ind += w;
   }
 
