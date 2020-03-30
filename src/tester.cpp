@@ -3,6 +3,7 @@
 
 struct test{
   const char *title;
+  const char *reason;
   int (*func)();
 };
 
@@ -14,8 +15,30 @@ struct test tests[1024] = {0};
 
 int register_test(const char *title, int (*func)()){
   tests[test_count].title = title;
+  tests[test_count].reason = 0;
   tests[test_count].func = func;
-  return ++test_count;
+  return test_count++;
+}
+
+static int _debugger_present = -1;
+static void _sigtrap_handler(int signum){
+  _debugger_present = 0;
+  signal(SIGTRAP, SIG_DFL);
+}
+
+void debug_break(void){
+  if (-1 == _debugger_present) {
+    _debugger_present = 1;
+    signal(SIGTRAP, _sigtrap_handler);
+    raise(SIGTRAP);
+  }
+}
+
+int register_failure(int test, const char *reason){
+  if(test_count <= test) return 0;
+  tests[test].reason = reason;
+  debug_break();
+  return 1;
 }
 
 int convert_image(const ezsift::Image<unsigned char> &input,
@@ -57,7 +80,7 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
   return 1;
 }
 
-void fail(const char *message){
+void abort(const char *message){
   fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);
 }
@@ -83,7 +106,7 @@ int run_test(struct test test){
 }
 
 int run_tests(struct test *tests, uint32_t count){
-  const char *failed[count];
+  int failed[count];
   int failures = 0;
   int passes = 0;
 
@@ -92,7 +115,7 @@ int run_tests(struct test *tests, uint32_t count){
     if(run_test(tests[i])){
       passes++;
     }else{
-      failed[failures] = tests[i].title;
+      failed[failures] = i;
       failures++;
     }
   }
@@ -101,7 +124,8 @@ int run_tests(struct test *tests, uint32_t count){
   if(failures){
     fprintf(stderr, "\033[1;33m --> \033[0;0mThe following tests failed:\n");
     for(int i=0; i<failures; ++i){
-      fprintf(stderr, "%s\n", failed[i]);
+      struct test test = tests[failed[i]];
+      fprintf(stderr, "%s: %s\n", test.title, test.reason);
     }
   }
   return (failures == 0);
@@ -110,14 +134,14 @@ int run_tests(struct test *tests, uint32_t count){
 void compute_keypoints(char *file, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   ezsift::Image<unsigned char> img;
   if(img.read_pgm(file) != 0)
-    fail("Failed to read image!");
+    abort("Failed to read image!");
 
   struct ethsift_image image = {0};
   if(!convert_image(img, &image))
-    fail("Could not convert image");
+    abort("Could not convert image");
 
   if(!ethsift_compute_keypoints(image, keypoints, keypoint_count))
-    fail("Failed to compute keypoints");
+    abort("Failed to compute keypoints");
 }
 
 void complete_run(char *file1, char *file2){
@@ -135,7 +159,7 @@ void complete_run(char *file1, char *file2){
     uint32_t match_count = 128;
     struct ethsift_match matches[match_count] = {0};
     if(!ethsift_match_keypoints(keypoints, keypoint_count, keypoints2, keypoint_count2, matches, &match_count))
-      fail("Failed to match up keypoints.");
+      abort("Failed to match up keypoints.");
 
     // TODO: Show matches
   }else{
@@ -145,7 +169,7 @@ void complete_run(char *file1, char *file2){
 
 int main(int argc, char *argv[]){
   if(!ethsift_init())
-    fail("Failed to initialise ETHSIFT");
+    abort("Failed to initialise ETHSIFT");
 
   if(argc <= 1){
     return (run_tests(tests, test_count) == 0)? 1 : 0;

@@ -32,3 +32,9 @@ add_executable(tester
 set_property(TARGET tester PROPERTY CXX_STANDARD 11)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -Wall -Wno-unused-variable)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  message("Adding debug flag...")
+  target_compile_definitions(ethsift PRIVATE -DDEBUG)
+  target_compile_definitions(tester PRIVATE -DDEBUG)
+endif()

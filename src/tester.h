@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 #include <chrono>
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
@@ -11,12 +12,27 @@ extern size_t duration;
 extern bool measurement_pending;
 #define EPS 0.00001
 
+int register_failure(int test, const char *reason);
 int register_test(const char *title, int (*func)());
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
-#define define_test(TITLE,...) int __testfun_ ## TITLE () __VA_ARGS__; static int __test_ ## TITLE = register_test(# TITLE, __testfun_ ## TITLE);
+#define define_test(TITLE,...)                                          \
+  int __testfun_ ## TITLE();                                            \
+  static int __test_ ## TITLE = register_test(# TITLE, __testfun_ ## TITLE); \
+  int __testfun_ ## TITLE (){                                           \
+    int __testid = __test_ ## TITLE;                                    \
+    __VA_ARGS__                                                         \
+    return 1;                                                           \
+  };
+
+// Macro to fail a test. You should call this with a good reason whenever the test should fail.
+#define fail(...) {                             \
+    char __message[1024] = {0};                 \
+    sprintf(__message, __VA_ARGS__);            \
+    register_failure(__testid, __message);      \
+    return 0;}
 
 // Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_image *output);
@@ -54,4 +70,4 @@ static inline void end_measurement(){
 }
 
 // Convenience macro to measure a section.
-#define with_measurement(BODY) start_measurement(); BODY end_measurement();
+#define with_measurement(...) start_measurement(); __VA_ARGS__ end_measurement();
