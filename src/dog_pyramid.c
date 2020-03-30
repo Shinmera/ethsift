@@ -20,35 +20,25 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
 
     for(int i = 0; i < octave_count; i++){
         
-        row_index = i * gaussian_count;
+        row_index = i * (int) (layers + 1);
 
         width = gaussians[row_index].width;
         height = gaussians[row_index].height;
+
+        
 
         for(int j = 0; j < layers; j++){
 
             differences[i * layers + j].width = width;
             differences[i * layers + j].height = height;
             differences[i * layers + j].pixels = (float*) calloc(sizeof(float), width*height);
-
-            float *source_1 = (float*) calloc(sizeof(float), width*height);
-            float *source_2 = (float*) calloc(sizeof(float), width*height);
-            
-            //source_1 = ;
-            //source_2 = .pixels;
             
             // TODO: "Accelerate" framework can be used to subtract two floating point arrays
             for(int idx = 0; idx < (width * height); idx++){
                  differences[i * layers + j].pixels[idx] = gaussians[row_index + j + 1].pixels[idx] - gaussians[row_index + j].pixels[idx]; 
             }
-
-            //free(source_1);
-            //free(source_2);
         } 
     }
-    
-
-    
 
     return 1;
 

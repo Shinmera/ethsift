@@ -288,20 +288,16 @@ define_test(TestGaussianPyramid, {
       dstH = srcH >> 1;
     }
 
-    //Create DOG for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-
-    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-
     srcW = eth_img.width; 
     srcH = eth_img.height;
     dstW = srcW;
     dstH = srcH;
+    
     // Allocate the gaussian pyramids!
     struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_LAYERS];
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < DOG_LAYERS; ++j) {
-        eth_differences[i*OCTAVE_COUNT + j] = allocate_image(dstW, dstH);
+        eth_differences[i * DOG_LAYERS + j] = allocate_image(dstW, dstH);
       }
 
       srcW = dstW;
@@ -309,6 +305,11 @@ define_test(TestGaussianPyramid, {
       dstW = srcW >> 1;
       dstH = srcH >> 1;
     }
+
+    //Create DOG for ethSift    
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
+
+    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_LAYERS, OCTAVE_COUNT);
 
