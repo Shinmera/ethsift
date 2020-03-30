@@ -10,41 +10,40 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
   //      - Rewrite to make it in place
   int elemSize = sizeof(float);
 
-  float *row_start;
-  float *coef = kernel;
-  float *prow;
+  int buf_ind = 0;
+  int dst_ind = 0;
+  int row_ind = 0;
 
-  float *srcData = pixels;
-  float *dstData = output + w * h - 1;
   float *row_buf = malloc((w + kernel_rad * 2) * elemSize);
 
   float partialSum = 0.0f;
   float firstData, lastData;
   
   for (int r = 0; r < h; r++) {
-    row_start = srcData + r * w;
-    memcpy(row_buf + kernel_rad, row_start, elemSize * w);
-    firstData = *(row_start);
-    lastData = *(row_start + w - 1);
+    memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
+    firstData = pixels[row_ind];
+    lastData = pixels[row_ind + w - 1];
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
     }
 
-    prow = row_buf;
-    dstData = dstData - w * h + 1;
+    dst_ind = r;
+    buf_ind = 0;
     for (int c = 0; c < w; c++) {
-      partialSum = 0.0f;
-      coef = kernel;
+      partialSum = 0.0f;       
 
-      for (int i = -kernel_rad; i <= kernel_rad; i++) {
-        partialSum += (*coef++) * (*prow++);
+      for (int i = 0; i < kernel_size; i++) {
+        partialSum += kernel[i] * row_buf[buf_ind];
+        ++buf_ind;
       }
 
-      prow -= 2 * kernel_rad;
-      *dstData = partialSum;
-      dstData += h;
+      buf_ind -= 2 * kernel_rad;
+      output[dst_ind] = partialSum;
+      dst_ind += h;
     }
+    
+    row_ind += w;
   }
 
   free(row_buf);
@@ -58,15 +57,10 @@ int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t ker
   uint32_t w = image.width;
   uint32_t h = image.height;
 
-  //output.height = h;
-  //output.width = w;
-
-  float *out = output.pixels;
-
   float* temp = (float*)malloc(w * h * sizeof(float));
   
   row_filter_transpose(image.pixels, temp, w, h, kernel, kernel_size, kernel_rad);
-  row_filter_transpose(temp, out, w, h, kernel, kernel_size, kernel_rad);
+  row_filter_transpose(temp, output.pixels, h, w, kernel, kernel_size, kernel_rad);
   
   free(temp);
 
