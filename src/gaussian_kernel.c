@@ -50,7 +50,7 @@ int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, floa
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
     float *kernel = (float*) malloc(kernel_sizes[0]*sizeof(float)); 
     ethsift_generate_gaussian_kernel(kernel, kernel_sizes[0], kernel_rads[0], sigma_i);
-    kernel_ptrs[0] = kernel;
+    memcpy(kernel_ptrs[0], kernel, kernel_sizes[0]);
 
     //Calculate all other sigmas and create the according kernel
     for (int i = 1; i < gaussian_count; ++i) {
@@ -69,6 +69,7 @@ int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, floa
         kernel = (float*) malloc(kernel_sizes[i]*sizeof(float)); 
         ethsift_generate_gaussian_kernel(kernel, kernel_sizes[i], kernel_rads[i], sigma_i);
         kernel_ptrs[i] = kernel;
+        memcpy(kernel_ptrs[i], kernel, kernel_sizes[i]);
     }
     return 1;
 }
