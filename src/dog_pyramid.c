@@ -25,28 +25,26 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
         width = gaussians[row_index].width;
         height = gaussians[row_index].height;
 
-        float *source_1 = (float*) calloc(sizeof(float), width*height);
-        float *source_2 = (float*) calloc(sizeof(float), width*height);
-        float *temp = (float*) calloc(sizeof(float), width*height);
-
         for(int j = 0; j < layers; j++){
+
+            differences[i * layers + j].width = width;
+            differences[i * layers + j].height = height;
+            differences[i * layers + j].pixels = (float*) calloc(sizeof(float), width*height);
+
+            float *source_1 = (float*) calloc(sizeof(float), width*height);
+            float *source_2 = (float*) calloc(sizeof(float), width*height);
             
-            memcpy(source_1, gaussians[row_index + j].pixels, width*height*sizeof(float));
-            memcpy(source_2, gaussians[row_index + j + 1].pixels, width*height*sizeof(float));
+            //source_1 = ;
+            //source_2 = .pixels;
             
             // TODO: "Accelerate" framework can be used to subtract two floating point arrays
-            for(int index = 0; index < (width * height); index++){
-                 temp[index] = source_2[index] - source_1[index]; 
+            for(int idx = 0; idx < (width * height); idx++){
+                 differences[i * layers + j].pixels[idx] = gaussians[row_index + j + 1].pixels[idx] - gaussians[row_index + j].pixels[idx]; 
             }
 
-            differences[i * layers + j].pixels = temp;
-            
+            //free(source_1);
+            //free(source_2);
         } 
-    
-        free(source_1);
-        free(source_2);
-        free(temp);
-        
     }
     
 
