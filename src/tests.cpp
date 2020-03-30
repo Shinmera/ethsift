@@ -63,7 +63,7 @@ define_test(TestConvolution, {
 
     int kernel_size = 9;
     int kernel_rad = 4;
-    float sigma = 1.5;
+    float sigma = 4.5;
     
     // Create kernel
     float *kernel = (float*) malloc(kernel_size * sizeof(float)); 
@@ -73,6 +73,15 @@ define_test(TestConvolution, {
     struct ethsift_image output = allocate_image(w, h);
     ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
 
+    // // Write blurred ethsift image
+    // unsigned char* test_img = (unsigned char *)malloc( w * h *sizeof(unsigned char));
+    // for (int i = 0; i < h; ++i) {
+    //   for (int j = 0; j < w; ++j) {
+    //     test_img[i * w + j] = (unsigned char) (output.pixels[i * w + j]);
+    //   }
+    // }
+    // ezsift::write_pgm("eth.pgm", test_img, w, h );
+
     // Blur ezsift image
     std::vector<float> ez_kernel;
     for (int i = 0; i < kernel_size; ++i) {
@@ -80,6 +89,9 @@ define_test(TestConvolution, {
     }
     ezsift::Image<float> ez_img_blurred(w, h);
     ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
+
+    // // Write blurred ezsift image
+    // ez_img_blurred.write_pgm("ez.pgm");
     
     struct ethsift_image conv_ez_img = {0};     
     convert_image(ez_img_blurred.to_uchar(), &conv_ez_img);
