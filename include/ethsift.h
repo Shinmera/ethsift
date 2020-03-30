@@ -47,6 +47,10 @@ extern "C" {
   // Compute the gaussian kernel weights of a given size.
   int ethsift_generate_gaussian_kernel(float *kernel, uint32_t kernel_size, uint32_t kernerl_rad, float sigma);
 
+  int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, float **kernels_ptrs,uint32_t kernel_rads[], uint32_t kernel_sizes[]);
+  
+  int ethsift_free_kernels(float** kernel_ptrs, uint32_t gaussian_count);
+
   // Apply the gaussian kernel to the image and write the result to the output.
   int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output);
 

@@ -20,51 +20,14 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     // octaves as first input argument.
 
     int layers_count = gaussian_count - 3;
-    int w, h;
+    
     
     float* kernel_ptrs[gaussian_count]; 
     uint32_t kernel_rads[gaussian_count];
     uint32_t kernel_sizes[gaussian_count];
 
-    // Compute all sigmas, kernel sizes, kernel radii and kernels for different layers
-    float sigma, sigma_pre;
-    float sigma0 = ETHSIFT_SIGMA;
-    float k = powf(2.0f, 1.0f / layers_count);
-    float sigma_i;
 
-    // Init first sigma
-    sigma_pre = ETHSIFT_INIT_SIGMA;
-    sigma_i = sqrtf(sigma0 * sigma0 - sigma_pre * sigma_pre);
-    kernel_rads[0] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) 
-                ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1;
-    kernel_sizes[0] = kernel_rads[0] * 2 + 1;
-
-    // Create first kernel.
-    // NOTE: Could not come up with a better solution for storing the kernels, due to the 
-    // sequential dependencies in the section where we calculate the gaussian pyramids.
-    // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
-    float *kernel = (float*) malloc(kernel_sizes[0]*sizeof(float)); 
-    ethsift_generate_gaussian_kernel(kernel, kernel_sizes[0], kernel_rads[0], sigma_i);
-    kernel_ptrs[0] = kernel;
-
-    //Calculate all other sigmas and create the according kernel
-    for (int i = 1; i < gaussian_count; ++i) {
-        // Calculate sigma_i
-        sigma_pre = powf(k, (float)(i - 1)) * sigma0;
-        sigma = sigma_pre * k;
-        sigma_i = sqrtf(sigma * sigma - sigma_pre * sigma_pre);
-
-        // Calculate radii and sizes needed for apply_kernel
-        kernel_rads[i] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) 
-                ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1;
-        kernel_sizes[i] = kernel_rads[i] * 2 + 1;
-
-        // Create kernel and store it in kernels for next step.
-        // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
-        kernel = (float*) malloc(kernel_sizes[i]*sizeof(float)); 
-        ethsift_generate_gaussian_kernel(kernel, kernel_sizes[i], kernel_rads[i], sigma_i);
-        kernel_ptrs[i] = kernel;
-    }
+    ethsift_generate_all_kernels(layers_count, gaussian_count, kernel_ptrs, kernel_rads, kernel_sizes);
 
 
     // Calculate the gaussian pyramids!
@@ -87,10 +50,7 @@ int ethsift_generate_pyramid(struct ethsift_image octaves[],
     }
     // TODO: Release octaves memory? EZSift did free memory here.
 
-    //free kernels!
-    for (int i = 1; i < gaussian_count; ++i) {
-        free(kernel_ptrs[i]);
-    }
+    ethsift_free_kernels(kernel_ptrs, gaussian_count);
 
     return 1;
 }

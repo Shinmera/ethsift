@@ -28,7 +28,7 @@ int ethsift_generate_octaves(struct ethsift_image image,
 
     for (int i = 0; i < octave_count; i++) {
         if (i == 0) {
-            octaves[i].pixels = image.pixels;
+            memcpy(octaves[i].pixels, image.pixels, image.width * image.height * sizeof(float));
         }
         else {
             ethsift_downscale_half(octaves[i-1], octaves[i]);
