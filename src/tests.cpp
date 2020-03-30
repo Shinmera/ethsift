@@ -208,3 +208,36 @@ define_test(TestGaussianPyramid, {
     if(res == OCTAVE_COUNT*GAUSSIAN_COUNT) return 1;
     else return 0;
   })
+
+
+
+define_test(TestGaussianKernelGeneration, {
+    //Create Kernels for ethSift  
+    
+    int layers_count = GAUSSIAN_COUNT - 3;
+    
+    
+    float* kernel_ptrs[GAUSSIAN_COUNT]; 
+    uint32_t kernel_rads[GAUSSIAN_COUNT];
+    uint32_t kernel_sizes[GAUSSIAN_COUNT];  
+    ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
+
+    //Create Kernels for ezSift    
+
+    std::vector<std::vector<float>> ez_kernels = ezsift::compute_gaussian_coefs(OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+    if(ez_kernels.size() != GAUSSIAN_COUNT){
+      printf("TestGaussianKernelGeneration Error: gaussian_count %d and ez_kernels size %d do not match", GAUSSIAN_COUNT, (int)ez_kernels.size());
+    }
+    // Compare the gaussian outputs!
+    int res = 0;
+    for (int i = 0; i < GAUSSIAN_COUNT; ++i) {
+      printf("Iteration %d; Kernel size = %d\n",i,(int)kernel_sizes[i]);
+      res += compare_kernel( ez_kernels[i], kernel_ptrs[i], kernel_sizes[i]);
+    }
+
+    ethsift_free_kernels(kernel_ptrs, GAUSSIAN_COUNT);
+
+    if(res == GAUSSIAN_COUNT) return 1;
+    else return 0;
+  })

@@ -92,6 +92,7 @@ int compare_image_approx(const ezsift::Image<float> &ez_img,
   return compare_image_approx(conv_ez_img, eth_img, EPS);
 }
 
+
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){
   if(a.width != b.width){
     printf("COMPARE_IMAGE_APPROX WIDTH: a.w = %d ; b.w = %d\n", a.width, b.width);
@@ -110,6 +111,22 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
     }
   }
   return 1;
+}
+
+int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, uint32_t eth_kernel_size){
+  if(ez_kernel.size() != (int) eth_kernel_size)
+  {
+    printf("Kernel sizes do not match %d != %d", ez_kernel.size(), eth_kernel_size);
+    return 0;
+  }
+  for(int i = 0; i < eth_kernel_size; ++i){
+    float diff = ez_kernel[i] - eth_kernel[i];
+    if(diff < 0.0) diff *= -1;
+    if(EPS < diff) {
+      printf("COMPARE_KERNEL: index = %d ; val a = %f ; val b = %f\n", (int)i, ez_kernel[i], eth_kernel[i]);
+      return 0;
+    }
+  }
 }
 
 void fail(const char *message){

@@ -30,6 +30,7 @@ int ethsift_generate_gaussian_kernel(float *kernel,
 
 int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, float **kernel_ptrs, uint32_t kernel_rads[], uint32_t kernel_sizes[]){
 
+    
     // Compute all sigmas, kernel sizes, kernel radii and kernels for different layers
     float sigma, sigma_pre;
     float sigma0 = ETHSIFT_SIGMA;

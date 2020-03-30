@@ -61,6 +61,9 @@ int compare_image_approx(const ezsift::Image<float> &ez_img, struct ethsift_imag
 // Pixels are considered to be equal if their difference is smaller than eps.
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps);
 
+
+int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, uint32_t eth_kernel_size);
+
 // Start a time measurement section.
 // Note: If no explicit measurement sections are defined, the entire test
 //       is measured instead.
