@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <chrono>
+#include <vector>
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;

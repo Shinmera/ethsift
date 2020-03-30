@@ -49,17 +49,44 @@ define_test(TestDownscale, {
   })
 
 
-// define_test(TestConvolution, {  
-//     char const *file = data_file("lena.pgm");
-//     init files 
-//     ezsift::Image<unsigned char> ez_img;
-//     struct ethsift_image eth_img = {0};
-//     if(ez_img.read_pgm(file) != 0) return 0;  
-//     if(!convert_image(ez_img, &eth_img)) return 0;
-//     //TODO: implement TEST
+define_test(TestConvolution, {  
+    char const *file = data_file("lena.pgm");
+    // init files 
+    ezsift::Image<unsigned char> ez_img;
+    struct ethsift_image eth_img = {0};
+    if(ez_img.read_pgm(file) != 0) return 0;  
+    if(!convert_image(ez_img, &eth_img)) return 0;
 
-//     return 1;
-//   })
+    // constant variables used
+    int w = eth_img.width;
+    int h = eth_img.height;
+
+    int kernel_size = 9;
+    int kernel_rad = 4;
+    float sigma = 1.5;
+    
+    // Create kernel
+    float *kernel = (float*) malloc(kernel_size * sizeof(float)); 
+    ethsift_generate_gaussian_kernel(kernel, kernel_size, kernel_rad, sigma);
+
+    // Blur ethsift image
+    struct ethsift_image output = allocate_image(w, h);
+    ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
+
+    // Blur ezsift image
+    std::vector<float> ez_kernel;
+    for (int i = 0; i < kernel_size; ++i) {
+      ez_kernel.push_back(kernel[i]);
+    }
+    ezsift::Image<float> ez_img_blurred(w, h);
+    ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
+    
+    struct ethsift_image conv_ez_img = {0};     
+    convert_image(ez_img_blurred.to_uchar(), &conv_ez_img);
+    int res = compare_image_approx(conv_ez_img, output, 1.0f);
+
+    return res;
+  })
 
 define_test(TestOctaves, {
   
