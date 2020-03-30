@@ -218,8 +218,8 @@ define_test(TestGaussianKernelGeneration, {
     
     
     float* kernel_ptrs[GAUSSIAN_COUNT]; 
-    uint32_t kernel_rads[GAUSSIAN_COUNT];
-    uint32_t kernel_sizes[GAUSSIAN_COUNT];  
+    int kernel_rads[GAUSSIAN_COUNT];
+    int kernel_sizes[GAUSSIAN_COUNT];  
     ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
 
     //Create Kernels for ezSift    
@@ -232,12 +232,12 @@ define_test(TestGaussianKernelGeneration, {
     // Compare the gaussian outputs!
     int res = 0;
     for (int i = 0; i < GAUSSIAN_COUNT; ++i) {
-      printf("Iteration %d; Kernel size = %d\n",i,(int)kernel_sizes[i]);
+      //printf("Iteration %d; Kernel size = %d\n",i,(int)kernel_sizes[i]);
       res += compare_kernel( ez_kernels[i], kernel_ptrs[i], kernel_sizes[i]);
     }
 
     ethsift_free_kernels(kernel_ptrs, GAUSSIAN_COUNT);
-
+    printf("Resulted in : %d", res);
     if(res == GAUSSIAN_COUNT) return 1;
     else return 0;
   })

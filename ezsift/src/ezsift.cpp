@@ -202,7 +202,7 @@ std::vector<std::vector<float>> compute_gaussian_coefs(int nOctaves,
         sigma = sigma_pre * k;
         sig[i] = sqrtf(sigma * sigma - sigma_pre * sigma_pre);
     }
-
+    
     std::vector<std::vector<float>> gaussian_coefs(nGpyrLayers);
     for (int i = 0; i < nGpyrLayers; i++) {
         // Compute Gaussian filter coefficients
@@ -210,6 +210,7 @@ std::vector<std::vector<float>> compute_gaussian_coefs(int nOctaves,
         int gR = (sig[i] * factor > 1.0f) ? (int)ceilf(sig[i] * factor) : 1;
         int gW = gR * 2 + 1;
 
+        //std::cout << "Kernel with sig: " << sig[i] << std::endl << "\["; 
         gaussian_coefs[i].resize(gW);
         float accu = 0.0f;
         float tmp;
@@ -220,7 +221,9 @@ std::vector<std::vector<float>> compute_gaussian_coefs(int nOctaves,
         }
         for (int j = 0; j < gW; j++) {
             gaussian_coefs[i][j] = gaussian_coefs[i][j] / accu;
+            //std::cout << gaussian_coefs[i][j] << ", ";
         } // End compute Gaussian filter coefs
+        //std::cout << "\]" <<std::endl << std::endl;
     }
     return gaussian_coefs;
 }
