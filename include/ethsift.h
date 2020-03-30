@@ -66,7 +66,7 @@ extern "C" {
   int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t layers);
 
   // Compute the histogram for the given keypoint in the image
-  int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram);
+  int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram, float *max_histval);
 
   // Detect the keypoints in the image that SIFT finds interesting.
   // keypoint_count

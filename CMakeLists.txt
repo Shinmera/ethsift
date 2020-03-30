@@ -20,6 +20,7 @@ set_property(TARGET ezsift PROPERTY CXX_STANDARD 14)
 add_library(ethsift STATIC
   "include/ethsift.h"
   "src/internal.h"
+  "src/settings.h"
   "src/stub.c"
   "src/gaussian_kernel.c"
   "src/gaussian_pyramid.c"
@@ -28,7 +29,8 @@ add_library(ethsift STATIC
   "src/downscale.c"
   "src/apply_kernel.c"
   "src/detect_keypoints.c"
-  "src/refine_local_extrema.c")
+  "src/refine_local_extrema.c"
+  "src/histogram.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)

@@ -1,17 +1,29 @@
 /*
     This file serves as general settings file for setting the intial values in our project.
 */
+
+// MATH
+#define M_TWOPI 6.28318530718f
+
 // default sigma for initial gaussian smoothing
-static float ETHSIFT_SIGMA = 1.6f;
+#define ETHSIFT_SIGMA 1.6f
 
 // assumed gaussian blur for input image
-static float ETHSIFT_INIT_SIGMA = 0.5f;
+#define ETHSIFT_INIT_SIGMA 0.5f
 
 // the radius of Gaussian filter kernel;
 // Gaussian filter mask will be (2*radius+1)x(2*radius+1).
 // People use 2 or 3 most.
-static float ETHSIFT_GAUSSIAN_FILTER_RADIUS = 3.0f;
+#define ETHSIFT_GAUSSIAN_FILTER_RADIUS 3.0f
 
+// default number of bins in histogram for orientation assignment
+#define ETHSIFT_ORI_HIST_BINS 36
+
+// determines gaussian sigma for orientation assignment
+#define ETHSIFT_ORI_SIG_FCTR  1.5f // Can affect the orientation computation.
+
+// determines the radius of the region used in orientation assignment
+#define ETHSIFT_ORI_RADIUS (3.0f * ETHSIFT_ORI_SIG_FCTR) // Can affect the orientation computation.
 
 // /****************************************
 //  * Constant parameters

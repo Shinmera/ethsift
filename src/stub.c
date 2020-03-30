@@ -24,9 +24,9 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t
   return 0;
 }
 
-int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram){
-  return 0;
-}
+// int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram){
+//   return 0;
+// }
 
 // int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
 //   return 0;
