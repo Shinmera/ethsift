@@ -71,17 +71,15 @@ define_test(TestOctaves, {
     if(!convert_image(ez_img, &eth_img)) return 0;
 
     //Init Octaves
-    const int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
+    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
 
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
-
-    struct ethsift_image eth_octaves[nOctaves];
+    struct ethsift_image eth_octaves[OCTAVE_COUNT];
     int srcW = eth_img.width; 
     int srcH = eth_img.height;
     int dstW = srcW;
     int dstH = srcH;
     eth_octaves[0] = allocate_image(dstW, dstH);
-    for(int i = 1; i < nOctaves; ++i){
+    for(int i = 1; i < OCTAVE_COUNT; ++i){
       eth_octaves[i] = {0};
       srcW = dstW;
       srcH = dstH;
@@ -91,18 +89,18 @@ define_test(TestOctaves, {
     }
 
     //Create Octaves for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, nOctaves);
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
 
     //Create Octaves for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, nOctaves);
+    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
 
     int res = 0;
     //Compare obtained Octaves in a loop
-    for(int i = 0; i < nOctaves; ++i){
+    for(int i = 0; i < OCTAVE_COUNT; ++i){
       res += compare_image_approx(ez_octaves[i], eth_octaves[i]);
     }
     //printf("TEST OCTAVE RETURN: %d\n", res);
-    if(res == nOctaves)
+    if(res == OCTAVE_COUNT)
       return 1;
     else return 0;
   })
@@ -118,18 +116,15 @@ define_test(TestGaussianPyramid, {
 
 
     //Init Octaves
-    const int nGpyrLayers = 6;
-    const int nOctaves = (int)std::log2((float)fmin(ez_img.w, ez_img.h)) - 3; // 2 or 3, need further research    
+    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
 
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(nOctaves);
-
-    struct ethsift_image eth_octaves[nOctaves];
+    struct ethsift_image eth_octaves[OCTAVE_COUNT];
     int srcW = eth_img.width; 
     int srcH = eth_img.height;
     int dstW = srcW;
     int dstH = srcH;
     eth_octaves[0] = allocate_image(dstW, dstH);
-    for(int i = 1; i < nOctaves; ++i){
+    for(int i = 1; i < OCTAVE_COUNT; ++i){
       eth_octaves[i] = {0};
       srcW = dstW;
       srcH = dstH;
@@ -143,10 +138,10 @@ define_test(TestGaussianPyramid, {
     dstW = srcW;
     dstH = srcH;
     // Allocate the gaussian pyramids!
-    struct ethsift_image eth_gaussians[nOctaves*nGpyrLayers];
-    for (int i = 0; i < nOctaves; ++i) {
-      for (int j = 0; j < nGpyrLayers; ++j) {
-        eth_gaussians[i*nOctaves + j] = allocate_image(dstW, dstH);
+    struct ethsift_image eth_gaussians[OCTAVE_COUNT*GAUSSIAN_COUNT];
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
+        eth_gaussians[i*OCTAVE_COUNT + j] = allocate_image(dstW, dstH);
       }
 
       srcW = dstW;
@@ -156,25 +151,25 @@ define_test(TestGaussianPyramid, {
     }
 
     //Create Octaves for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, nOctaves);
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
 
-    ethsift_generate_pyramid(eth_octaves, nOctaves, eth_gaussians, nGpyrLayers);
+    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     //Create Octaves for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, nOctaves);
+    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
 
-    std::vector<ezsift::Image<float>> ez_gaussians(nOctaves * nGpyrLayers);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, nOctaves, nGpyrLayers);
+    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
+    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
 
     // Compare the gaussian outputs!
     int res = 0;
-    for (int i = 0; i < nOctaves; ++i) {
-      for (int j = 0; j < nGpyrLayers; ++j) {        
-        res += compare_image_approx(ez_gaussians[i*nOctaves + j], eth_gaussians[i*nOctaves + j]);
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 0; j < GAUSSIAN_COUNT; ++j) {        
+        res += compare_image_approx(ez_gaussians[i*OCTAVE_COUNT + j], eth_gaussians[i*OCTAVE_COUNT + j]);
       }
     }
 
-    if(res == nOctaves*nGpyrLayers) return 1;
+    if(res == OCTAVE_COUNT*GAUSSIAN_COUNT) return 1;
     else return 0;
   })
