@@ -325,7 +325,7 @@ define_test(TestGaussianPyramid, {
     int res = 0;
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < DOG_LAYERS; ++j) {        
-        res += compare_image_approx(ez_differences[i*OCTAVE_COUNT + j], eth_differences[i*OCTAVE_COUNT + j]);
+        res += compare_image_approx(ez_differences[i * DOG_LAYERS + j], eth_differences[i * DOG_LAYERS + j]);
       }
     }
 
