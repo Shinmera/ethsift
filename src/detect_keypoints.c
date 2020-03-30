@@ -3,8 +3,8 @@
 // Detect the keypoints in the image that SIFT finds interesting.
 // keypoint_count
 //   [in] how many keypoints we can store at most
+//   [in] layers - number of layers of Gaussian Pyramid
 //   [out] how many keypoints we actually found
-//   _layers number of layers of Gaussian Pyramid
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
@@ -107,15 +107,22 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               keypoints[keypoints_current].layer_pos.x = (float) r;
               keypoints[keypoints_current].layer_pos.y = (float) c;
               keypoints[keypoints_current].layer_pos.scale = 1.0f;
+  
+              // EzSift does the refinement here and decides at this moment if the keypoint is useable
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &keypoints[keypoints_current]);
               
+              if (!isGoodKeypoint) {
+                continue;
+              }
+
               ++keypoints_current;
             }
 
-            // EzSift does the refinement here and decides at this moment if the keypoint is useable
-            
-            // And also computes the histograms here...
-
+            // Count keypoints found 
             ++keypoints_found;
+
+            
+            // And also computes the histograms here... TODO Move Histogram calculations to compute_keypoints
 
           }
         }
