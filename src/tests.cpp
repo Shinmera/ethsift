@@ -243,9 +243,8 @@ define_test(TestGaussianPyramid, {
   })
 
 
-
   define_test(TestDOGPyramid, {
-
+    
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -261,6 +260,7 @@ define_test(TestGaussianPyramid, {
     int srcH = eth_img.height;
     int dstW = srcW;
     int dstH = srcH;
+    
     eth_octaves[0] = allocate_image(dstW, dstH);
     for(int i = 1; i < OCTAVE_COUNT; ++i){
       eth_octaves[i] = {0};
@@ -288,6 +288,11 @@ define_test(TestGaussianPyramid, {
       dstH = srcH >> 1;
     }
 
+    //Create DOG for ethSift    
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
+
+    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+
     srcW = eth_img.width; 
     srcH = eth_img.height;
     dstW = srcW;
@@ -295,7 +300,7 @@ define_test(TestGaussianPyramid, {
     // Allocate the gaussian pyramids!
     struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_LAYERS];
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
-      for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
+      for (int j = 0; j < DOG_LAYERS; ++j) {
         eth_differences[i*OCTAVE_COUNT + j] = allocate_image(dstW, dstH);
       }
 
@@ -305,11 +310,6 @@ define_test(TestGaussianPyramid, {
       dstH = srcH >> 1;
     }
 
-    //Create DOG for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-
-    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-    
     ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_LAYERS, OCTAVE_COUNT);
 
     //Create DOG for ezSift    
@@ -325,13 +325,12 @@ define_test(TestGaussianPyramid, {
     int res = 0;
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < DOG_LAYERS; ++j) {        
-        res += compare_image_approx(ez_differences[i*OCTAVE_COUNT + j], eth_gaussians[i*OCTAVE_COUNT + j]);
+        res += compare_image_approx(ez_differences[i*OCTAVE_COUNT + j], eth_differences[i*OCTAVE_COUNT + j]);
       }
     }
 
-    if(res == OCTAVE_COUNT*GAUSSIAN_COUNT) return 1;
+    if(res == OCTAVE_COUNT * DOG_LAYERS) return 1;
     else return 0;
+
+
   })
-
-
-
