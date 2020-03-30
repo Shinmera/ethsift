@@ -1,5 +1,4 @@
 #include "internal.h"
-#include <stdlib.h>
 
 int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_count){
   if(pyramid_count == 0) return 1;
