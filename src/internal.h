@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "ethsift.h"
 
 // Wrap image pixel access. Note this does not handle border conditions!

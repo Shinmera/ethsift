@@ -20,6 +20,7 @@ set_property(TARGET ezsift PROPERTY CXX_STANDARD 14)
 add_library(ethsift STATIC
   "include/ethsift.h"
   "src/internal.h"
+  "src/allocate.c"
   "src/stub.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)

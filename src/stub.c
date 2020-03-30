@@ -4,10 +4,6 @@ int ethsift_init(){
   return 1;
 }
 
-int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_count){
-  return 0;
-}
-
 int ethsift_generate_gaussian_kernel(float *kernel, uint32_t kernel_size){
   return 0;
 }

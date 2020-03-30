@@ -170,6 +170,7 @@ void complete_run(char *file1, char *file2){
 int main(int argc, char *argv[]){
   if(!ethsift_init())
     abort("Failed to initialise ETHSIFT");
+  srand(time(NULL));
 
   if(argc <= 1){
     return (run_tests(tests, test_count) == 0)? 1 : 0;
