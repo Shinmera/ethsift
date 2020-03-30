@@ -16,7 +16,7 @@ int register_test(const char *title, int (*func)());
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
-#define define_test(TITLE,BODY) static int __test_ ## TITLE = register_test(# TITLE, []()BODY);
+#define define_test(TITLE,...) int __testfun_ ## TITLE () __VA_ARGS__; static int __test_ ## TITLE = register_test(# TITLE, __testfun_ ## TITLE);
 
 // Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_image *output);
