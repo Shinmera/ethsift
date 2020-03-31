@@ -130,6 +130,18 @@ int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kern
   return 1;
 }
 
+int write_image(struct ethsift_image image){
+
+    unsigned char* pixels_to_write = (unsigned char *)malloc( image.width * image.height *sizeof(unsigned char));
+    for (int i = 0; i < image.height; ++i) {
+      for (int j = 0; j < image.width; ++j) {
+        pixels_to_write[i * image.width + j] = (unsigned char) (image.pixels[i * image.width + j]);
+      }
+    }
+    ezsift::write_pgm("eth.pgm", pixels_to_write, image.width, image.height );
+}
+
+
 void fail(const char *message){
   fprintf(stderr, "\033[1;31m[ERROR]\033[0;0m %s\n", message);
   exit(1);

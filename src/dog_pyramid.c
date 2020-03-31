@@ -7,8 +7,7 @@
 /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param>
 /// <param name="differences"> IN/OUT: Struct of differences to compute. 
 /// <param name="layers"> IN: Number of layers in dog pyramid (shoudl be layers in Gaussian - 1) </param> 
-/// <returns> 0 </returns>
-
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], 
                                         uint32_t gaussian_count, 
                                         struct ethsift_image differences[], 

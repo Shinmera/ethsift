@@ -66,6 +66,8 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
 
 int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size);
 
+int write_image(struct ethsift_image image);
+
 // Start a time measurement section.
 // Note: If no explicit measurement sections are defined, the entire test
 //       is measured instead.

@@ -1,7 +1,17 @@
 #include "internal.h"
-#include <float.h>
-#define EPSILON_ROT 0.000001
 
+/// <summary> 
+/// Build the gradient and rotation pyramids
+/// NOTE: Size of Pyramids = octave_count * gaussian_count with empty entries!
+/// </summary>
+/// <param name="gaussians"> IN: The octaves of the input image. </param>
+/// <param name="gaussian_count"> IN: Number of octaves. </param>
+/// <param name="gradients"> OUT: Struct of gradients to compute. 
+/// <param name="rotations"> OUT: Struct of rotations to compute. 
+/// <param name="layers"> IN: Number of layers in the gradients and rotation pyramids. 
+/// <param name="octave_count"> IN: Number of octaves.  </param>
+/// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], 
                                       uint32_t gaussian_count, 
                                       struct ethsift_image gradients[], 
@@ -11,7 +21,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 {
     int width, height;
     int idx;
-    float d_row, d_column, angle;
+    float d_row, d_column;
 
 
     for(int i = 0; i < octave_count; i++){
@@ -32,15 +42,11 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                     d_column = get_pixel_f(gaussians[idx].pixels, width, height, row, column+1) - 
                                get_pixel_f(gaussians[idx].pixels, width, height, row, column-1);
                     
-                    gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);      
-                    angle = fast_atan2_f(d_row, d_column);
-
-                    rotations[idx].pixels[row * width + column] = angle;  
+                    gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);  
+                    rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column); 
                 }
             }
-
-        }
-        
+        }        
     }
 
     return 1;
