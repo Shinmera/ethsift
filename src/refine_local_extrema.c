@@ -1,6 +1,6 @@
 #include "internal.h"
 
-int mat_dot_vec_3x3(float (*m)[3], float v[], float p[]) {
+int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
   p[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
   p[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
   p[2] = m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2]; 
@@ -51,10 +51,10 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int layer_ind = 0;
   int nDoGLayers = layers - 1;
 
-  int octave = (*keypoint).octave;
-  int layer = (*keypoint).layer;
-  int r = (*keypoint).layer_pos.x;
-  int c = (*keypoint).layer_pos.y;
+  int octave = keypoint->octave;
+  int layer = keypoint->layer;
+  int r = keypoint->layer_pos.x;
+  int c = keypoint->layer_pos.y;
   
   int xs_i = 0, xr_i = 0, xc_i = 0;
   float tmp_r = 0.0f, tmp_c = 0.0f, tmp_layer = 0.0f;
@@ -68,50 +68,50 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   tmp_c = (float)c;
   tmp_layer = (float)layer;
 
-  // Current, low and high index in DoG pyramid
-  int curData = 0;
-  int lowData = 0;
-  int highData = 0;
+  // Current, low and high index in DoG pyramid  
+  float *curData = 0;
+  float *lowData = 0;
+  float *highData = 0;
 
   // Interpolation (x,y,sigma) 3D space to find sub-pixel accurate
   // location of keypoints.
-  int i;
-  for (i = 0; i < SIFT_MAX_INTERP_STEPS; ++i) {
+  int i = 0;
+  for (; i < SIFT_MAX_INTERP_STEPS; ++i) {
     c += xc_i;
     r += xr_i;
 
     layer_ind = octave * nDoGLayers + layer;
     w = differences[layer_ind].width;
     h = differences[layer_ind].height;
+    
+    curData  = differences[layer_ind].pixels;
+    lowData  = differences[layer_ind - 1].pixels;
+    highData = differences[layer_ind + 1].pixels;
 
-    curData = layer_ind;
-    lowData = layer_ind - 1;
-    highData = layer_ind + 1;
-
-    dx = 0.5f * (get_pixel_f(differences[curData].pixels, w, h, r, c + 1) - get_pixel_f(differences[curData].pixels, w, h, r, c - 1)); 
-    dy = 0.5f * (get_pixel_f(differences[curData].pixels, w, h, r + 1, c) - get_pixel_f(differences[curData].pixels, w, h, r - 1, c)); 
-    ds = 0.5f * (get_pixel_f(differences[highData].pixels, w, h, r, c) - get_pixel_f(differences[lowData].pixels, w, h, r, c));
+    dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); 
+    dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); 
+    ds = 0.5f * (get_pixel_f(highData, w, h, r, c) - get_pixel_f(lowData, w, h, r, c));
 
     float dD[3] = {-dx, -dy, -ds}; 
 
-    float v2 = 2.0f * get_pixel_f(differences[curData].pixels, w, h, r, c);
+    float v2 = 2.0f * get_pixel_f(curData, w, h, r, c);
 
-    dxx = get_pixel_f(differences[curData].pixels, w, h, r, c + 1) + get_pixel_f(differences[curData].pixels, w, h, r, c - 1) - v2;
-    dyy = get_pixel_f(differences[curData].pixels, w, h, r + 1, c) + get_pixel_f(differences[curData].pixels, w, h, r - 1, c) - v2;
-    dss = get_pixel_f(differences[highData].pixels, w, h, r, c) + get_pixel_f(differences[lowData].pixels, w, h, r, c) - v2;
+    dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2;
+    dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2;
+    dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2;
       
-    dxy = 0.25f * (get_pixel_f(differences[curData].pixels, w, h, r + 1, c + 1) -
-      get_pixel_f(differences[curData].pixels, w, h, r + 1, c - 1) -
-      get_pixel_f(differences[curData].pixels, w, h, r - 1, c + 1) +
-      get_pixel_f(differences[curData].pixels, w, h, r - 1, c - 1));
-    dxs = 0.25f * (get_pixel_f(differences[highData].pixels, w, h, r, c + 1) -
-      get_pixel_f(differences[highData].pixels, w, h, r, c - 1) -
-      get_pixel_f(differences[lowData].pixels, w, h, r, c + 1) +
-      get_pixel_f(differences[lowData].pixels, w, h, r, c - 1));
-    dys = 0.25f * (get_pixel_f(differences[highData].pixels, w, h, r + 1, c) -
-      get_pixel_f(differences[highData].pixels, w, h, r - 1, c) -
-      get_pixel_f(differences[lowData].pixels, w, h, r + 1, c) +
-      get_pixel_f(differences[lowData].pixels, w, h, r - 1, c));
+    dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
+      get_pixel_f(curData, w, h, r + 1, c - 1) -
+      get_pixel_f(curData, w, h, r - 1, c + 1) +
+      get_pixel_f(curData, w, h, r - 1, c - 1));
+    dxs = 0.25f * (get_pixel_f(highData, w, h, r, c + 1) -
+      get_pixel_f(highData, w, h, r, c - 1) -
+      get_pixel_f(lowData, w, h, r, c + 1) +
+      get_pixel_f(lowData, w, h, r, c - 1));
+    dys = 0.25f * (get_pixel_f(highData, w, h, r + 1, c) -
+      get_pixel_f(highData, w, h, r - 1, c) -
+      get_pixel_f(lowData, w, h, r + 1, c) +
+      get_pixel_f(lowData, w, h, r - 1, c));
 
     // The scale in two sides of the equation should cancel each other.
     float H[3][3] = {{dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss}};
@@ -121,6 +121,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); 
     det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); 
 
+    if (fabsf(det) < FLT_MIN)
+      break;
+
     float Hinvert[3][3];
 
     float s = 1.0f / det;
@@ -128,7 +131,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     scale_adjoint_3x3(Hinvert, H, s);
 
     // MAT_DOT_VEC_3X3
-    mat_dot_vec_3x3(Hinvert, x_hat, dD);
+    mat_dot_vec_3x3(x_hat, Hinvert, dD);
 
     xs = x_hat[2];
     xr = x_hat[1];
@@ -141,10 +144,10 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     // Make sure there is room to move for next iteration.
     xc_i = ((xc >= SIFT_KEYPOINT_SUBPiXEL_THR && c < w - 2) ? 1 : 0) +
-            ((xc <= -SIFT_KEYPOINT_SUBPiXEL_THR && c > 1) ? -1 : 0);
+           ((xc <= -SIFT_KEYPOINT_SUBPiXEL_THR && c > 1) ? -1 : 0);
 
     xr_i = ((xr >= SIFT_KEYPOINT_SUBPiXEL_THR && r < h - 2) ? 1 : 0) +
-            ((xr <= -SIFT_KEYPOINT_SUBPiXEL_THR && r > 1) ? -1 : 0);
+           ((xr <= -SIFT_KEYPOINT_SUBPiXEL_THR && r > 1) ? -1 : 0);
 
     if (xc_i == 0 && xr_i == 0 && xs_i == 0)
       break;
@@ -162,7 +165,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     return 0;
 
     
-  float value = get_pixel_f(differences[curData].pixels, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
+  float value = get_pixel_f(curData, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
   if (fabsf(value) < SIFT_CONTR_THR)
     return 0;
 
@@ -174,17 +177,17 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     return 0;
   
 
-  (*keypoint).layer_pos.x = tmp_c;
-  (*keypoint).layer_pos.y = tmp_r;
-  (*keypoint).layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);
+  keypoint->layer_pos.x = tmp_r;
+  keypoint->layer_pos.y = tmp_c;
+  keypoint->layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);
 
   int firstOctave = SIFT_IMG_DBL ? -1 : 0;
   float norm = powf(2.0f, (float)(octave + firstOctave));
 
   // Coordinates in the normalized format (compared to the original image).
-  (*keypoint).global_pos.x = tmp_c * norm;
-  (*keypoint).global_pos.y = tmp_r * norm;
-  (*keypoint).global_pos.scale = (*keypoint).layer_pos.scale * norm;
+  keypoint->global_pos.x = tmp_r * norm;
+  keypoint->global_pos.y = tmp_c * norm;
+  keypoint->global_pos.scale = keypoint->layer_pos.scale * norm;
 
   return 1;
 }

@@ -85,12 +85,12 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   int layersDoG = layers - 1;
 
   // Requested number of keypoints and actual number of keypoints
-  uint32_t keypoints_required = *keypoint_count;
-  uint32_t keypoints_found = 0;
-  uint32_t keypoints_current = 0;
+  int keypoints_required = *keypoint_count;
+  int keypoints_found = 0;
+  int keypoints_current = 0;
 
   struct ethsift_keypoint temp;
-
+  
   // Loop variables
   float *curData;
   float *lowData;
@@ -113,8 +113,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
       layer_ind = i * layersDoG + j;
 
       highData = differences[layer_ind + 1].pixels; 
-      curData = differences[layer_ind ].pixels; 
-      lowData = differences[layer_ind - 1].pixels; 
+      curData  = differences[layer_ind ].pixels; 
+      lowData  = differences[layer_ind - 1].pixels; 
 
       // Iterate over all pixels in image, ignore border values
       for (int r = SIFT_IMAGE_BORDER; r < h - SIFT_IMAGE_BORDER; ++r) {
@@ -142,7 +142,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               if (!isGoodKeypoint) {
                 continue;
               }
-
+              
               ethsift_compute_orientation_histogram(
                 gradients[i * layers + j], 
                 rotations[i * layers + j], 
@@ -178,14 +178,29 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // number based on fitting But since we didn't
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
+
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
+
+                  ++keypoints_current;
+                  ++keypoints_found;
+                  
+                  if (keypoints_current >= keypoints_required) {
+                    break;
+                  }
+         
+                  keypoints[keypoints_current].layer = keypoints[keypoints_current - 1].layer;
+                  keypoints[keypoints_current].octave = keypoints[keypoints_current - 1].octave;
+
+                  keypoints[keypoints_current].layer_pos = keypoints[keypoints_current - 1].layer_pos;
+                  keypoints[keypoints_current].global_pos =  keypoints[keypoints_current - 1].global_pos;
+
                 }
-              }       
+              }    
 
               // Update keypoint counts
-              ++keypoints_current;
-              ++keypoints_found;
+              // ++keypoints_current;
+              // ++keypoints_found;
 
             } else {
               // Still test keypoint if usable
