@@ -24,7 +24,15 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
   return 1;
 }
 
-// Refine the location of the keypoints to be sub-pixel accurate.
+
+/// <summary> 
+/// Refine the location of the keypoints to be sub-pixel accurate.
+/// </summary>
+/// <param name="differences"> IN: DOG pyramid. </param>
+/// <param name="octaves"> IN: Number of Octaves. </param> 
+/// <param name="layers"> IN: Number of layers. </param> 
+/// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
+/// <returns> 1 IF computation was successful, ELSE 0. </returns>
 int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint *keypoint){
   
   // Settings of EzSift:

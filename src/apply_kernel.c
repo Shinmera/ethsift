@@ -1,7 +1,18 @@
 #include "internal.h"
 
 
-// Apply Gaussian row filter to image and then transpose the image
+
+/// <summary> 
+/// Apply Gaussian row filter to image and then transpose the image.
+/// </summary>
+/// <param name="pixels"> IN: Pixels to filter. </param>
+/// <param name="output"> OUT: Filtered image. </param>
+/// <param name="w"> IN: Width of image to filter. </param>
+/// <param name="h"> IN: Height of image to filter. </param>
+/// <param name="kernel"> IN: Kernel to filter with. </param>
+/// <param name="kernel_size"> IN: Size of the kernel. </param>
+/// <param name="kernel_rad"> IN: Radius of the kernel. </param>
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int row_filter_transpose(float *pixels, float *output, int w, int h, float *kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
@@ -51,8 +62,15 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
   return 1;
 }
 
-
-// Apply the gaussian kernel to the image and write the result to the output.
+/// <summary> 
+/// Apply the gaussian kernel to the image and write the result to the output.
+/// </summary>
+/// <param name="image"> IN: Input image to blur. </param>
+/// <param name="kernel"> IN: The gaussian kernel/filter we use for blurring. </param>
+/// <param name="kernel_size"> IN: Size of gaussian kernels. </param>
+/// <param name="kernel_rad"> IN: Radius of the kernel. </param>
+/// <param name="output"> OUT: Blurred output image. </param>
+/// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output) {
   uint32_t w = image.width;
   uint32_t h = image.height;

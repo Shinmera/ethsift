@@ -59,11 +59,18 @@ static int is_local_min(float pixel, int pos, int w, float *curData, float *lowD
 }
 
 
-// Detect the keypoints in the image that SIFT finds interesting.
-// keypoint_count
-//   [in] how many keypoints we can store at most
-//   [in] layers - number of layers of Gaussian Pyramid
-//   [out] how many keypoints we actually found
+/// <summary> 
+/// Detect the keypoints in the image that SIFT finds interesting.
+/// </summary>
+/// <param name="differences"> IN: DOG pyramid. </param>
+/// <param name="gradients"> IN: Gradients pyramid. </param>
+/// <param name="rotations"> IN: Rotation pyramid.  </param>
+/// <param name="octaves"> IN: Number of Octaves. </param> 
+/// <param name="layers"> IN: Number of layers. </param> 
+/// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
+/// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
+///                               OUT: Number of keypoints found. </param> 
+/// <returns> 1 IF computation was successful, ELSE 0. </returns>
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
