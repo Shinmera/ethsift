@@ -19,6 +19,7 @@ extern bool measurement_pending;
 #define OCTAVE_COUNT 6
 #define GAUSSIAN_COUNT 6
 #define DOG_LAYERS 5
+#define GRAD_ROT_LAYERS 3
 
 int register_test(const char *title, int (*func)());
 

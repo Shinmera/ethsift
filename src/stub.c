@@ -20,9 +20,9 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_co
 //   return 0;
 // }
 
-int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t layers){
-  return 0;
-}
+//int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t layers){
+//  return 0;
+//}
 
 // int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram){
 //   return 0;
