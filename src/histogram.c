@@ -8,12 +8,17 @@
 /// <param name="keypoint"> IN: Detected Keypoints.
 /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
 /// <returns> max value in the histogram IF computation was successful, ELSE 0. </returns>
-int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram, float *max_histval){
+int ethsift_compute_orientation_histogram(struct ethsift_image gradient, 
+                                          struct ethsift_image rotation, 
+                                          struct ethsift_keypoint *keypoint, 
+                                          float *histogram, 
+                                          float *max_histval)
+{
     int bin_count = ETHSIFT_ORI_HIST_BINS;
 
-    float kptr = keypoint->global_pos.y;
-    float kptc = keypoint->global_pos.x;
-    float kpt_scale = keypoint->global_pos.scale;
+    float kptr = keypoint->layer_pos.y;
+    float kptc = keypoint->layer_pos.x;
+    float kpt_scale = keypoint->layer_pos.scale;
 
     int kptr_i = (int)(kptr + 0.5f);
     int kptc_i = (int)(kptc + 0.5f);
@@ -88,14 +93,15 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct 
 
 
     // Find the maximum item of the histogram
-    *max_histval = histogram[0];
+    float temp = histogram[0];
     int max_i = 0;
     for (int i = 0; i < bin_count; i++) {
-        if (*max_histval < histogram[i]) {
-            *max_histval = histogram[i];
+        if (temp < histogram[i]) {
+            temp = histogram[i];
             max_i = i;
         }
     }
+    *max_histval = temp;
 
     keypoint->orientation = max_i * M_TWOPI / bin_count;
 

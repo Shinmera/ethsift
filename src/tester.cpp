@@ -25,6 +25,27 @@ struct ethsift_image allocate_image(uint32_t width, uint32_t height){
   return output;
 }
 
+struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k) {
+    struct ethsift_keypoint ret = {0};
+
+    ret.layer = k->layer;
+    ret.magnitude = k->mag;
+    ret.octave = k->octave;
+    ret.global_pos.scale = k->scale;
+    ret.global_pos.x = k->c;
+    ret.global_pos.y = k->r;
+
+    ret.layer_pos.scale = k->layer_scale;
+    ret.layer_pos.x = k->ci;
+    ret.layer_pos.y = k->ri;
+
+    for (int i = 0; i < DESCRIPTORS; ++i) {
+        ret.descriptors[i] = k->descriptors[i];
+    }
+
+    return ret;
+}
+
 int convert_image(const ezsift::Image<unsigned char> &input,
                   struct ethsift_image *output){
   output->width = input.w;

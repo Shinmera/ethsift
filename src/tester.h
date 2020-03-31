@@ -11,6 +11,7 @@
 #include <time.h>
 #include <chrono>
 #include <vector>
+#include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;
@@ -43,7 +44,12 @@ struct ethsift_image allocate_image(uint32_t width, uint32_t height);
 
 // Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_image *output);
+
+// Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<float> &input, struct ethsift_image *output);
+
+// Convert ezSift Keypoint to eth_sift keypoint
+struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k);
 
 // Directly load an ethsift image
 int load_image(const char *file, struct ethsift_image &image);
