@@ -25,6 +25,7 @@ add_library(ethsift STATIC
   "src/gaussian_kernel.c"
   "src/gaussian_pyramid.c"
   "src/dog_pyramid.c"
+  "src/grad_rot_pyramid.c"
   "src/octaves.c"
   "src/downscale.c"
   "src/apply_kernel.c"
