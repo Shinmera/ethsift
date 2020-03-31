@@ -438,11 +438,8 @@ define_test(TestGaussianPyramid, {
       }
     }
 
-    printf("res_g = %d", res_g);
-    printf("res = %d", OCTAVE_COUNT * GAUSSIAN_COUNT);
-
-    if(res_g == OCTAVE_COUNT * GAUSSIAN_COUNT) return 1;
-    //if(res_r == OCTAVE_COUNT * GAUSSIAN_COUNT) return 1;
+    if(res_g == OCTAVE_COUNT * GRAD_ROT_LAYERS) return 1;
+    //if(res_r == OCTAVE_COUNT * GRAD_ROT_LAYERS) return 1;
     
     return 0;
 
