@@ -12,8 +12,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
                                         uint32_t gaussian_count, 
                                         struct ethsift_image differences[], 
                                         uint32_t layers,
-                                        uint32_t octave_count)
-{
+                                        uint32_t octave_count){
     uint32_t width, height;
     int row_index;
 

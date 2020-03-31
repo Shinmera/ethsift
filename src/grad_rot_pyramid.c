@@ -17,8 +17,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                                       struct ethsift_image gradients[], 
                                       struct ethsift_image rotations[], 
                                       uint32_t layers,
-                                      uint32_t octave_count)
-{
+                                      uint32_t octave_count){
     int width, height;
     int idx;
     float d_row, d_column;
