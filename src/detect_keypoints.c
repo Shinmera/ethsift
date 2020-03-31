@@ -30,6 +30,11 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   int layer_ind, pos;
   float pixel;
 
+  // Histogram
+  int nBins = ETHSIFT_ORI_HIST_BINS;
+  float hist[nBins];
+  float max_mag;
+
   for (int i = 0; i < octaves; ++i) {
     w = differences[i * layersDoG].width;
     h = differences[i * layersDoG].height;
@@ -115,20 +120,58 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 continue;
               }
 
+              ethsift_compute_orientation_histogram(
+                gradients[i * layers + j], 
+                rotations[i * layers + j], 
+                &(keypoints[keypoints_current]), 
+                hist, &max_mag);
+
+              for (int ii = 0; ii < nBins; ++ii) {
+                int left = ii > 0 ? ii - 1 : nBins - 1;
+                int right = ii < (nBins - 1) ? ii + 1 : 0;
+                float currHist = hist[ii];
+                float lhist = hist[left];
+                float rhist = hist[right];
+                if (currHist > lhist && currHist > rhist &&
+                  currHist > threshold) {
+                  // Refer to here:
+                  // http://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
+                  float accu_ii =
+                    ii + 0.5f * (lhist - rhist) /
+                    (lhist - 2.0f * currHist + rhist);
+
+                  // Since bin index means the starting point of a
+                  // bin, so the real orientation should be bin
+                  // index plus 0.5. for example, angles in bin 0
+                  // should have a mean value of 5 instead of 0;
+                  accu_ii += 0.5f;
+                  accu_ii = accu_ii < 0 ? (accu_ii + nBins)
+                                        : accu_ii >= nBins
+                                          ? (accu_ii - nBins)
+                                          : accu_ii;
+                  // The magnitude should also calculate the max
+                  // number based on fitting But since we didn't
+                  // actually use it in image matching, we just
+                  // lazily use the histogram value.
+                  keypoints[keypoints_current].magnitude = currHist;
+                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
+                }
+              }       
+
+              // Update current keypoint count
               ++keypoints_current;
             }
 
             // Count keypoints found 
             ++keypoints_found;
 
-            
-            // And also computes the histograms here... TODO Move Histogram calculations to compute_keypoints
-
           }
         }
       }
     }
   }
+
+  free(hist);
 
   // Update count with actual number of keypoints found
   keypoint_count = &keypoints_found;
