@@ -4,7 +4,7 @@
 /// Compute the histogram for the given keypoints in the image.
 /// </summary>
 /// <param name="gradient"> IN: DOG pyramid. </param>
-/// <param name="rotation"> IN: Rotations?. </param>
+/// <param name="rotation"> IN: Rotation pyramid. </param>
 /// <param name="keypoint"> IN: Detected Keypoints.
 /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
 /// <returns> max value in the histogram IF computation was successful, ELSE 0. </returns>

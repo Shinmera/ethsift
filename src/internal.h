@@ -10,6 +10,15 @@ static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){
   return image.pixels[image.width*y+x];
 };
 
+/// <summary> 
+/// Refine the location of the keypoints to be sub-pixel accurate.
+/// </summary>
+/// <param name="imageData"> IN: Set of pixels in image. </param>
+/// <param name="w"> IN: Total width of image. </param> 
+/// <param name="h"> IN: Total height of image. </param> 
+/// <param name="r"> IN: Row position to extract pixel from. </param> 
+/// <param name="c"> IN: Column position to extract pixel from. </param> 
+/// <returns> The pixel value at position (r,c). </returns>
 static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 {
     float val;
@@ -43,6 +52,15 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 #define M_THREEPI_FRAC4 2.356194490192345f
 #define EPSILON_F 1.19209290E-07F
 
+/// <summary> 
+/// Refine the location of the keypoints to be sub-pixel accurate.
+/// </summary>
+/// <param name="imageData"> IN: Set of pixels in image. </param>
+/// <param name="w"> IN: Total width of image. </param> 
+/// <param name="h"> IN: Total height of image. </param> 
+/// <param name="r"> IN: Row position to extract pixel from. </param> 
+/// <param name="c"> IN: Column position to extract pixel from. </param> 
+/// <returns> The pixel value at position (r,c). </returns>
 static inline float fast_atan2_f(float y, float x)
 {
     float angle, r;
@@ -63,7 +81,12 @@ static inline float fast_atan2_f(float y, float x)
     return (y < 0) ? M_TWOPI - angle : angle;
 }
 
-// Fast Sqrt() function
+
+/// <summary> 
+/// Calculates the inverted square-root of x ( 1/sqrt(x) ).
+/// </summary>
+/// <param name="x"> IN: Value to get the inverted square-root of. </param>
+/// <returns> The inverted square-root of x. </returns>
 static inline float fast_resqrt_f(float x)
 {
     // 32-bit version
@@ -86,6 +109,11 @@ static inline float fast_resqrt_f(float x)
     return u.x;
 }
 
+/// <summary> 
+/// Calculate the squareroot of x.
+/// </summary>
+/// <param name="x"> IN: Value to get the square root of. </param>
+/// <returns> The square-root of x. </returns>
 static inline float fast_sqrt_f(float x)
 {
     return (x < 1e-8) ? 0 : x * fast_resqrt_f(x);
