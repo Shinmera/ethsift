@@ -70,6 +70,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   // TODO Move to settings.h
   int SIFT_IMAGE_BORDER = 5;
   float SIFT_CONTR_THR = 8.0f;
+  float SIFT_ORI_PEAK_RATIO = 0.8f;
   
   float threshold = 0.8f * SIFT_CONTR_THR;
   
@@ -141,6 +142,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
+              float hist_threshold = max_mag * SIFT_ORI_PEAK_RATIO;
+
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;
                 int right = ii < (nBins - 1) ? ii + 1 : 0;
@@ -148,7 +151,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 float lhist = hist[left];
                 float rhist = hist[right];
                 if (currHist > lhist && currHist > rhist &&
-                  currHist > threshold) {
+                  currHist > hist_threshold) {
                   // Refer to here:
                   // http://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
                   float accu_ii =
