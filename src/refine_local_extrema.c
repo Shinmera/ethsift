@@ -191,7 +191,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
       return 0;
   }
 
-
   (*keypoint).layer_pos.x = tmp_c;
   (*keypoint).layer_pos.y = tmp_r;
   (*keypoint).layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);

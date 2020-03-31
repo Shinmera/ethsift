@@ -8,6 +8,7 @@
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
+  // TODO Move to settings.h
   int SIFT_IMAGE_BORDER = 5;
   float SIFT_CONTR_THR = 8.0f;
   
@@ -20,6 +21,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   uint32_t keypoints_required = *keypoint_count;
   uint32_t keypoints_found = 0;
   uint32_t keypoints_current = 0;
+
+  struct ethsift_keypoint temp;
 
   // Loop variables
   float *curData;
@@ -111,7 +114,6 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
               keypoints[keypoints_current].layer_pos.x = (float) r;
               keypoints[keypoints_current].layer_pos.y = (float) c;
-              keypoints[keypoints_current].layer_pos.scale = 1.0f;
   
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
               int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &keypoints[keypoints_current]);
@@ -158,23 +160,36 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 }
               }       
 
-              // Update current keypoint count
+              // Update keypoint counts
               ++keypoints_current;
-            }
+              ++keypoints_found;
 
-            // Count keypoints found 
-            ++keypoints_found;
+            } else {
+              // Still test keypoint if usable
+              temp.layer = j;
+              temp.octave = i;
 
+              temp.layer_pos.x = (float) r;
+              temp.layer_pos.y = (float) c;
+
+              // EzSift does the refinement here and decides at this moment if the keypoint is useable
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &temp);
+              
+              if (!isGoodKeypoint) {
+                continue;
+              }
+
+              // Update keypoints found 
+              ++keypoints_found;
+            }      
           }
         }
       }
     }
   }
 
-  free(hist);
-
   // Update count with actual number of keypoints found
-  keypoint_count = &keypoints_found;
+  *keypoint_count = keypoints_found;
   
   return 0;
 }
