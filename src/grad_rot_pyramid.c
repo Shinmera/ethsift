@@ -1,4 +1,6 @@
 #include "internal.h"
+#include <float.h>
+#define EPSILON_ROT 0.000001
 
 int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], 
                                       uint32_t gaussian_count, 
@@ -31,8 +33,9 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                                get_pixel_f(gaussians[idx].pixels, width, height, row, column-1);
                     
                     gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);      
-                    
-                    rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column);   
+                    angle = fast_atan2_f(d_row, d_column);
+
+                    rotations[idx].pixels[row * width + column] = angle;  
                 }
             }
 

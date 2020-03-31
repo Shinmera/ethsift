@@ -15,7 +15,7 @@
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;
 extern bool measurement_pending;
-#define EPS 0.5
+#define EPS 0.001
 #define OCTAVE_COUNT 6
 #define GAUSSIAN_COUNT 6
 #define DOG_LAYERS 5

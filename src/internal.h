@@ -39,10 +39,8 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 #define M_TWOPI 6.283185307179586f
 #define M_PI_FRAC4 0.785398163397448f
 #define M_THREEPI_FRAC4 2.356194490192345f
-
-// Fast math functions
-// Fast Atan2() function
 #define EPSILON_F 1.19209290E-07F
+
 static inline float fast_atan2_f(float y, float x)
 {
     float angle, r;
