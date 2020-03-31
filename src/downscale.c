@@ -9,9 +9,6 @@
 int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image output){
   int srcW = image.width, srcH = image.height;
   int dstW = output.width, dstH = output.height;
-  // output.width = srcW;
-  // output.height = srcH;
-  //output.pixels = (float*) malloc(secW*srcH*sizeof(float));
 
   for (int r = 0; r < dstH; r++) {
     for (int c = 0; c < dstW; c++) {

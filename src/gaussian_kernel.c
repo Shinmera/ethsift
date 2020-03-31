@@ -1,20 +1,9 @@
 #include "internal.h"
 
-
-void print_kernel(float* kernel, 
-                uint32_t kernel_size, 
-                float sigma){
-    printf("Kernel %f:\n[",sigma);
-    for(int i = 0; i < kernel_size; ++i){
-        printf("%f, ", kernel[i]);
-    }
-    printf("]\n\n");
-}
-
 /// <summary> 
 /// Creates a gaussian kernel for image filtering.
 /// </summary>
-/// <param name="kernel"> IN/OUT: Kernel to generate. </param>
+/// <param name="kernel"> OUT: Kernel to generate. </param>
 /// <param name="kernel_size"> IN: Kernel size. </param>
 /// <param name="kernerl_rad"> IN: Kernel radius. </param>
 /// <param name="sigma"> IN: Standard deviation of the gaussian kernel. </param> 
@@ -36,7 +25,6 @@ int ethsift_generate_gaussian_kernel(float *kernel,
     for (int j = 0; j < kernel_size; j++) {
         kernel[j] = kernel[j]*mul;
     }
-    //print_kernel(kernel, kernel_size, sigma);
     return 1;
 }
 
@@ -76,7 +64,6 @@ int ethsift_generate_all_kernels(int layers_count,
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
     kernel_ptrs[0] = (float*) calloc(kernel_sizes[0], sizeof(float)); 
     ethsift_generate_gaussian_kernel(kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], sigma_i);
-    //print_kernel(kernel_ptrs[0], kernel_sizes[0], sigma_i);
 
     //Calculate all other sigmas and create the according kernel
     for (int i = 1; i < gaussian_count; ++i) {
@@ -95,7 +82,6 @@ int ethsift_generate_all_kernels(int layers_count,
         kernel_ptrs[i] = (float*) calloc(kernel_sizes[i], sizeof(float)); 
         ethsift_generate_gaussian_kernel(kernel_ptrs[i], kernel_sizes[i], kernel_rads[i], sigma_i);
 
-        //print_kernel(kernel_ptrs[i], kernel_sizes[i], sigma_i);
     }
     return 1;
 }

@@ -1,9 +1,5 @@
 #include "tester.h"
 
-// define_test(Dummy, {
-//     return 1;
-//   })
-
 define_test(TestCompareImageApprox, {
   char const *file = data_file("lena.pgm");
   //init files 
@@ -42,7 +38,6 @@ define_test(TestDownscale, {
 
   //Downscale ezSIFT Image
   const ezsift::Image<unsigned char> ez_img_downscaled = ez_img.downsample_2x();
-  
   //compare files 
   int res = compare_image_approx(ez_img_downscaled, eth_img_downscaled);
   return res;
@@ -72,9 +67,7 @@ define_test(TestConvolution, {
     // Blur ethsift image
     struct ethsift_image output = allocate_image(w, h);
     ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
-
-    // // Write blurred ethsift image
-    
+        
     // Blur ezsift image
     std::vector<float> ez_kernel;
     for (int i = 0; i < kernel_size; ++i) {
@@ -82,10 +75,7 @@ define_test(TestConvolution, {
     }
     ezsift::Image<float> ez_img_blurred(w, h);
     ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
-
-    // // Write blurred ezsift image
-    // ez_img_blurred.write_pgm("ez.pgm");
-    
+        
     int res = compare_image_approx(ez_img_blurred, output);
     return res;
   })
@@ -371,14 +361,9 @@ define_test(TestGradientPyramids, {
 
     // Compare the Gradient outputs!
     int res_g = 0;
-    // int res_r = 0;
-    // int res_r_old;
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 1; j <= GRAD_ROT_LAYERS; ++j) {        
         res_g += compare_image_approx(ez_gradients[i * GAUSSIAN_COUNT + j], eth_gradients[i * GAUSSIAN_COUNT + j]);
-        // res_r_old = res_r;
-        // res_r += compare_image_approx(ez_rotations[i * GAUSSIAN_COUNT + j], eth_rotations[i * GAUSSIAN_COUNT + j]);
-        // if(res_r_old == res_r) printf("FAILED ON INSTANCE: %d\n",i * GAUSSIAN_COUNT + j);
       }
     }
 
