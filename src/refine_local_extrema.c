@@ -24,30 +24,6 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
   return 1;
 }
 
-float get_pixel_f(float *imageData, int w, int h, int r, int c) {
-  float val;
-  if (c >= 0 && c < w && r >= 0 && r < h) {
-    val = imageData[r * w + c];
-  }
-  else if (c < 0) {
-    val = imageData[r * w];
-  }
-  else if (c >= w) {
-    val = imageData[r * w + w - 1];
-  }
-  else if (r < 0) {
-    val = imageData[c];
-  }
-  else if (r >= h) {
-    val = imageData[(h - 1) * w + c];
-  }
-  else {
-    val = 0.0f;
-  }
-  return val;
-}
-
-
 // Refine the location of the keypoints to be sub-pixel accurate.
 int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint *keypoint){
   
