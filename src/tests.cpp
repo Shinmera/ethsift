@@ -536,6 +536,114 @@ define_test(TestHistograms, {
   })
 
 
+define_test(TestExtremaRefinement, {
+  char const *file = data_file("lena.pgm");
+  //init files 
+  ezsift::Image<unsigned char> ez_img;
+  struct ethsift_image eth_img = {0};
+  if(ez_img.read_pgm(file) != 0) return 0;  
+  if(!convert_image(ez_img, &eth_img)) return 0;
+
+  int srcW = eth_img.width; 
+  int srcH = eth_img.height;
+  int dstW = srcW;
+  int dstH = srcH;
+
+  // Allocate the gaussian pyramids!
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_LAYERS];
+
+  for (int i = 0; i < OCTAVE_COUNT; ++i) {
+    for (int j = 0; j < DOG_LAYERS; ++j) {
+      eth_differences[i * DOG_LAYERS + j] = allocate_image(dstW, dstH);
+    }
+
+    srcW = dstW;
+    srcH = dstH;
+    dstW = srcW >> 1;
+    dstH = srcH >> 1;
+  }
+
+  // 3 random unrefined Keypoints to test refinement: 
+  ezsift::SiftKeypoint kpt1;
+  kpt1.octave = 3;
+  kpt1.layer = 3;
+  kpt1.ri = 56.0f;
+  kpt1.ci = 87.0f;
+  ezsift::SiftKeypoint kpt2;
+  kpt2.octave = 1;
+  kpt2.layer = 1;
+  kpt2.ri = 109.0f;
+  kpt2.ci = 378.0f;
+  ezsift::SiftKeypoint kpt3;
+  kpt3.octave = 0;
+  kpt3.layer = 1;
+  kpt3.ri = 405.0f;
+  kpt3.ci = 489.0f;
+
+  struct ethsift_keypoint eth_kpt1;
+  eth_kpt1.layer = 3;
+  eth_kpt1.octave = 3;
+  eth_kpt1.layer_pos.x = 56.0f;
+  eth_kpt1.layer_pos.y = 87.0f;
+  struct ethsift_keypoint eth_kpt2;
+  eth_kpt2.layer = 1;
+  eth_kpt2.octave = 1;
+  eth_kpt2.layer_pos.x = 109.0f;
+  eth_kpt2.layer_pos.y = 378.0f;
+  struct ethsift_keypoint eth_kpt3;
+  eth_kpt3.layer = 1;
+  eth_kpt3.octave = 0;
+  eth_kpt3.layer_pos.x = 405.0f;
+  eth_kpt3.layer_pos.y = 489.0f;
+  
+  //Init EZSift Octaves
+  std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
+
+  //Create DOG for ezSift    
+  build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
+
+  std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
+  build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_LAYERS);
+  build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_LAYERS);
+
+  refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_LAYERS, kpt1);
+  refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_LAYERS, kpt2);
+  refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_LAYERS, kpt3);
+
+  // Convert ezsift images to ethsift images:
+  for (int i = 0; i < OCTAVE_COUNT; ++i) {
+    for (int j = 0; j < DOG_LAYERS; ++j) {
+      convert_image(ez_differences[i * DOG_LAYERS + j], &eth_differences[i * DOG_LAYERS + j]);
+    }
+  }
+
+  ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt1);
+  ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt2);
+  ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3);
+
+  int res = 1;
+
+  res = res && (kpt1.octave == (int) eth_kpt1.octave && 
+                kpt1.layer == (int) eth_kpt1.layer &&
+                fabs(kpt1.ri - eth_kpt1.layer_pos.x) < EPS &&
+                fabs(kpt1.ci - eth_kpt1.layer_pos.y) < EPS);
+  
+  res = res && (kpt2.octave == (int) eth_kpt2.octave && 
+                kpt2.layer == (int) eth_kpt2.layer &&
+                fabs(kpt2.ri - eth_kpt2.layer_pos.x) < EPS &&
+                fabs(kpt2.ci - eth_kpt2.layer_pos.y) < EPS);
+
+  res = res && (kpt3.octave == (int) eth_kpt3.octave && 
+                kpt3.layer == (int) eth_kpt3.layer &&
+                fabs(kpt3.ri - eth_kpt3.layer_pos.x) < EPS &&
+                fabs(kpt3.ci - eth_kpt3.layer_pos.y) < EPS);
+
+  return res;
+})
+
+
 define_test(TestKeypointDetection, {
   char const *file = data_file("lena.pgm");
   //init files 
@@ -607,9 +715,9 @@ define_test(TestKeypointDetection, {
   uint32_t nKeypoints = 100;
   ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
 
-  // printf("\n");
-  // printf("%d\n", nKeypoints);
-  // printf("%d\n", (int)ez_kpt_list.size());
+  printf("\n");
+  printf("%d\n", nKeypoints);
+  printf("%d\n", (int)ez_kpt_list.size());
   
   // TODO Write keypoint compare method
   //    - Figure out why it detects less keypoints than ezsift

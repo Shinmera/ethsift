@@ -96,7 +96,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float *lowData;
   float *highData;
 
-  uint32_t w, h;
+  int w, h;
   int layer_ind, pos;
   float pixel;
 
@@ -106,8 +106,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float max_mag;
 
   for (int i = 0; i < octaves; ++i) {
-    w = differences[i * layersDoG].width;
-    h = differences[i * layersDoG].height;
+    w = (int) differences[i * layersDoG].width;
+    h = (int) differences[i * layersDoG].height;
 
     for (int j = 1; j < layersDoG - 1; ++j) {
       layer_ind = i * layersDoG + j;
@@ -144,8 +144,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               }
               
               ethsift_compute_orientation_histogram(
-                gradients[i * layers + j], 
-                rotations[i * layers + j], 
+                gradients[i * ((int) layers) + j], 
+                rotations[i * ((int) layers) + j], 
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
@@ -157,6 +157,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 float currHist = hist[ii];
                 float lhist = hist[left];
                 float rhist = hist[right];
+
                 if (currHist > lhist && currHist > rhist &&
                   currHist > hist_threshold) {
                   // Refer to here:
@@ -178,7 +179,6 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // number based on fitting But since we didn't
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
-
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
 

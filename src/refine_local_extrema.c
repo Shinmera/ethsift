@@ -49,10 +49,10 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int w = 0;
   int h = 0;
   int layer_ind = 0;
-  int nDoGLayers = layers - 1;
+  int nDoGLayers = ((int) layers) - 1;
 
-  int octave = keypoint->octave;
-  int layer = keypoint->layer;
+  int octave = (int) keypoint->octave;
+  int layer = (int) keypoint->layer;
   int r = keypoint->layer_pos.x;
   int c = keypoint->layer_pos.y;
   
@@ -160,11 +160,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0;
 
   // If (r, c, layer) is out of range, return false.
-  if (tmp_layer < 0 || tmp_layer > (layers - 1) || tmp_r < 0 ||
+  if (tmp_layer < 0 || tmp_layer > ((int) layers - 1) || tmp_r < 0 ||
       tmp_r > h - 1 || tmp_c < 0 || tmp_c > w - 1)
     return 0;
 
-    
+  
   float value = get_pixel_f(curData, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
   if (fabsf(value) < SIFT_CONTR_THR)
     return 0;
@@ -176,7 +176,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (detH <= 0 || (trH * trH / detH) >= response)
     return 0;
   
-
   keypoint->layer_pos.x = tmp_r;
   keypoint->layer_pos.y = tmp_c;
   keypoint->layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);
