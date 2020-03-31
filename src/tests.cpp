@@ -420,3 +420,116 @@ define_test(TestGaussianPyramid, {
 
 
   })
+
+  define_test(TestKeypointDetection, {
+    // TODO 
+
+
+    
+    char const *file = data_file("lena.pgm");
+    //init files 
+    ezsift::Image<unsigned char> ez_img;
+    struct ethsift_image eth_img = {0};
+    if(ez_img.read_pgm(file) != 0) return 0;  
+    if(!convert_image(ez_img, &eth_img)) return 0;
+
+    //Init Octaves
+    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
+
+    struct ethsift_image eth_octaves[OCTAVE_COUNT];
+    int srcW = eth_img.width; 
+    int srcH = eth_img.height;
+    int dstW = srcW;
+    int dstH = srcH;
+    
+    eth_octaves[0] = allocate_image(dstW, dstH);
+    for(int i = 1; i < OCTAVE_COUNT; ++i){
+      eth_octaves[i] = {0};
+      srcW = dstW;
+      srcH = dstH;
+      dstW = srcW >> 1;
+      dstH = srcH >> 1;
+      eth_octaves[i] = allocate_image(dstW, dstH);
+    }
+
+    srcW = eth_img.width; 
+    srcH = eth_img.height;
+    dstW = srcW;
+    dstH = srcH;
+    // Allocate the gaussian pyramids!
+    struct ethsift_image eth_gaussians[OCTAVE_COUNT*GAUSSIAN_COUNT];
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
+        eth_gaussians[i * GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
+      }
+
+      srcW = dstW;
+      srcH = dstH;
+      dstW = srcW >> 1;
+      dstH = srcH >> 1;
+    }
+
+    srcW = eth_img.width; 
+    srcH = eth_img.height;
+    dstW = srcW;
+    dstH = srcH;
+
+    // Allocate the gradient pyramid!
+    struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 1; j <= GRAD_ROT_LAYERS; ++j) {
+        eth_gradients[i * GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
+      }
+
+      srcW = dstW;
+      srcH = dstH;
+      dstW = srcW >> 1;
+      dstH = srcH >> 1;
+    }
+
+    // Allocate the orientation pyramid!
+    struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 1; j <= GRAD_ROT_LAYERS; ++j) {
+        eth_rotations[i * GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
+      }
+
+      srcW = dstW;
+      srcH = dstH;
+      dstW = srcW >> 1;
+      dstH = srcH >> 1;
+    }
+
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
+
+    ethsift_generate_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+
+    ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+    
+    //Create DOG for ezSift    
+    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
+
+    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
+    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
+    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
+    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+
+    // Compare the gaussian outputs!
+    int res_g = 0;
+    //int res_r = 0;
+    for (int i = 0; i < OCTAVE_COUNT; ++i) {
+      for (int j = 1; j <= GRAD_ROT_LAYERS; ++j) {        
+        res_g += compare_image_approx(ez_gradients[i * GAUSSIAN_COUNT + j], eth_gradients[i * GAUSSIAN_COUNT + j]);
+        //res_r += compare_image_approx(ez_rotations[i * GAUSSIAN_COUNT + j], eth_rotations[i * GAUSSIAN_COUNT + j]);
+      }
+    }
+
+    if(res_g == OCTAVE_COUNT * GRAD_ROT_LAYERS) return 1;
+    //if(res_r == OCTAVE_COUNT * GRAD_ROT_LAYERS) return 1;
+    
+    return 0;
+
+
+  })
