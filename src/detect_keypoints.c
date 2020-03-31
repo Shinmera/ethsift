@@ -1,5 +1,64 @@
 #include "internal.h"
 
+static int is_local_max(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+  int val;
+  val = pixel > highData[pos - w - 1] &&
+        pixel > highData[pos - w] &&
+        pixel > highData[pos - w + 1] &&
+        pixel > highData[pos - 1] && pixel > highData[pos] &&
+        pixel > highData[pos + 1] &&
+        pixel > highData[pos + w - 1] &&
+        pixel > highData[pos + w] &&
+        pixel > highData[pos + w + 1] &&
+        pixel > curData[pos - w - 1] &&
+        pixel > curData[pos - w] &&
+        pixel > curData[pos - w + 1] &&
+        pixel > curData[pos - 1] &&
+        pixel > curData[pos + 1] &&
+        pixel > curData[pos + w - 1] &&
+        pixel > curData[pos + w] &&
+        pixel > curData[pos + w + 1] &&
+        pixel > lowData[pos - w - 1] &&
+        pixel > lowData[pos - w] &&
+        pixel > lowData[pos - w + 1] &&
+        pixel > lowData[pos - 1] && pixel > lowData[pos] &&
+        pixel > lowData[pos + 1] &&
+        pixel > lowData[pos + w - 1] &&
+        pixel > lowData[pos + w] &&
+        pixel > lowData[pos + w + 1];
+  return val;
+}
+
+static int is_local_min(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+  int val;
+  val = pixel < highData[pos - w - 1] &&
+        pixel < highData[pos - w] &&
+        pixel < highData[pos - w + 1] &&
+        pixel < highData[pos - 1] && pixel < highData[pos] &&
+        pixel < highData[pos + 1] &&
+        pixel < highData[pos + w - 1] &&
+        pixel < highData[pos + w] &&
+        pixel < highData[pos + w + 1] &&
+        pixel < curData[pos - w - 1] &&
+        pixel < curData[pos - w] &&
+        pixel < curData[pos - w + 1] &&
+        pixel < curData[pos - 1] &&
+        pixel < curData[pos + 1] &&
+        pixel < curData[pos + w - 1] &&
+        pixel < curData[pos + w] &&
+        pixel < curData[pos + w + 1] &&
+        pixel < lowData[pos - w - 1] &&
+        pixel < lowData[pos - w] &&
+        pixel < lowData[pos - w + 1] &&
+        pixel < lowData[pos - 1] && pixel < lowData[pos] &&
+        pixel < lowData[pos + 1] &&
+        pixel < lowData[pos + w - 1] &&
+        pixel < lowData[pos + w] &&
+        pixel < lowData[pos + w + 1];
+  return val;
+}
+
+
 // Detect the keypoints in the image that SIFT finds interesting.
 // keypoint_count
 //   [in] how many keypoints we can store at most
@@ -58,54 +117,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
           // Test if pixel value is an extrema:
           int isExtrema =
-            (pixel >= threshold && pixel > highData[pos - w - 1] &&
-              pixel > highData[pos - w] &&
-              pixel > highData[pos - w + 1] &&
-              pixel > highData[pos - 1] && pixel > highData[pos] &&
-              pixel > highData[pos + 1] &&
-              pixel > highData[pos + w - 1] &&
-              pixel > highData[pos + w] &&
-              pixel > highData[pos + w + 1] &&
-              pixel > curData[pos - w - 1] &&
-              pixel > curData[pos - w] &&
-              pixel > curData[pos - w + 1] &&
-              pixel > curData[pos - 1] &&
-              pixel > curData[pos + 1] &&
-              pixel > curData[pos + w - 1] &&
-              pixel > curData[pos + w] &&
-              pixel > curData[pos + w + 1] &&
-              pixel > lowData[pos - w - 1] &&
-              pixel > lowData[pos - w] &&
-              pixel > lowData[pos - w + 1] &&
-              pixel > lowData[pos - 1] && pixel > lowData[pos] &&
-              pixel > lowData[pos + 1] &&
-              pixel > lowData[pos + w - 1] &&
-              pixel > lowData[pos + w] &&
-              pixel > lowData[pos + w + 1]) || // Local min
-            (pixel <= -threshold && pixel < highData[pos - w - 1] &&
-              pixel < highData[pos - w] &&
-              pixel < highData[pos - w + 1] &&
-              pixel < highData[pos - 1] && pixel < highData[pos] &&
-              pixel < highData[pos + 1] &&
-              pixel < highData[pos + w - 1] &&
-              pixel < highData[pos + w] &&
-              pixel < highData[pos + w + 1] &&
-              pixel < curData[pos - w - 1] &&
-              pixel < curData[pos - w] &&
-              pixel < curData[pos - w + 1] &&
-              pixel < curData[pos - 1] &&
-              pixel < curData[pos + 1] &&
-              pixel < curData[pos + w - 1] &&
-              pixel < curData[pos + w] &&
-              pixel < curData[pos + w + 1] &&
-              pixel < lowData[pos - w - 1] &&
-              pixel < lowData[pos - w] &&
-              pixel < lowData[pos - w + 1] &&
-              pixel < lowData[pos - 1] && pixel < lowData[pos] &&
-              pixel < lowData[pos + 1] &&
-              pixel < lowData[pos + w - 1] &&
-              pixel < lowData[pos + w] &&
-              pixel < lowData[pos + w + 1]);
+            (pixel >= threshold  && is_local_max(pixel, pos, w, curData, lowData, highData)) ||
+            (pixel <= -threshold && is_local_min(pixel, pos, w, curData, lowData, highData));
 
           if (isExtrema) {
             if (keypoints_found < keypoints_required) {
@@ -181,7 +194,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
               // Update keypoints found 
               ++keypoints_found;
-            }      
+            }     
           }
         }
       }
@@ -191,5 +204,5 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   // Update count with actual number of keypoints found
   *keypoint_count = keypoints_found;
   
-  return 0;
+  return 1;
 }

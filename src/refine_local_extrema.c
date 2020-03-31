@@ -80,40 +80,17 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     lowData = layer_ind - 1;
     highData = layer_ind + 1;
 
-    // Probably not the same behaviour
-    // dx = 0.5f * (differences[curData].pixels[r * w + c + 1] - differences[curData].pixels[r * w + c - 1]); 
-    // dy = 0.5f * (differences[curData].pixels[(r + 1) * w + c] - differences[curData].pixels[(r - 1) * w + c]); 
-    // ds = 0.5f * (differences[highData].pixels[r * w + c] - differences[lowData].pixels[r * w + c]);
-
     dx = 0.5f * (get_pixel_f(differences[curData].pixels, w, h, r, c + 1) - get_pixel_f(differences[curData].pixels, w, h, r, c - 1)); 
     dy = 0.5f * (get_pixel_f(differences[curData].pixels, w, h, r + 1, c) - get_pixel_f(differences[curData].pixels, w, h, r - 1, c)); 
     ds = 0.5f * (get_pixel_f(differences[highData].pixels, w, h, r, c) - get_pixel_f(differences[lowData].pixels, w, h, r, c));
 
     float dD[3] = {-dx, -dy, -ds}; 
 
-    // float v2 = 2.0f * differences[curData].pixels[r * w + c];
     float v2 = 2.0f * get_pixel_f(differences[curData].pixels, w, h, r, c);
-
-    // dxx = differences[curData].pixels[r * w + c + 1] + differences[curData].pixels[r * w + c - 1] - v2;
-    // dyy = differences[curData].pixels[(r + 1) * w + c] + differences[curData].pixels[(r - 1) * w + c] - v2;
-    // dss = differences[highData].pixels[r * w + c] + differences[lowData].pixels[r * w + c] - v2;
 
     dxx = get_pixel_f(differences[curData].pixels, w, h, r, c + 1) + get_pixel_f(differences[curData].pixels, w, h, r, c - 1) - v2;
     dyy = get_pixel_f(differences[curData].pixels, w, h, r + 1, c) + get_pixel_f(differences[curData].pixels, w, h, r - 1, c) - v2;
     dss = get_pixel_f(differences[highData].pixels, w, h, r, c) + get_pixel_f(differences[lowData].pixels, w, h, r, c) - v2;
-
-    // dxy = 0.25f * (differences[curData].pixels[(r + 1) * w + c + 1] 
-    //   - differences[curData].pixels[(r + 1) * w + c - 1]
-    //   - differences[curData].pixels[(r - 1) * w + c + 1]
-    //   + differences[curData].pixels[(r - 1) * w + c - 1]);
-    // dxs = 0.25f * (differences[highData].pixels[(r) * w + c + 1] 
-    //   - differences[highData].pixels[(r) * w + c - 1]
-    //   - differences[lowData].pixels[(r) * w + c + 1]
-    //   + differences[lowData].pixels[(r) * w + c - 1]);
-    // dys = 0.25f * (differences[highData].pixels[(r + 1) * w + c] 
-    //   - differences[highData].pixels[(r - 1) * w + c]
-    //   - differences[lowData].pixels[(r + 1) * w + c]
-    //   + differences[lowData].pixels[(r - 1) * w + c]);
       
     dxy = 0.25f * (get_pixel_f(differences[curData].pixels, w, h, r + 1, c + 1) -
       get_pixel_f(differences[curData].pixels, w, h, r + 1, c - 1) -
@@ -176,20 +153,18 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
       tmp_r > h - 1 || tmp_c < 0 || tmp_c > w - 1)
     return 0;
 
-  {
-    // float value = differences[curData].pixels[r * w + c] + 0.5f * (dx * xc + dy * xr + ds * xs);
     
-    float value = get_pixel_f(differences[curData].pixels, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
-    if (fabsf(value) < SIFT_CONTR_THR)
-      return 0;
+  float value = get_pixel_f(differences[curData].pixels, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
+  if (fabsf(value) < SIFT_CONTR_THR)
+    return 0;
 
-    float trH = dxx + dyy;
-    float detH = dxx * dyy - dxy * dxy;
-    float response = (SIFT_CURV_THR + 1) * (SIFT_CURV_THR + 1) / (SIFT_CURV_THR);
+  float trH = dxx + dyy;
+  float detH = dxx * dyy - dxy * dxy;
+  float response = (SIFT_CURV_THR + 1) * (SIFT_CURV_THR + 1) / (SIFT_CURV_THR);
 
-    if (detH <= 0 || (trH * trH / detH) >= response)
-      return 0;
-  }
+  if (detH <= 0 || (trH * trH / detH) >= response)
+    return 0;
+  
 
   (*keypoint).layer_pos.x = tmp_c;
   (*keypoint).layer_pos.y = tmp_r;
