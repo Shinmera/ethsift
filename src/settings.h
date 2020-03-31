@@ -2,8 +2,6 @@
     This file serves as general settings file for setting the intial values in our project.
 */
 
-// MATH
-#define M_TWOPI 6.28318530718f
 
 // default sigma for initial gaussian smoothing
 #define ETHSIFT_SIGMA 1.6f
