@@ -209,7 +209,7 @@ define_test(TestGaussianPyramid, {
     struct ethsift_image eth_gaussians[OCTAVE_COUNT*GAUSSIAN_COUNT];
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
-        eth_gaussians[i*OCTAVE_COUNT + j] = allocate_image(dstW, dstH);
+        eth_gaussians[i*GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
       }
 
       srcW = dstW;
@@ -279,7 +279,7 @@ define_test(TestGaussianPyramid, {
     struct ethsift_image eth_gaussians[OCTAVE_COUNT*GAUSSIAN_COUNT];
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
-        eth_gaussians[i*OCTAVE_COUNT + j] = allocate_image(dstW, dstH);
+        eth_gaussians[i*GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
       }
 
       srcW = dstW;
