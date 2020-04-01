@@ -44,6 +44,28 @@
 // Maximum amount of Keypoints we want to be able to track.
 #define ETHSIFT_MAX_TRACKABLE_KEYPOINTS 500
 
+// default threshold on keypoint contrast |D(x)|
+#define ETHSIFT_CONTR_THR 8.0f; // 8.0f;
+
+// default threshold on keypoint ratio of principle curvatures
+#define ETHSIFT_CURV_THR 10.0f;
+
+// width of border in which to ignore keypoints
+#define ETHSIFT_IMG_BORDER 5;
+
+// orientation magnitude relative to max that results in new feature
+#define ETHSIFT_ORI_PEAK_RATIO 0.8f;
+
+// maximum steps of keypoint interpolation before failure
+#define ETHSIFT_MAX_INTERP_STEPS 5;
+
+// The keypoint refinement smaller than this threshold will be discarded.
+#define ETHSIFT_KEYPOINT_SUBPiXEL_THR 0.6f;
+
+// double image size before pyramid construction?
+#define ETHSIFT_IMG_DBL 0; // 1;
+
+
 // /****************************************
 //  * Constant parameters
 //  ***************************************/
