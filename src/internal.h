@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "ethsift.h"
 #include <stdlib.h>
 #include <math.h>

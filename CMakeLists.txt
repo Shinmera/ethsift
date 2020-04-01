@@ -21,7 +21,6 @@ add_library(ethsift STATIC
   "include/ethsift.h"
   "src/internal.h"
   "src/settings.h"
-  "src/stub.c"
   "src/gaussian_kernel.c"
   "src/gaussian_pyramid.c"
   "src/dog_pyramid.c"
@@ -32,7 +31,9 @@ add_library(ethsift STATIC
   "src/detect_keypoints.c"
   "src/refine_local_extrema.c"
   "src/histogram.c"
-  "src/extract_descriptor.c")
+  "src/extract_descriptor.c"
+  "src/allocate.c"
+  "src/stub.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)
@@ -45,3 +46,9 @@ set_property(TARGET tester PROPERTY CXX_STANDARD 11)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  message("Adding debug flag...")
+  target_compile_definitions(ethsift PRIVATE -DDEBUG)
+  target_compile_definitions(tester PRIVATE -DDEBUG)
+endif()

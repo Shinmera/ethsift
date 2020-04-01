@@ -4,10 +4,6 @@ int ethsift_init(){
   return 1;
 }
 
-int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_count){
-  return 0;
-}
-
 int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   return 0;
 }
