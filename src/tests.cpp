@@ -746,4 +746,88 @@ define_test(TestKeypointDetection, {
   
   return res;
 })
-  
+
+
+define_test(TestExtractDescriptor, {
+  char const *file = data_file("lena.pgm");
+  //init files 
+  ezsift::Image<unsigned char> ez_img;
+  struct ethsift_image eth_img = {0};
+  if (ez_img.read_pgm(file) != 0) return 0;
+  if (!convert_image(ez_img, &eth_img)) return 0;
+
+  int srcW = eth_img.width;
+  int srcH = eth_img.height;
+  int dstW = srcW;
+  int dstH = srcH;
+
+  // Allocate the gaussian pyramids!
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+
+  for (int i = 0; i < OCTAVE_COUNT; ++i) {
+    for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
+      eth_gradients[i * GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
+      eth_rotations[i * GAUSSIAN_COUNT + j] = allocate_image(dstW, dstH);
+    }
+    srcW = dstW;
+    srcH = dstH;
+    dstW = srcW >> 1;
+    dstH = srcH >> 1;
+  }
+
+  //Init EZSift Octaves
+  std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
+
+  //Create DOG for ezSift    
+  build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
+
+  std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
+  build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_LAYERS);
+  build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_LAYERS);
+
+  std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
+  std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
+  build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+
+  // EzSift: Detect keypoints
+  std::list<ezsift::SiftKeypoint> ez_kpt_list;
+  detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_LAYERS, ez_kpt_list);
+
+  // EzSift: Extract Descriptors
+  extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
+
+  // Convert ezsift images to ethsift images:
+  for (int i = 0; i < OCTAVE_COUNT; ++i) {
+    for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
+      convert_image(ez_gradients[i * GAUSSIAN_COUNT + j], &eth_gradients[i * GAUSSIAN_COUNT + j]);
+      convert_image(ez_rotations[i * GAUSSIAN_COUNT + j], &eth_rotations[i * GAUSSIAN_COUNT + j]);
+    }
+  }
+
+  // Ethsift descriptor extraction:
+  const uint32_t keypoint_count = (uint32_t) ez_kpt_list.size();
+  struct ethsift_keypoint eth_kpt_list[150];
+
+  int i = 0;
+  // Convert ezsift Keypoints to ethsift
+  for (auto ez_kpt : ez_kpt_list) {
+    eth_kpt_list[i] = convert_keypoint(&ez_kpt);
+    ++i;
+  }
+
+  // Compute our descriptors which we want to test!
+  ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
+
+  i = 0;
+  // Compare descriptors for correctness
+  for (auto ez_kpt : ez_kpt_list) {
+    // Returned values are identical using identical inputs
+    if (!compare_descriptor(ez_kpt.descriptors, eth_kpt_list[i].descriptors, DESCRIPTORS)) return 0;
+    ++i;
+  }
+
+  return 1;
+  })

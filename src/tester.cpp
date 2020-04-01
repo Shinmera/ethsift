@@ -134,6 +134,7 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
   return 1;
 }
 
+// Compare an ezsift kernel with an ethsift kernel for correctness
 int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size){
   if((int)ez_kernel.size() != eth_kernel_size)
   {
@@ -145,6 +146,18 @@ int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kern
     if(diff < 0.0) diff *= -1;
     if(EPS < diff) {
       printf("COMPARE_KERNEL: index = %d ; val a = %f ; val b = %f\n", i, ez_kernel[i], eth_kernel[i]);
+      return 0;
+    }
+  }
+  return 1;
+}
+
+// Compare an ezsift descriptor with an ethsift descriptor for correctness
+int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t keypoint_count) {
+  for (int i = 0; i < keypoint_count; ++i) {
+    float diff = ez_descriptors[i] - eth_descriptors[i];
+    if (EPS < abs(diff)) {
+      printf("COMPARE_DESCRIPTORS: index = %d ; val a = %f ; val b = %f\n", i, ez_descriptors[i], eth_descriptors[i]);
       return 0;
     }
   }

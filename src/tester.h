@@ -69,9 +69,13 @@ int compare_image_approx(const ezsift::Image<float> &ez_img, struct ethsift_imag
 // Pixels are considered to be equal if their difference is smaller than eps.
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps);
 
-
+// Compare an ezsift kernel with an ethsift kernel for correctness
 int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size);
 
+// Compare an ezsift descriptor with an ethsift descriptor for correctness
+int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t keypoint_count);
+
+// Write an eth_sift image to pgm format
 int write_image(struct ethsift_image image);
 
 // Start a time measurement section.
