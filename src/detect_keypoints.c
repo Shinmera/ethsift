@@ -1,6 +1,6 @@
 #include "internal.h"
 
-static int is_local_max(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+static inline int is_local_max(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
   int val;
   val = pixel > highData[pos - w - 1] &&
         pixel > highData[pos - w] &&
@@ -29,7 +29,7 @@ static int is_local_max(float pixel, int pos, int w, float *curData, float *lowD
   return val;
 }
 
-static int is_local_min(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+static inline int is_local_min(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
   int val;
   val = pixel < highData[pos - w - 1] &&
         pixel < highData[pos - w] &&
@@ -65,13 +65,13 @@ static int is_local_min(float pixel, int pos, int w, float *curData, float *lowD
 /// <param name="differences"> IN: DOG pyramid. </param>
 /// <param name="gradients"> IN: Gradients pyramid. </param>
 /// <param name="rotations"> IN: Rotation pyramid.  </param>
-/// <param name="octaves"> IN: Number of Octaves. </param> 
-/// <param name="layers"> IN: Number of layers. </param> 
+/// <param name="octave_count"> IN: Number of octaves. </param> 
+/// <param name="gaussian_count"> IN: Number of layers. </param> 
 /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
 /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
 ///                               OUT: Number of keypoints found. </param> 
 /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
+int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
   // TODO Move to settings.h
@@ -82,7 +82,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float threshold = 0.8f * SIFT_CONTR_THR;
   
   // Layers of DoG
-  int layersDoG = layers - 1;
+  int layersDoG = gaussian_count - 1;
 
   // Requested number of keypoints and actual number of keypoints
   int keypoints_required = *keypoint_count;
@@ -105,7 +105,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float hist[nBins];
   float max_mag;
 
-  for (int i = 0; i < octaves; ++i) {
+  for (int i = 0; i < octave_count; ++i) {
     w = (int) differences[i * layersDoG].width;
     h = (int) differences[i * layersDoG].height;
 
@@ -137,15 +137,15 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               keypoints[keypoints_current].layer_pos.y = (float) c;
   
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
-              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &keypoints[keypoints_current]);
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &keypoints[keypoints_current]);
               
               if (!isGoodKeypoint) {
                 continue;
               }
               
               ethsift_compute_orientation_histogram(
-                gradients[i * ((int) layers) + j], 
-                rotations[i * ((int) layers) + j], 
+                gradients[i * ((int) gaussian_count) + j], 
+                rotations[i * ((int) gaussian_count) + j], 
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
@@ -182,13 +182,15 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
 
+                  // Update keypoint counters
                   ++keypoints_current;
                   ++keypoints_found;
                   
                   if (keypoints_current >= keypoints_required) {
                     break;
                   }
-         
+
+                  // Copy values of previous keypoint to possible new keypoint
                   keypoints[keypoints_current].layer = keypoints[keypoints_current - 1].layer;
                   keypoints[keypoints_current].octave = keypoints[keypoints_current - 1].octave;
 
@@ -197,13 +199,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
                 }
               }    
-
-              // Update keypoint counts
-              // ++keypoints_current;
-              // ++keypoints_found;
-
             } else {
-              // Still test keypoint if usable
+              // Still test keypoint if usable, to find the actual number of keypoints
               temp.layer = j;
               temp.octave = i;
 
@@ -211,14 +208,34 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               temp.layer_pos.y = (float) c;
 
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
-              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &temp);
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &temp);
               
               if (!isGoodKeypoint) {
                 continue;
               }
 
-              // Update keypoints found 
-              ++keypoints_found;
+              ethsift_compute_orientation_histogram(
+                gradients[i * ((int) gaussian_count) + j], 
+                rotations[i * ((int) gaussian_count) + j], 
+                &temp, 
+                hist, &max_mag);
+
+              float hist_threshold = max_mag * SIFT_ORI_PEAK_RATIO;
+
+              for (int ii = 0; ii < nBins; ++ii) {
+                int left = ii > 0 ? ii - 1 : nBins - 1;
+                int right = ii < (nBins - 1) ? ii + 1 : 0;
+                float currHist = hist[ii];
+                float lhist = hist[left];
+                float rhist = hist[right];
+
+                if (currHist > lhist && currHist > rhist &&
+                  currHist > hist_threshold) {
+
+                  // Update keypoint counter
+                  ++keypoints_found;      
+                }
+              } 
             }     
           }
         }

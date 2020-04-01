@@ -16,8 +16,8 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
 {
     int bin_count = ETHSIFT_ORI_HIST_BINS;
 
-    float kptr = keypoint->layer_pos.y;
-    float kptc = keypoint->layer_pos.x;
+    float kptr = keypoint->layer_pos.x;
+    float kptc = keypoint->layer_pos.y;
     float kpt_scale = keypoint->layer_pos.scale;
 
     int kptr_i = (int)(kptr + 0.5f);

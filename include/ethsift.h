@@ -15,8 +15,8 @@ extern "C" {
   };
 
   struct ethsift_coordinate{
-    float x;
-    float y;
+    float x;      // Row
+    float y;      // Column
     float scale;
   };
 
@@ -175,7 +175,7 @@ extern "C" {
   /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
   ///                               OUT: Number of keypoints found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-  int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count);
+  int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count);
 
   
 
@@ -188,7 +188,7 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers. </param> 
   /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-  int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint *keypoint);
+  int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint);
 
   
 
