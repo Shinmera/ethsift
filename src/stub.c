@@ -36,9 +36,9 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_co
 //   return 0;
 // }
 
-int ethsift_extract_descriptor(struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t keypoint_count){
-  return 0;
-}
+// int ethsift_extract_descriptor(struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t keypoint_count){
+//   return 0;
+// }
 
 int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   return 0;

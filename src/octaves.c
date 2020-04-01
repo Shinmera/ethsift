@@ -14,10 +14,10 @@ int ethsift_generate_octaves(struct ethsift_image image,
 {
     // ZSOMBORS ULTIMATE OPTIMIZATION:
     // Since in the implementation of EZSift (as in ours) the only use of the octaves is to pass and
-    // extract the very first octave in the function "ethsift_generate_pyramid", I suggest to kill 
+    // extract the very first octave in the function "ethsift_generate_gaussian_pyramid", I suggest to kill 
     // the octave generation as a whole and simply just allocate space for the gaussian pyramid by 
     // "downsampling" the width and height of the image iteratively and simply pass the input image
-    // to "ethsift_generate_pyramid" instead of some octaves.
+    // to "ethsift_generate_gaussian_pyramid" instead of some octaves.
     
     // DIFF NOTE to EZSift: 
     // Original implementation in EZSift contained some upsampling cases which 

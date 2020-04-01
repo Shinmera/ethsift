@@ -23,6 +23,21 @@
 // determines the radius of the region used in orientation assignment
 #define ETHSIFT_ORI_RADIUS (3.0f * ETHSIFT_ORI_SIG_FCTR) // Can affect the orientation computation.
 
+// default width of descriptor histogram array
+#define ETHSIFT_DESCR_WIDTH 4;
+
+// default number of bins per histogram in descriptor array
+#define ETHSIFT_DESCR_HIST_BINS 8;
+
+// determines the size of a single descriptor orientation histogram
+#define ETHSIFT_DESCR_SCL_FCTR 3.f;
+
+// threshold on magnitude of elements of descriptor vector
+#define ETHSIFT_DESCR_MAG_THR 0.2f;
+
+// factor used to convert floating-point descriptor to unsigned char
+#define ETHSIFT_INT_DESCR_FCTR 512.f;
+
 // /****************************************
 //  * Constant parameters
 //  ***************************************/
@@ -76,20 +91,10 @@
 // // maximum number of orientations for each keypoint location
 // // static const float SIFT_ORI_MAX_ORI = 4;
 
-// // determines the size of a single descriptor orientation histogram
-// static float SIFT_DESCR_SCL_FCTR = 3.f;
 
-// // threshold on magnitude of elements of descriptor vector
-// static float SIFT_DESCR_MAG_THR = 0.2f;
 
-// // factor used to convert floating-point descriptor to unsigned char
-// static float SIFT_INT_DESCR_FCTR = 512.f;
 
-// // default width of descriptor histogram array
-// static int SIFT_DESCR_WIDTH = 4;
 
-// // default number of bins per histogram in descriptor array
-// static int SIFT_DESCR_HIST_BINS = 8;
 
 // // default value of the nearest-neighbour distance ratio threshold
 // // |DR_nearest|/|DR_2nd_nearest|<SIFT_MATCH_NNDR_THR is considered as a match.

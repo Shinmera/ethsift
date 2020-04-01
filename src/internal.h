@@ -51,6 +51,7 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 #define M_TWOPI 6.283185307179586f
 #define M_PI_FRAC4 0.785398163397448f
 #define M_THREEPI_FRAC4 2.356194490192345f
+#define SQRT2 1.414213562373095f
 #define EPSILON_F 1.19209290E-07F
 
 /// <summary> 

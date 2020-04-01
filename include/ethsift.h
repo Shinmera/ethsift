@@ -121,7 +121,7 @@ extern "C" {
   /// NOTE: Size = octave_count * gaussian_count. </param>
   /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  int ethsift_generate_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
+  int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
 
   /// <summary> 
   /// Build the gradient and rotation pyramids
@@ -197,13 +197,13 @@ extern "C" {
   /// </summary>
   /// <param name="gradients"> IN: Gradients pyramid. </param>
   /// <param name="rotations"> IN: Rotation pyramid.  </param>
-  /// <param name="octaves"> IN: Number of Octaves. </param> 
-  /// <param name="layers"> IN: Number of layers. </param> 
+  /// <param name="octave_count"> IN: Number of Octaves. </param> 
+  /// <param name="gaussian_count"> IN: Number of gaussian layers. </param> 
   /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
   /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
   ///                               OUT: Number of keypoints found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-  int ethsift_extract_descriptor(struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t keypoint_count);
+  int ethsift_extract_descriptor(struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t keypoint_count);
 
   
   /// <summary> 
