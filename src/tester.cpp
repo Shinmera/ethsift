@@ -154,7 +154,7 @@ int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kern
 
 // Compare an ezsift descriptor with an ethsift descriptor for correctness
 int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t keypoint_count) {
-  for (int i = 0; i < keypoint_count; ++i) {
+  for (int i = 0; i < (int) keypoint_count; ++i) {
     float diff = ez_descriptors[i] - eth_descriptors[i];
     if (EPS < abs(diff)) {
       printf("COMPARE_DESCRIPTORS: index = %d ; val a = %f ; val b = %f\n", i, ez_descriptors[i], eth_descriptors[i]);
@@ -167,12 +167,13 @@ int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t k
 int write_image(struct ethsift_image image){
 
     unsigned char* pixels_to_write = (unsigned char *)malloc( image.width * image.height *sizeof(unsigned char));
-    for (int i = 0; i < image.height; ++i) {
-      for (int j = 0; j < image.width; ++j) {
+    for (int i = 0; i < (int) image.height; ++i) {
+      for (int j = 0; j < (int) image.width; ++j) {
         pixels_to_write[i * image.width + j] = (unsigned char) (image.pixels[i * image.width + j]);
       }
     }
     ezsift::write_pgm("eth.pgm", pixels_to_write, image.width, image.height );
+    return 1;
 }
 
 
