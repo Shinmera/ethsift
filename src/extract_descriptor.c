@@ -18,7 +18,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                               struct ethsift_keypoint keypoints[], 
                               uint32_t keypoint_count)
 {
-  // Number of subregions, default 4x4 subregions.
+    // Number of subregions, default 4x4 subregions.
     // The width of subregion is determined by the scale of the keypoint.
     // Or, in Lowe's SIFT paper[2004], width of subregion is 16x16.
     int nSubregion = ETHSIFT_DESCR_WIDTH;
@@ -36,13 +36,13 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
     // In this implementation, histBin is a circular buffer.
     // we expand the cube by 1 for each direction.
     int nBins = nSubregion * nSubregion * nBinsPerSubregion;
-    int nHistBins =
-        (nSubregion + 2) * (nSubregion + 2) * (nBinsPerSubregion + 2);
+    int nHistBins = (nSubregion + 2) * (nSubregion + 2) * (nBinsPerSubregion + 2);
     int nSliceStep = (nSubregion + 2) * (nBinsPerSubregion + 2);
     int nRowStep = (nBinsPerSubregion + 2);
     float histBin[nHistBins];
 
     float exp_scale = -2.0f / (nSubregion * nSubregion);
+
     struct ethsift_keypoint* kpt;
     for (int k = 0; k < keypoint_count; ++k) {
         kpt = &keypoints[k];
@@ -51,8 +51,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         int layer = kpt->layer;
 
         float kpt_ori = kpt->orientation;
-        float kptr = kpt->layer_pos.x;
-        float kptc = kpt->layer_pos.y;
+        float kptr = kpt->layer_pos.y;
+        float kptc = kpt->layer_pos.x;
         float kpt_scale = kpt->layer_pos.scale;
 
         // Nearest coordinate of keypoints
@@ -64,8 +64,6 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
         int h = gradients[layer_index].height;
-        float *grdData = gradients[layer_index].pixels;
-        float *rotData = rotations[layer_index].pixels;
 
         // Note for Gaussian weighting.
         // OpenCV and vl_feat uses non-fixed size of subregion.
@@ -75,7 +73,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float size_desc = ETHSIFT_DESCR_SCL_FCTR;
         float subregion_width = size_desc * kpt_scale;
         int win_size =
-            (int)(SQRT2 * subregion_width * (nSubregion + 1) * 0.5f + 0.5f);
+            (int)(M_SQRT2 * subregion_width * (nSubregion + 1) * 0.5f + 0.5f);
 
         // Normalized cos() and sin() value.
         float sin_t = sinf(kpt_ori) / (float)subregion_width;
@@ -128,14 +126,13 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 // border issues.
                 r = kptr_i + i;
                 c = kptc_i + j;
-                mag = grdData[r * w + c];
-                angle = rotData[r * w + c] - kpt_ori;
-                float angle1 = (angle < 0) ? (M_TWOPI + angle)
-                                           : angle; // Adjust angle to [0, 2PI)
+                mag = gradients[layer_index].pixels[r * w + c];
+                angle = rotations[layer_index].pixels[r * w + c] - kpt_ori;
+                float angle1 = (angle < 0) ? (M_TWOPI + angle) : angle; // Adjust angle to [0, 2PI)
                 obin = angle1 * nBinsPerSubregionPerDegree;
 
                 int x0, y0, z0;
-                int x1, y1 /*, z1*/;
+                int x1, y1;
                 y0 = (int)floor(rbin);
                 x0 = (int)floor(cbin);
                 z0 = (int)floor(obin);
@@ -144,7 +141,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 d_obin = obin - z0;
                 x1 = x0 + 1;
                 y1 = y0 + 1;
-                //z1 = z0 + 1;
+
 
                 // Gaussian weight relative to the center of sample region.
                 gaussian_weight =
