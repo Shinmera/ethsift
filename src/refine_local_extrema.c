@@ -35,7 +35,7 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
 /// <returns> 1 IF computation was successful, ELSE 0. </returns>
 int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint){
   
-  // Settings of EzSift:
+  // Settings
   int intvls = ETHSIFT_INTVLS;
   int max_interp_steps = ETHSIFT_MAX_INTERP_STEPS;
   float kpt_subpixel_thr = ETHSIFT_KEYPOINT_SUBPiXEL_THR;

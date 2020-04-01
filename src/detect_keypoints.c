@@ -73,7 +73,7 @@ static inline int is_local_min(float pixel, int pos, int w, float *curData, floa
 /// <returns> 1 IF computation was successful, ELSE 0. </returns>
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
-  // Settings as in EzSift
+  // Settings
   int image_border = ETHSIFT_IMG_BORDER;
   float contr_thr = ETHSIFT_CONTR_THR;
   float orientation_peak_ratio = ETHSIFT_ORI_PEAK_RATIO;
