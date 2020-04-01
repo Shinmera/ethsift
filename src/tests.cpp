@@ -583,18 +583,18 @@ define_test(TestExtremaRefinement, {
   struct ethsift_keypoint eth_kpt1;
   eth_kpt1.layer = 3;
   eth_kpt1.octave = 3;
-  eth_kpt1.layer_pos.x = 56.0f;
-  eth_kpt1.layer_pos.y = 87.0f;
+  eth_kpt1.layer_pos.y = 56.0f;
+  eth_kpt1.layer_pos.x = 87.0f;
   struct ethsift_keypoint eth_kpt2;
   eth_kpt2.layer = 1;
   eth_kpt2.octave = 1;
-  eth_kpt2.layer_pos.x = 109.0f;
-  eth_kpt2.layer_pos.y = 378.0f;
+  eth_kpt2.layer_pos.y = 109.0f;
+  eth_kpt2.layer_pos.x = 378.0f;
   struct ethsift_keypoint eth_kpt3;
   eth_kpt3.layer = 1;
   eth_kpt3.octave = 0;
-  eth_kpt3.layer_pos.x = 405.0f;
-  eth_kpt3.layer_pos.y = 489.0f;
+  eth_kpt3.layer_pos.y = 405.0f;
+  eth_kpt3.layer_pos.x = 489.0f;
   
   //Init EZSift Octaves
   std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
@@ -627,18 +627,18 @@ define_test(TestExtremaRefinement, {
 
   res = res && (kpt1.octave == (int) eth_kpt1.octave && 
                 kpt1.layer == (int) eth_kpt1.layer &&
-                fabs(kpt1.ri - eth_kpt1.layer_pos.x) < EPS &&
-                fabs(kpt1.ci - eth_kpt1.layer_pos.y) < EPS);
+                fabs(kpt1.ri - eth_kpt1.layer_pos.y) < EPS &&
+                fabs(kpt1.ci - eth_kpt1.layer_pos.x) < EPS);
   
   res = res && (kpt2.octave == (int) eth_kpt2.octave && 
                 kpt2.layer == (int) eth_kpt2.layer &&
-                fabs(kpt2.ri - eth_kpt2.layer_pos.x) < EPS &&
-                fabs(kpt2.ci - eth_kpt2.layer_pos.y) < EPS);
+                fabs(kpt2.ri - eth_kpt2.layer_pos.y) < EPS &&
+                fabs(kpt2.ci - eth_kpt2.layer_pos.x) < EPS);
 
   res = res && (kpt3.octave == (int) eth_kpt3.octave && 
                 kpt3.layer == (int) eth_kpt3.layer &&
-                fabs(kpt3.ri - eth_kpt3.layer_pos.x) < EPS &&
-                fabs(kpt3.ci - eth_kpt3.layer_pos.y) < EPS);
+                fabs(kpt3.ri - eth_kpt3.layer_pos.y) < EPS &&
+                fabs(kpt3.ci - eth_kpt3.layer_pos.x) < EPS);
 
   return res;
 })
@@ -726,11 +726,11 @@ define_test(TestKeypointDetection, {
       // Returned values are identical using identical inputs
       res = res && (((int) eth_kpt_list[i].octave) == kpt.octave &&
                     ((int) eth_kpt_list[i].layer) == kpt.layer &&
-                    eth_kpt_list[i].layer_pos.x == kpt.ri &&
-                    eth_kpt_list[i].layer_pos.y == kpt.ci &&
+                    eth_kpt_list[i].layer_pos.y == kpt.ri &&
+                    eth_kpt_list[i].layer_pos.x == kpt.ci &&
                     eth_kpt_list[i].layer_pos.scale == kpt.layer_scale &&
-                    eth_kpt_list[i].global_pos.x == kpt.r &&
-                    eth_kpt_list[i].global_pos.y == kpt.c &&
+                    eth_kpt_list[i].global_pos.y == kpt.r &&
+                    eth_kpt_list[i].global_pos.x == kpt.c &&
                     eth_kpt_list[i].global_pos.scale == kpt.scale &&
                     eth_kpt_list[i].orientation == kpt.ori &&
                     eth_kpt_list[i].magnitude == kpt.mag);

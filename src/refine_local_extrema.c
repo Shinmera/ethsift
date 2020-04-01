@@ -53,8 +53,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   int octave = (int) keypoint->octave;
   int layer = (int) keypoint->layer;
-  int r = keypoint->layer_pos.x;
-  int c = keypoint->layer_pos.y;
+  int r = keypoint->layer_pos.y;
+  int c = keypoint->layer_pos.x;
   
   int xs_i = 0, xr_i = 0, xc_i = 0;
   float tmp_r = 0.0f, tmp_c = 0.0f, tmp_layer = 0.0f;
@@ -176,16 +176,16 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (detH <= 0 || (trH * trH / detH) >= response)
     return 0;
   
-  keypoint->layer_pos.x = tmp_r;
-  keypoint->layer_pos.y = tmp_c;
+  keypoint->layer_pos.y = tmp_r;
+  keypoint->layer_pos.x = tmp_c;
   keypoint->layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);
 
   int firstOctave = SIFT_IMG_DBL ? -1 : 0;
   float norm = powf(2.0f, (float)(octave + firstOctave));
 
   // Coordinates in the normalized format (compared to the original image).
-  keypoint->global_pos.x = tmp_r * norm;
-  keypoint->global_pos.y = tmp_c * norm;
+  keypoint->global_pos.y = tmp_r * norm;
+  keypoint->global_pos.x = tmp_c * norm;
   keypoint->global_pos.scale = keypoint->layer_pos.scale * norm;
 
   return 1;

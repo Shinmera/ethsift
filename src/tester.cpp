@@ -32,12 +32,12 @@ struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k) {
     ret.magnitude = k->mag;
     ret.octave = k->octave;
     ret.global_pos.scale = k->scale;
-    ret.global_pos.x = k->r;
-    ret.global_pos.y = k->c;
+    ret.global_pos.y = k->r;
+    ret.global_pos.x = k->c;
 
     ret.layer_pos.scale = k->layer_scale;
-    ret.layer_pos.x = k->ri;
-    ret.layer_pos.y = k->ci;
+    ret.layer_pos.y = k->ri;
+    ret.layer_pos.x = k->ci;
 
     for (int i = 0; i < DESCRIPTORS; ++i) {
         ret.descriptors[i] = k->descriptors[i];

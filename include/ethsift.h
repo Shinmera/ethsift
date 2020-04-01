@@ -15,8 +15,8 @@ extern "C" {
   };
 
   struct ethsift_coordinate{
-    float x;      // Row
-    float y;      // Column
+    float x;      // Col
+    float y;      // Row
     float scale;
   };
 

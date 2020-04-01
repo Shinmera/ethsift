@@ -133,8 +133,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               keypoints[keypoints_current].layer = j;
               keypoints[keypoints_current].octave = i;
 
-              keypoints[keypoints_current].layer_pos.x = (float) r;
-              keypoints[keypoints_current].layer_pos.y = (float) c;
+              keypoints[keypoints_current].layer_pos.y = (float) r;
+              keypoints[keypoints_current].layer_pos.x = (float) c;
   
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
               int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &keypoints[keypoints_current]);
@@ -204,8 +204,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               temp.layer = j;
               temp.octave = i;
 
-              temp.layer_pos.x = (float) r;
-              temp.layer_pos.y = (float) c;
+              temp.layer_pos.y = (float) r;
+              temp.layer_pos.x = (float) c;
 
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
               int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &temp);
