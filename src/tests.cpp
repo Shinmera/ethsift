@@ -776,10 +776,8 @@ define_test(TestExtractDescriptor, {
     dstH = srcH >> 1;
   }
 
-  //Init EZSift Octaves
+  //Init EZSift Objects
   std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-  //Create DOG for ezSift    
   build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
 
   std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
@@ -796,6 +794,17 @@ define_test(TestExtractDescriptor, {
   std::list<ezsift::SiftKeypoint> ez_kpt_list;
   detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_LAYERS, ez_kpt_list);
 
+  // Ethsift descriptor extraction:
+  const uint32_t keypoint_count = (uint32_t)ez_kpt_list.size();
+  struct ethsift_keypoint eth_kpt_list[150];
+
+  int i = 0;
+  // Convert ezsift Keypoints to ethsift
+  for (auto ez_kpt : ez_kpt_list) {
+    eth_kpt_list[i] = convert_keypoint(&ez_kpt);
+    ++i;
+  }
+
   // EzSift: Extract Descriptors
   extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
 
@@ -807,16 +816,7 @@ define_test(TestExtractDescriptor, {
     }
   }
 
-  // Ethsift descriptor extraction:
-  const uint32_t keypoint_count = (uint32_t) ez_kpt_list.size();
-  struct ethsift_keypoint eth_kpt_list[150];
-
-  int i = 0;
-  // Convert ezsift Keypoints to ethsift
-  for (auto ez_kpt : ez_kpt_list) {
-    eth_kpt_list[i] = convert_keypoint(&ez_kpt);
-    ++i;
-  }
+   
 
   // Compute our descriptors which we want to test!
   ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
@@ -825,7 +825,10 @@ define_test(TestExtractDescriptor, {
   // Compare descriptors for correctness
   for (auto ez_kpt : ez_kpt_list) {
     // Returned values are identical using identical inputs
-    if (!compare_descriptor(ez_kpt.descriptors, eth_kpt_list[i].descriptors)) return 0;
+    if (!compare_descriptor(ez_kpt.descriptors, eth_kpt_list[i].descriptors)) {
+      printf("TEST FAILED AT KPT %d", i);
+      return 0;
+    }
     ++i;
   }
 

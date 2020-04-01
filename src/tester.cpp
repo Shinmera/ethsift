@@ -30,6 +30,7 @@ struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k) {
 
     ret.layer = k->layer;
     ret.magnitude = k->mag;
+    ret.orientation = k->ori;
     ret.octave = k->octave;
     ret.global_pos.scale = k->scale;
     ret.global_pos.y = k->r;
