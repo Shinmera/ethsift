@@ -61,6 +61,3 @@
 
 // The keypoint refinement smaller than this threshold will be discarded.
 #define ETHSIFT_KEYPOINT_SUBPiXEL_THR 0.6f;
-
-// double image size before pyramid construction?
-#define ETHSIFT_IMG_DBL 0; // 1;

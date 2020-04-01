@@ -74,11 +74,11 @@ static inline int is_local_min(float pixel, int pos, int w, float *curData, floa
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
-  int SIFT_IMAGE_BORDER = ETHSIFT_IMG_BORDER;
-  float SIFT_CONTR_THR = ETHSIFT_CONTR_THR;
-  float SIFT_ORI_PEAK_RATIO = ETHSIFT_ORI_PEAK_RATIO;
+  int image_border = ETHSIFT_IMG_BORDER;
+  float contr_thr = ETHSIFT_CONTR_THR;
+  float orientation_peak_ratio = ETHSIFT_ORI_PEAK_RATIO;
   
-  float threshold = 0.8f * SIFT_CONTR_THR;
+  float threshold = 0.8f * contr_thr;
   
   // Layers of DoG
   int layersDoG = gaussian_count - 1;
@@ -116,8 +116,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
       lowData  = differences[layer_ind - 1].pixels; 
 
       // Iterate over all pixels in image, ignore border values
-      for (int r = SIFT_IMAGE_BORDER; r < h - SIFT_IMAGE_BORDER; ++r) {
-        for (int c = SIFT_IMAGE_BORDER; c < w - SIFT_IMAGE_BORDER; ++c) {
+      for (int r = image_border; r < h - image_border; ++r) {
+        for (int c = image_border; c < w - image_border; ++c) {
           // Pixel position and value
           pos = r * w + c;
           pixel = curData[pos];
@@ -148,7 +148,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
-              float hist_threshold = max_mag * SIFT_ORI_PEAK_RATIO;
+              float hist_threshold = max_mag * orientation_peak_ratio;
 
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;
@@ -219,7 +219,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &temp, 
                 hist, &max_mag);
 
-              float hist_threshold = max_mag * SIFT_ORI_PEAK_RATIO;
+              float hist_threshold = max_mag * orientation_peak_ratio;
 
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;

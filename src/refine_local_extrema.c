@@ -36,13 +36,12 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
 int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint){
   
   // Settings of EzSift:
-  int SIFT_INTVLS = ETHSIFT_INTVLS;
-  int SIFT_MAX_INTERP_STEPS = ETHSIFT_MAX_INTERP_STEPS;
-  float SIFT_KEYPOINT_SUBPiXEL_THR = ETHSIFT_KEYPOINT_SUBPiXEL_THR;
-  float SIFT_CONTR_THR = ETHSIFT_CONTR_THR;
-  float SIFT_CURV_THR = ETHSIFT_CURV_THR;
-  float SIFT_SIGMA = ETHSIFT_SIGMA;
-  int SIFT_IMG_DBL = ETHSIFT_IMG_DBL;
+  int intvls = ETHSIFT_INTVLS;
+  int max_interp_steps = ETHSIFT_MAX_INTERP_STEPS;
+  float kpt_subpixel_thr = ETHSIFT_KEYPOINT_SUBPiXEL_THR;
+  float contr_thr = ETHSIFT_CONTR_THR;
+  float curv_thr = ETHSIFT_CURV_THR;
+  float sigma = ETHSIFT_SIGMA;
 
   // Fields:
   int w = 0;
@@ -75,7 +74,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   // Interpolation (x,y,sigma) 3D space to find sub-pixel accurate
   // location of keypoints.
   int i = 0;
-  for (; i < SIFT_MAX_INTERP_STEPS; ++i) {
+  for (; i < max_interp_steps; ++i) {
     c += xc_i;
     r += xr_i;
 
@@ -142,11 +141,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     tmp_layer = layer + xs;
 
     // Make sure there is room to move for next iteration.
-    xc_i = ((xc >= SIFT_KEYPOINT_SUBPiXEL_THR && c < w - 2) ? 1 : 0) +
-           ((xc <= -SIFT_KEYPOINT_SUBPiXEL_THR && c > 1) ? -1 : 0);
+    xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
+           ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
 
-    xr_i = ((xr >= SIFT_KEYPOINT_SUBPiXEL_THR && r < h - 2) ? 1 : 0) +
-           ((xr <= -SIFT_KEYPOINT_SUBPiXEL_THR && r > 1) ? -1 : 0);
+    xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
+           ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
 
     if (xc_i == 0 && xr_i == 0 && xs_i == 0)
       break;
@@ -154,7 +153,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   // We MIGHT be able to remove the following two checking conditions.
   // Condition 1
-  if (i >= SIFT_MAX_INTERP_STEPS) return 0;
+  if (i >= max_interp_steps) return 0;
   // Condition 2.
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0;
 
@@ -165,22 +164,21 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   
   float value = get_pixel_f(curData, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs);
-  if (fabsf(value) < SIFT_CONTR_THR)
+  if (fabsf(value) < contr_thr)
     return 0;
 
   float trH = dxx + dyy;
   float detH = dxx * dyy - dxy * dxy;
-  float response = (SIFT_CURV_THR + 1) * (SIFT_CURV_THR + 1) / (SIFT_CURV_THR);
+  float response = (curv_thr + 1) * (curv_thr + 1) / (curv_thr);
 
   if (detH <= 0 || (trH * trH / detH) >= response)
     return 0;
   
   keypoint->layer_pos.y = tmp_r;
   keypoint->layer_pos.x = tmp_c;
-  keypoint->layer_pos.scale = SIFT_SIGMA * powf(2.0f, tmp_layer / SIFT_INTVLS);
+  keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer / intvls);
 
-  int firstOctave = SIFT_IMG_DBL ? -1 : 0;
-  float norm = powf(2.0f, (float)(octave + firstOctave));
+  float norm = powf(2.0f, (float)(octave));
 
   // Coordinates in the normalized format (compared to the original image).
   keypoint->global_pos.y = tmp_r * norm;
