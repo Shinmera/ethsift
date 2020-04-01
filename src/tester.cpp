@@ -153,8 +153,8 @@ int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kern
 }
 
 // Compare an ezsift descriptor with an ethsift descriptor for correctness
-int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t keypoint_count) {
-  for (int i = 0; i < (int) keypoint_count; ++i) {
+int compare_descriptor(float* ez_descriptors, float* eth_descriptors) {
+  for (int i = 0; i < (int) DESCRIPTORS; ++i) {
     float diff = ez_descriptors[i] - eth_descriptors[i];
     if (EPS < abs(diff)) {
       printf("COMPARE_DESCRIPTORS: index = %d ; val a = %f ; val b = %f\n", i, ez_descriptors[i], eth_descriptors[i]);
@@ -164,7 +164,7 @@ int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t k
   return 1;
 }
 
-int write_image(struct ethsift_image image){
+int write_image(struct ethsift_image image, const char* filename){
 
     unsigned char* pixels_to_write = (unsigned char *)malloc( image.width * image.height *sizeof(unsigned char));
     for (int i = 0; i < (int) image.height; ++i) {
@@ -172,7 +172,7 @@ int write_image(struct ethsift_image image){
         pixels_to_write[i * image.width + j] = (unsigned char) (image.pixels[i * image.width + j]);
       }
     }
-    ezsift::write_pgm("eth.pgm", pixels_to_write, image.width, image.height );
+    ezsift::write_pgm(filename, pixels_to_write, (int) image.width, (int) image.height);
     return 1;
 }
 

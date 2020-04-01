@@ -825,7 +825,7 @@ define_test(TestExtractDescriptor, {
   // Compare descriptors for correctness
   for (auto ez_kpt : ez_kpt_list) {
     // Returned values are identical using identical inputs
-    if (!compare_descriptor(ez_kpt.descriptors, eth_kpt_list[i].descriptors, DESCRIPTORS)) return 0;
+    if (!compare_descriptor(ez_kpt.descriptors, eth_kpt_list[i].descriptors)) return 0;
     ++i;
   }
 

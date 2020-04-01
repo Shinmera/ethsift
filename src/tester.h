@@ -73,10 +73,10 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
 int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size);
 
 // Compare an ezsift descriptor with an ethsift descriptor for correctness
-int compare_descriptor(float* ez_descriptors, float* eth_descriptors, uint32_t keypoint_count);
+int compare_descriptor(float* ez_descriptors, float* eth_descriptors);
 
 // Write an eth_sift image to pgm format
-int write_image(struct ethsift_image image);
+int write_image(struct ethsift_image image, const char* filename);
 
 // Start a time measurement section.
 // Note: If no explicit measurement sections are defined, the entire test
