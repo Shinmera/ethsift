@@ -1,6 +1,6 @@
 #include "internal.h"
 
-static int is_local_max(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+static inline int is_local_max(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
   int val;
   val = pixel > highData[pos - w - 1] &&
         pixel > highData[pos - w] &&
@@ -29,7 +29,7 @@ static int is_local_max(float pixel, int pos, int w, float *curData, float *lowD
   return val;
 }
 
-static int is_local_min(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
+static inline int is_local_min(float pixel, int pos, int w, float *curData, float *lowData, float *highData) {
   int val;
   val = pixel < highData[pos - w - 1] &&
         pixel < highData[pos - w] &&
@@ -231,7 +231,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
                 if (currHist > lhist && currHist > rhist &&
                   currHist > hist_threshold) {
-                    
+
                   // Update keypoint counter
                   ++keypoints_found;      
                 }
