@@ -96,10 +96,10 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Boundary of sample region.
         int r, c;
-        int left = MAX(-win_size, 1 - kptc_i);
-        int right = MIN(win_size, w - 2 - kptc_i);
-        int top = MAX(-win_size, 1 - kptr_i);
-        int bottom = MIN(win_size, h - 2 - kptr_i);
+        int left = fmax(-win_size, 1 - kptc_i);
+        int right = fmin(win_size, w - 2 - kptc_i);
+        int top = fmax(-win_size, 1 - kptr_i);
+        int bottom = fmin(win_size, h - 2 - kptr_i);
 
         for (int i = top; i <= bottom; i++) // rows
         {
@@ -135,7 +135,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 obin = angle1 * nBinsPerSubregionPerDegree;
 
                 int x0, y0, z0;
-                int x1, y1, z1;
+                int x1, y1 /*, z1*/;
                 y0 = (int)floor(rbin);
                 x0 = (int)floor(cbin);
                 z0 = (int)floor(obin);
@@ -144,7 +144,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 d_obin = obin - z0;
                 x1 = x0 + 1;
                 y1 = y0 + 1;
-                z1 = z0 + 1;
+                //z1 = z0 + 1;
 
                 // Gaussian weight relative to the center of sample region.
                 gaussian_weight =
