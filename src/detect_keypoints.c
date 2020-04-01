@@ -182,13 +182,15 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
 
+                  // Update keypoint counters
                   ++keypoints_current;
                   ++keypoints_found;
                   
                   if (keypoints_current >= keypoints_required) {
                     break;
                   }
-         
+
+                  // Copy values of previous keypoint to possible new keypoint
                   keypoints[keypoints_current].layer = keypoints[keypoints_current - 1].layer;
                   keypoints[keypoints_current].octave = keypoints[keypoints_current - 1].octave;
 
@@ -197,13 +199,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
                 }
               }    
-
-              // Update keypoint counts
-              // ++keypoints_current;
-              // ++keypoints_found;
-
             } else {
-              // Still test keypoint if usable
+              // Still test keypoint if usable, to find the actual number of keypoints
               temp.layer = j;
               temp.octave = i;
 
@@ -217,8 +214,28 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 continue;
               }
 
-              // Update keypoints found 
-              ++keypoints_found;
+              ethsift_compute_orientation_histogram(
+                gradients[i * ((int) gaussian_count) + j], 
+                rotations[i * ((int) gaussian_count) + j], 
+                &temp, 
+                hist, &max_mag);
+
+              float hist_threshold = max_mag * SIFT_ORI_PEAK_RATIO;
+
+              for (int ii = 0; ii < nBins; ++ii) {
+                int left = ii > 0 ? ii - 1 : nBins - 1;
+                int right = ii < (nBins - 1) ? ii + 1 : 0;
+                float currHist = hist[ii];
+                float lhist = hist[left];
+                float rhist = hist[right];
+
+                if (currHist > lhist && currHist > rhist &&
+                  currHist > hist_threshold) {
+                    
+                  // Update keypoint counter
+                  ++keypoints_found;      
+                }
+              } 
             }     
           }
         }

@@ -715,14 +715,35 @@ define_test(TestKeypointDetection, {
   uint32_t nKeypoints = 100;
   ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
 
-  // printf("\n");
-  // printf("%d\n", nKeypoints);
-  // printf("%d\n", (int)ez_kpt_list.size());
+  int res = 1;
+
+  if (ez_kpt_list.size() != nKeypoints) {
+    // Test if methods would have found same amount of keypoints
+    res = 0;
+  } else {
+    int i = 0;
+    for (ezsift::SiftKeypoint kpt : ez_kpt_list) {
+      // Returned values are identical using identical inputs
+      res = res && (((int) eth_kpt_list[i].octave) == kpt.octave &&
+                    ((int) eth_kpt_list[i].layer) == kpt.layer &&
+                    eth_kpt_list[i].layer_pos.x == kpt.ri &&
+                    eth_kpt_list[i].layer_pos.y == kpt.ci &&
+                    eth_kpt_list[i].layer_pos.scale == kpt.layer_scale &&
+                    eth_kpt_list[i].global_pos.x == kpt.r &&
+                    eth_kpt_list[i].global_pos.y == kpt.c &&
+                    eth_kpt_list[i].global_pos.scale == kpt.scale &&
+                    eth_kpt_list[i].orientation == kpt.ori &&
+                    eth_kpt_list[i].magnitude == kpt.mag);
+      
+      ++i;
+
+      if (i == 100) {
+        // Because we only collect 100 keypoints
+        break;
+      }
+    }
+  } 
   
-  // TODO Write keypoint compare method
-  //    - Figure out why it detects less keypoints than ezsift
-  
-  
-  return 1;
+  return res;
 })
   
