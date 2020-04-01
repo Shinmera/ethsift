@@ -29,11 +29,11 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
 /// Refine the location of the keypoints to be sub-pixel accurate.
 /// </summary>
 /// <param name="differences"> IN: DOG pyramid. </param>
-/// <param name="octaves"> IN: Number of Octaves. </param> 
-/// <param name="layers"> IN: Number of layers. </param> 
+/// <param name="octave_count"> IN: Number of Octaves. </param> 
+/// <param name="gaussian_count"> IN: Number of layers. </param> 
 /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
 /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint *keypoint){
+int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint){
   
   // Settings of EzSift:
   // TODO Move to settings eventually
@@ -49,7 +49,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int w = 0;
   int h = 0;
   int layer_ind = 0;
-  int nDoGLayers = ((int) layers) - 1;
+  int nDoGLayers = ((int) gaussian_count) - 1;
 
   int octave = (int) keypoint->octave;
   int layer = (int) keypoint->layer;
@@ -160,7 +160,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0;
 
   // If (r, c, layer) is out of range, return false.
-  if (tmp_layer < 0 || tmp_layer > ((int) layers - 1) || tmp_r < 0 ||
+  if (tmp_layer < 0 || tmp_layer > (((int) gaussian_count) - 1) || tmp_r < 0 ||
       tmp_r > h - 1 || tmp_c < 0 || tmp_c > w - 1)
     return 0;
 

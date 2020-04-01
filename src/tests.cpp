@@ -715,9 +715,9 @@ define_test(TestKeypointDetection, {
   uint32_t nKeypoints = 100;
   ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
 
-  printf("\n");
-  printf("%d\n", nKeypoints);
-  printf("%d\n", (int)ez_kpt_list.size());
+  // printf("\n");
+  // printf("%d\n", nKeypoints);
+  // printf("%d\n", (int)ez_kpt_list.size());
   
   // TODO Write keypoint compare method
   //    - Figure out why it detects less keypoints than ezsift

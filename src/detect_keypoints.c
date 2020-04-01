@@ -65,13 +65,13 @@ static int is_local_min(float pixel, int pos, int w, float *curData, float *lowD
 /// <param name="differences"> IN: DOG pyramid. </param>
 /// <param name="gradients"> IN: Gradients pyramid. </param>
 /// <param name="rotations"> IN: Rotation pyramid.  </param>
-/// <param name="octaves"> IN: Number of Octaves. </param> 
-/// <param name="layers"> IN: Number of layers. </param> 
+/// <param name="octave_count"> IN: Number of octaves. </param> 
+/// <param name="gaussian_count"> IN: Number of layers. </param> 
 /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
 /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
 ///                               OUT: Number of keypoints found. </param> 
 /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octaves, uint32_t layers, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
+int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings as in EzSift
   // TODO Move to settings.h
@@ -82,7 +82,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float threshold = 0.8f * SIFT_CONTR_THR;
   
   // Layers of DoG
-  int layersDoG = layers - 1;
+  int layersDoG = gaussian_count - 1;
 
   // Requested number of keypoints and actual number of keypoints
   int keypoints_required = *keypoint_count;
@@ -105,7 +105,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float hist[nBins];
   float max_mag;
 
-  for (int i = 0; i < octaves; ++i) {
+  for (int i = 0; i < octave_count; ++i) {
     w = (int) differences[i * layersDoG].width;
     h = (int) differences[i * layersDoG].height;
 
@@ -137,15 +137,15 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               keypoints[keypoints_current].layer_pos.y = (float) c;
   
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
-              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &keypoints[keypoints_current]);
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &keypoints[keypoints_current]);
               
               if (!isGoodKeypoint) {
                 continue;
               }
               
               ethsift_compute_orientation_histogram(
-                gradients[i * ((int) layers) + j], 
-                rotations[i * ((int) layers) + j], 
+                gradients[i * ((int) gaussian_count) + j], 
+                rotations[i * ((int) gaussian_count) + j], 
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
@@ -211,7 +211,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
               temp.layer_pos.y = (float) c;
 
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
-              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octaves, layers, &temp);
+              int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &temp);
               
               if (!isGoodKeypoint) {
                 continue;
