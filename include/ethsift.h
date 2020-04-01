@@ -124,16 +124,14 @@ extern "C" {
   int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
 
   /// <summary> 
-  /// Build the gradient and rotation pyramids
+  /// Build the Difference of Gaussian pyramids
   /// NOTE: Size of Pyramids = octave_count * gaussian_count with empty entries!
   /// </summary>
   /// <param name="gaussians"> IN: The octaves of the input image. </param>
   /// <param name="gaussian_count"> IN: Number of octaves. </param>
-  /// <param name="gradients"> OUT: Struct of gradients to compute.  </param>
-  /// <param name="rotations"> OUT: Struct of rotations to compute.  </param>
-  /// <param name="layers"> IN: Number of layers in the gradients and rotation pyramids.  </param>
+  /// <param name="differences"> IN/OUT: Struct of DoG to compute.  </param>
+  /// <param name="layers"> IN: Number of layers in the DoG pyramid.  </param>
   /// <param name="octave_count"> IN: Number of octaves.  </param>
-  /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image differences[], uint32_t layers, uint32_t octave_count);
 
@@ -142,20 +140,19 @@ extern "C" {
   /// NOTE: Size of Pyramids = octave_count * gaussian_count with empty entries!
   /// </summary>
   /// <param name="gaussians"> IN: The octaves of the input image. </param>
-  /// <param name="gaussian_count"> IN: Number of octaves. </param>
-  /// <param name="gradients"> OUT: Struct of gradients to compute.  </param>
-  /// <param name="rotations"> OUT: Struct of rotations to compute.  </param>
+  /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer.  </param>
+  /// <param name="gradients"> IN/OUT: Struct of gradients to compute.  </param>
+  /// <param name="rotations"> IN/OUT: Struct of rotations to compute.  </param>
   /// <param name="layers"> IN: Number of layers in the gradients and rotation pyramids.  </param>
   /// <param name="octave_count"> IN: Number of octaves.  </param>
-  /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t layers, uint32_t octave_count);
 
   /// <summary> 
   /// Compute the histogram for the given keypoints in the image.
   /// </summary>
-  /// <param name="gradient"> IN: DOG pyramid. </param>
-  /// <param name="rotation"> IN: Rotations?. </param>
+  /// <param name="gradient"> IN: Layer from gradient pyramid. </param>
+  /// <param name="rotation"> IN: Layer from orientation pyramid </param>
   /// <param name="keypoint"> IN: Detected Keypoints.  </param>
   /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
   /// <param name="max_histval"> OUT: Maximum value in the histogram. </param> 
