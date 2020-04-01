@@ -3,6 +3,9 @@
 */
 
 
+// default number of sampled intervals per octave
+#define ETHSIFT_INTVLS 3;
+
 // default sigma for initial gaussian smoothing
 #define ETHSIFT_SIGMA 1.6f
 
@@ -38,12 +41,12 @@
 // factor used to convert floating-point descriptor to unsigned char
 #define ETHSIFT_INT_DESCR_FCTR 512.f;
 
+// Maximum amount of Keypoints we want to be able to track.
+#define ETHSIFT_MAX_TRACKABLE_KEYPOINTS 500
+
 // /****************************************
 //  * Constant parameters
 //  ***************************************/
-
-// // default number of sampled intervals per octave
-// static int SIFT_INTVLS = 3;
 
 // // default sigma for initial gaussian smoothing
 // static float SIFT_SIGMA = 1.6f;

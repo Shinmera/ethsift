@@ -44,15 +44,24 @@ extern "C" {
   /// </summary>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   int ethsift_init();
-
   
   /// <summary> 
   /// Smartly allocate the image pyramid contents (allocate pixels, set sizes).
   /// </summary>
   /// <param name="pyramid"> OUT: The pyramid we want to allocate. </param>
-  /// <param name="pyramid_count"> IN: Size of the pyramid (has to be known). </param>
+  /// <param name="ref_width"> IN: Reference width from the image we analyze. </param>
+  /// <param name="ref_height"> IN: Reference height from the image we analyze. </param>
+  /// <param name="layer_count"> IN: Number of layers the pyramid has. </param>
+  /// <param name="image_per_layer_count"> IN: Number of images the pyramid has per layer. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t pyramid_count);
+  int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width, uint32_t ref_height, uint32_t layer_count, uint32_t image_per_layer_count);
+
+  /// <summary> 
+  /// Free up the pyramids allocated memory.
+  /// </summary>
+  /// <param name="pyramid"> IN: The pyramid we want to free up. </param>
+  /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  int ethsift_free_pyramid(struct ethsift_image pyramid[]);
 
   /// <summary> 
   /// Creates a gaussian kernel for image filtering.
