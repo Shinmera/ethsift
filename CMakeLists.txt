@@ -33,6 +33,7 @@ add_library(ethsift STATIC
   "src/histogram.c"
   "src/extract_descriptor.c"
   "src/allocate.c"
+  "src/compute_keypoints.c"
   "src/stub.c")
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
