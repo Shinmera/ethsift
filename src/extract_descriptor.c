@@ -96,10 +96,10 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Boundary of sample region.
         int r, c;
-        int left = fmax(-win_size, 1 - kptc_i);
-        int right = fmin(win_size, w - 2 - kptc_i);
-        int top = fmax(-win_size, 1 - kptr_i);
-        int bottom = fmin(win_size, h - 2 - kptr_i);
+        int left = int_max(-win_size, 1 - kptc_i);
+        int right = int_min(win_size, w - 2 - kptc_i);
+        int top = int_max(-win_size, 1 - kptr_i);
+        int bottom = int_min(win_size, h - 2 - kptr_i);
 
         for (int i = top; i <= bottom; i++) // rows
         {
@@ -245,7 +245,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         sum_square = 0.0;
         // Cut off the numbers bigger than 0.2 after normalized.
         for (int i = 0; i < nBins; i++) {
-            tmp = fmin(thr, dstBins[i]);
+            tmp = float_min(thr, dstBins[i]);
             dstBins[i] = tmp;
             sum_square += tmp * tmp;
         }

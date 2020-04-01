@@ -120,3 +120,15 @@ static inline float fast_sqrt_f(float x)
 {
     return (x < 1e-8) ? 0 : x * fast_resqrt_f(x);
 }
+
+static inline int int_max(int a, int b) {
+  return a >= b ? a : b;
+}
+
+static inline int int_min(int a, int b) {
+  return a <= b ? a : b;
+}
+
+static inline float float_min(float a, float b) {
+  return a < b ? a : b;
+}
