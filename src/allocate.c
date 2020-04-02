@@ -55,6 +55,9 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width,
 /// <param name="pyramid"> IN: The pyramid we want to free up. </param>
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_free_pyramid(struct ethsift_image pyramid[]) {
-  free(pyramid[0].pixels);
+  if(pyramid[0].pixels != 0){
+    free(pyramid[0].pixels);
+    pyramid[0].pixels = 0;
+  }
   return 1;
 }
