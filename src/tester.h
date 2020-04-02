@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 #include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;

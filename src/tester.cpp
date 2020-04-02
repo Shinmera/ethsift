@@ -246,8 +246,10 @@ int run_test(struct test test){
   std::vector<double> variances(durations.size());
   map(durations, variances, [&](auto d){return (d-average)*(d-average);});
   double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
+  std::sort(durations.begin(), durations.end());
+  size_t median = durations[durations.size()/2];
   // Show
-  fprintf(stderr, " %10liµs ±%3.3f", cumulative, stddev);
+  fprintf(stderr, " %10liµs ±%3.3f", median, stddev);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
