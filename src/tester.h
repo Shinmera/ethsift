@@ -16,7 +16,7 @@
 #include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
-extern size_t duration;
+extern std::vector<size_t> durations;
 extern bool measurement_pending;
 #define EPS 0.001
 #define OCTAVE_COUNT 6
@@ -114,7 +114,7 @@ static inline void start_measurement(){
 static inline void end_measurement(){
   auto end = std::chrono::high_resolution_clock::now();
   if(measurement_pending){
-    duration += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    durations.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
     measurement_pending = false;
   }
 }
