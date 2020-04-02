@@ -43,7 +43,7 @@ target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -
 add_executable(tester
   "src/tester.cpp"
   "src/tests.cpp")
-set_property(TARGET tester PROPERTY CXX_STANDARD 11)
+set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
