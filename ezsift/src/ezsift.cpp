@@ -202,7 +202,7 @@ std::vector<std::vector<float>> compute_gaussian_coefs(int nOctaves,
         sigma = sigma_pre * k;
         sig[i] = sqrtf(sigma * sigma - sigma_pre * sigma_pre);
     }
-
+    
     std::vector<std::vector<float>> gaussian_coefs(nGpyrLayers);
     for (int i = 0; i < nGpyrLayers; i++) {
         // Compute Gaussian filter coefficients

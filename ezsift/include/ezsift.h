@@ -204,6 +204,10 @@ int export_kpt_list_to_file(const char *filename,
 float compute_orientation_hist(const Image<float> &image, SiftKeypoint &kpt,
                                float *&hist);
 
+float compute_orientation_hist_with_gradient(const Image<float> &grdImage,
+                                             const Image<float> &rotImage,
+                                             SiftKeypoint &kpt, float *&hist);
+
 /****************************************
  *  SIFT Core Functions
  ***************************************/

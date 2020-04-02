@@ -1,3 +1,8 @@
+#pragma once
+#ifndef ETHSIFT_DATA
+#error "ETHSIFT_DATA must be defined."
+#endif
+
 #include "ethsift.h"
 #include "ezsift.h"
 #include <string.h>
@@ -7,11 +12,19 @@
 #include <time.h>
 #include <signal.h>
 #include <chrono>
+#include <vector>
+#include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern size_t duration;
 extern bool measurement_pending;
-#define EPS 0.00001
+#define EPS 0.001
+#define OCTAVE_COUNT 6
+#define GAUSSIAN_COUNT 6
+#define DOG_COUNT 5
+#define GRAD_ROT_LAYERS 3
+
+#define LENA_KEYPOINTS 136
 
 int register_failure(int test, const char *reason);
 int register_test(const char *title, int (*func)());
@@ -35,18 +48,54 @@ int register_test(const char *title, int (*func)());
     register_failure(__testid, __message);      \
     return 0;}
 
+// Return an absolute path to a file within the project root's data/ directory.
+static char *data_file(const char *file){
+  const char *data = ETHSIFT_DATA;
+  char *path = (char*)calloc(sizeof(char), strlen(data)+strlen(file)+1);
+  path = strcat(path, data);
+  path = strcat(path, "/");
+  path = strcat(path, file);
+  return path;
+}
+
+// Allocate the pixel array in the given output image according to its width and height.
+struct ethsift_image allocate_image(uint32_t width, uint32_t height);
+
 // Convert an ezsift image to an ethsift image. The pixels array will be replaced!
 int convert_image(const ezsift::Image<unsigned char> &input, struct ethsift_image *output);
 
+// Convert an ezsift image to an ethsift image. The pixels array will be replaced!
+int convert_image(const ezsift::Image<float> &input, struct ethsift_image *output);
+
+// Convert ezSift Keypoint to eth_sift keypoint
+struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k);
+
 // Directly load an ethsift image
 int load_image(const char *file, struct ethsift_image &image);
+
+// Compare two images for pixel precise equality
+int compare_image(const ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
 
 // Compare two images for pixel precise equality. Returns 1 if they match, 0 otherwise.
 int compare_image(struct ethsift_image a, struct ethsift_image b);
 
 // Compare two images for approximate equality. Returns 1 if they match, 0 otherwise.
 // Pixels are considered to be equal if their difference is smaller than eps.
+int compare_image_approx(const ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
+int compare_image_approx(const ezsift::Image<float> &ez_img, struct ethsift_image &eth_img);
+
+// Compare two images for approximate equality. Returns 1 if they match, 0 otherwise.
+// Pixels are considered to be equal if their difference is smaller than eps.
 int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps);
+
+// Compare an ezsift kernel with an ethsift kernel for correctness
+int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size);
+
+// Compare an ezsift descriptor with an ethsift descriptor for correctness
+int compare_descriptor(float* ez_descriptors, float* eth_descriptors);
+
+// Write an eth_sift image to pgm format
+int write_image(struct ethsift_image image, const char* filename);
 
 // Start a time measurement section.
 // Note: If no explicit measurement sections are defined, the entire test
