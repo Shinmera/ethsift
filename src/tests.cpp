@@ -35,12 +35,13 @@ define_test(SimpleAllocation, {
       if(pyramid[i].pixels[width*height-1] != 0.0)
         fail("Unexpected value at end of array: %f", pyramid[i].pixels[width*height-1]);
     }
+    ethsift_free_pyramid(pyramid);
   })
 
 define_test(RandomAllocation, {
     // Perform a bunch of randomised runs.
     for(int r=0; r<100; ++r){
-      int pyramid_size = rand() % 10;
+      int pyramid_size = rand() % 10 + 1;
       struct ethsift_image pyramid[pyramid_size];
       uint32_t ref_w = 2 << (rand()%4 + 1 + pyramid_size);
       uint32_t ref_h = 2 << (rand()%4 + 1 + pyramid_size);
@@ -61,6 +62,7 @@ define_test(RandomAllocation, {
         if(pyramid[i].pixels[width*height-1] != 0.0)
           fail("Unexpected value at end of array: %f", pyramid[i].pixels[width*height-1]);
       }
+      ethsift_free_pyramid(pyramid);
     }
   })
 

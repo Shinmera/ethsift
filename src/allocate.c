@@ -11,7 +11,7 @@
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
 int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width, uint32_t ref_height, uint32_t layer_count, uint32_t image_per_layer_count){
   if(layer_count == 0) return 1;
-  if (image_per_layer_count == 0)  return 1;
+  if(image_per_layer_count == 0) return 1;
 
   uint32_t dim;
 
