@@ -7,7 +7,7 @@ struct test{
 };
 
 std::chrono::time_point<std::chrono::high_resolution_clock> start;
-size_t duration = 0;
+std::vector<size_t> durations;
 bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
@@ -205,21 +205,49 @@ void abort(const char *message){
   exit(1);
 }
 
+template<typename T, typename Func>
+T reduce(std::vector<T> &arg, Func func){
+  switch(arg.size()){
+  case 0: return 0.0;
+  case 1: return arg[0];
+  default: {
+    T result = arg[0];
+    for(size_t i=1; i<arg.size(); ++i)
+      result = func(result, arg[1]);
+    return result;
+  }
+  }
+}
+
+template<typename U, typename V, typename Func>
+void map(std::vector<U> &in, std::vector<V> &out, Func func){
+  for(size_t i=0; i<in.size() && i<out.size(); ++i)
+    out[i] = func(in[i]);
+}
+
 int run_test(struct test test){
   fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
-  duration = 0;
+  durations.clear();
   // Start measurement without the pending check to allow user override
   start = std::chrono::high_resolution_clock::now();
   // Run the check.
   int ret = test.func();
   // If we had no other measurement so far, force our start by setting the pending now.
-  if(duration == 0) measurement_pending = true;
+  if(durations.size() == 0) measurement_pending = true;
   // End any possible measurement that might still be going on now.
   // We have to do this here in order to allow correct measurement even in the face
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  fprintf(stderr, " %10liµs ", duration);
+  
+  // Compute statistics
+  size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
+  double average = ((double)cumulative) / durations.size();
+  std::vector<double> variances(durations.size());
+  map(durations, variances, [&](auto d){return (d-average)*(d-average);});
+  double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
+  // Show
+  fprintf(stderr, " %10liµs ±%3.3f", cumulative, stddev);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
