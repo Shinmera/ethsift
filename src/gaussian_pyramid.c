@@ -9,7 +9,7 @@
 /// NOTE: Size = octave_count * gaussian_count. </param>
 /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
+int ethsift_generate_gaussian_pyramid(struct ethsift_image first_octave,
                             uint32_t octave_count, 
                             struct ethsift_image gaussians[], 
                             uint32_t gaussian_count)
@@ -35,7 +35,7 @@ int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
         for (int j = 0; j < gaussian_count; ++j) {
             // OPT TODO: Optimize these checks, expensive and optimization potential is there !  
             if (i == 0 && j == 0) {
-                ethsift_apply_kernel(octaves[0], kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], 
+                ethsift_apply_kernel(first_octave, kernel_ptrs[0], kernel_sizes[0], kernel_rads[0],
                                     gaussians[0]);
             }
             else if (i > 0 && j == 0) {

@@ -28,7 +28,7 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width,
   size_t total_size = (4*dim - 2*dim / (2 << 2*(layer_count-1))) / 3;
   total_size *= image_per_layer_count;
 
-  float *pixels = calloc(sizeof(float), total_size);
+  float *pixels = (float*) malloc(sizeof(float) * total_size);
   if(pixels == 0) return 0;
 
   uint32_t width = ref_width;
