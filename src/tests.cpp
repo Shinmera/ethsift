@@ -264,16 +264,19 @@ define_test(TestNMeasureGaussianPyramid, 1, {
     std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
 
     for (int i = 0; i < NR_RUNS; ++i) {
+        ez_gaussians.clear();
         with_measurement({
             build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
             });
     }
 
+    ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
     // Compare the gaussian outputs!
     int res = 0;
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < GAUSSIAN_COUNT; ++j) {        
-        res += compare_image_approx(ez_gaussians[i*OCTAVE_COUNT + j], eth_gaussians[i*OCTAVE_COUNT + j]);
+        res += compare_image_approx(ez_gaussians[i*GAUSSIAN_COUNT + j], eth_gaussians[i*GAUSSIAN_COUNT + j]);
       }
     }
 
@@ -625,7 +628,7 @@ define_test(MeasurementOneHistogram, 1, {
     if (epsilon < abs(eth_hist[i] - ez_hist[i]))
         fail("Histograms differ by %f in bin %i at %f,%f,%f", abs(eth_hist[i] - ez_hist[i]), i, kpt.rlayer, kpt.ri, kpt.ci);
   }
-    })
+})
 
 define_test(TestNMeasureExtremaRefinement, 1, {
     char const *file = data_file("lena.pgm");
@@ -737,7 +740,7 @@ define_test(TestNMeasureExtremaRefinement, 1, {
   })
 
 
-define_test(TestNMeasureKeypointDetection, 0, {
+define_test(TestNMeasureKeypointDetection, 1, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -785,6 +788,7 @@ define_test(TestNMeasureKeypointDetection, 0, {
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
 
     for (int i = 0; i < NR_RUNS; ++i) {
+        ez_kpt_list.clear();
         with_measurement({
             detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
             });
@@ -804,10 +808,12 @@ define_test(TestNMeasureKeypointDetection, 0, {
     // Ethsift keypoint detection:
     struct ethsift_keypoint eth_kpt_list[100];
     uint32_t nKeypoints = 100;
-
+   
     for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+        with_measurement({ 
+            nKeypoints = 100;
+            if (!ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints))
+                fail("Computation failed");
             });
     }
     if (ez_kpt_list.size() != nKeypoints)
@@ -836,7 +842,7 @@ define_test(TestNMeasureKeypointDetection, 0, {
     }
   })
 
-define_test(TestExtractDescriptor, 0, {
+define_test(TestExtractDescriptor, 1, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -925,7 +931,7 @@ define_test(TestComputeKeypoints, 0, {
   fail("Failed to convert image");
 
 
-  struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
+  //struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
   uint32_t keypoints_tracked = ETHSIFT_MAX_TRACKABLE_KEYPOINTS;
   for (int i = 0; i < NR_RUNS; ++i) {
       struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
@@ -951,6 +957,7 @@ define_test(BenchmarkEZSIFT, 0, {
 
   std::list<ezsift::SiftKeypoint> ez_kpt_list;
   for (int i = 0; i < NR_RUNS; ++i) {
+      ez_kpt_list.clear();
       with_measurement({
         sift_cpu(ez_img, ez_kpt_list, true);
         });
