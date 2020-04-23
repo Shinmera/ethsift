@@ -7,6 +7,7 @@
 #include "ezsift.h"
 #include <string.h>
 #include <stdlib.h>
+#include <tuple>
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
@@ -14,11 +15,15 @@
 #include <chrono>
 #include <vector>
 #include <algorithm>
+#include <string>
 #include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern std::vector<size_t> durations;
+typedef std::tuple<std::string, std::string, size_t, size_t> LogTuple;
+extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
+#define NR_RUNS 30
 #define EPS 0.001
 #define OCTAVE_COUNT 6
 #define GAUSSIAN_COUNT 6
@@ -28,14 +33,14 @@ extern bool measurement_pending;
 #define LENA_KEYPOINTS 136
 
 int register_failure(int test, const char *reason);
-int register_test(const char *title, int (*func)());
+int register_test(const char *title, int has_measurement_comp, int (*func)());
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
-#define define_test(TITLE,...)                                          \
+#define define_test(TITLE, HAS_MEASUREMENT_COMP,...)                                          \
   int __testfun_ ## TITLE();                                            \
-  static int __test_ ## TITLE = register_test(# TITLE, __testfun_ ## TITLE); \
+  static int __test_ ## TITLE = register_test(# TITLE, HAS_MEASUREMENT_COMP, __testfun_ ## TITLE); \
   int __testfun_ ## TITLE (){                                           \
     int __testid = __test_ ## TITLE;                                    \
     __VA_ARGS__                                                         \

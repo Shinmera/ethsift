@@ -3,18 +3,21 @@
 struct test{
   const char *title;
   const char *reason;
+  int has_measurement_comp;
   int (*func)();
 };
 
 std::chrono::time_point<std::chrono::high_resolution_clock> start;
 std::vector<size_t> durations;
+std::vector<LogTuple> test_logs;
 bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
 
-int register_test(const char *title, int (*func)()){
+int register_test(const char *title, int has_measurement_comp, int (*func)()){
   tests[test_count].title = title;
   tests[test_count].reason = 0;
+  tests[test_count].has_measurement_comp = has_measurement_comp;
   tests[test_count].func = func;
   return test_count++;
 }
@@ -239,17 +242,41 @@ int run_test(struct test test){
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  
-  // Compute statistics
-  size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
-  double average = ((double)cumulative) / durations.size();
-  std::vector<double> variances(durations.size());
-  map(durations, variances, [&](auto d){return (d-average)*(d-average);});
-  double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
-  std::sort(durations.begin(), durations.end());
-  size_t median = durations[durations.size()/2];
+  std::vector<size_t> durations_ethsift;
+  if (test.has_measurement_comp) {
+      // If we are doing runtime comparison with the ezsift library, split the measurements into two, since second half were ezSIFT measurements.
+      std::size_t const half_size = durations.size() / 2;
+      durations_ethsift = std::vector<size_t>(durations.begin(), durations.begin() + half_size);
+      std::vector<size_t> durations_ezsift(durations.begin() + half_size, durations.end()-1);
+
+      // Compute statistics for ezsift
+      size_t cumulative_ezsift = reduce(durations_ezsift, [](auto a, auto b) {return a + b; });
+      double average_ezsift = ((double)cumulative_ezsift) / durations_ezsift.size();
+      std::vector<double> variances_ezsift(durations_ezsift.size());
+      map(durations_ezsift, variances_ezsift, [&](auto d) {return (d - average_ezsift) * (d - average_ezsift); });
+      double stddev_ezsift = reduce(variances_ezsift, [](auto a, auto b) {return a + b; }) / durations_ezsift.size();
+      std::sort(durations_ezsift.begin(), durations_ezsift.end());
+      size_t median_ezsift = durations_ezsift[durations_ezsift.size() / 2];
+  }
+  else {
+      // If we are not doing any runtime comparisons, continue as before.
+      durations_ethsift = durations;
+  }
+
+  // Compute statistics for ethsift
+  size_t cumulative_ethsift = reduce(durations_ethsift, [](auto a,auto b){return a+b;});
+  double average_ethsift = ((double)cumulative_ethsift) / durations_ethsift.size();
+  std::vector<double> variances_ethsift(durations_ethsift.size());
+  map(durations_ethsift, variances_ethsift, [&](auto d){return (d- average_ethsift)*(d- average_ethsift);});
+  double stddev_ethsift = reduce(variances_ethsift, [](auto a,auto b){return a+b;}) / durations_ethsift.size();
+  std::sort(durations_ethsift.begin(), durations_ethsift.end());
+  size_t median_ethsfit = durations_ethsift[durations_ethsift.size()/2];
+  LogTuple t = { test.title, "ETHSIFT_METHOD_NAME", median_ethsfit, stddev_ethsift };
+  test_logs.push_back(t);
+
+
   // Show
-  fprintf(stderr, " %10liµs ±%3.3f", median, stddev);
+  fprintf(stderr, " %10liµs ±%3.3f", median_ethsfit, stddev_ethsift);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
