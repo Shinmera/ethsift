@@ -259,12 +259,12 @@ define_test(TestNMeasureGaussianPyramid, 1, {
 
     //Init ezSIFT Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
     //Init ezSIFT Gaussians
     std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
 
     for (int i = 0; i < NR_RUNS; ++i) {
         ez_gaussians.clear();
+        build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
         with_measurement({
             build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
             });
