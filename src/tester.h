@@ -10,12 +10,12 @@
 #include <tuple>
 #include <stdio.h>
 #include <unistd.h>
+#include <fstream>
 #include <time.h>
 #include <signal.h>
 #include <chrono>
 #include <vector>
 #include <algorithm>
-#include <string>
 #include "settings.h"
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;

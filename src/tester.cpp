@@ -228,6 +228,31 @@ void map(std::vector<U> &in, std::vector<V> &out, Func func){
     out[i] = func(in[i]);
 }
 
+void write_logfile() {
+    time_t curr_time;
+    tm* curr_tm;
+    char date_string[100];
+    char time_string[100];
+
+    time(&curr_time);
+    curr_tm = localtime(&curr_time);
+
+    strftime(date_string, 50, "%B_%d_%Y", curr_tm);
+    strftime(time_string, 50, "_%T", curr_tm);
+    char filename[100] = "../logs/logfile_";
+    strcat(filename, date_string);
+    strcat(filename, time_string);
+    strcat(filename, ".txt");
+
+    std::ofstream myfile;
+    myfile.open(filename);
+    for (auto t : test_logs) {
+        myfile << std::get<0>(t) << ", " << std::get<1>(t)
+            << ", " << std::get<2>(t) << ", " << std::get<3>(t) << std::endl;
+    }
+    myfile.close();
+}
+
 int run_test(struct test test){
   fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
@@ -257,6 +282,8 @@ int run_test(struct test test){
       double stddev_ezsift = reduce(variances_ezsift, [](auto a, auto b) {return a + b; }) / durations_ezsift.size();
       std::sort(durations_ezsift.begin(), durations_ezsift.end());
       size_t median_ezsift = durations_ezsift[durations_ezsift.size() / 2];
+      LogTuple t = { test.title, "ezSIFT", median_ezsift, stddev_ezsift };
+      test_logs.push_back(t);
   }
   else {
       // If we are not doing any runtime comparisons, continue as before.
@@ -271,7 +298,7 @@ int run_test(struct test test){
   double stddev_ethsift = reduce(variances_ethsift, [](auto a,auto b){return a+b;}) / durations_ethsift.size();
   std::sort(durations_ethsift.begin(), durations_ethsift.end());
   size_t median_ethsfit = durations_ethsift[durations_ethsift.size()/2];
-  LogTuple t = { test.title, "ETHSIFT_METHOD_NAME", median_ethsfit, stddev_ethsift };
+  LogTuple t = { test.title, "ETHSIFT", median_ethsfit, stddev_ethsift };
   test_logs.push_back(t);
 
 
@@ -296,6 +323,8 @@ int run_tests(struct test *tests, uint32_t count){
       failures++;
     }
   }
+  write_logfile();
+
   fprintf(stderr, "\nPassed: %3i", passes);
   fprintf(stderr, "\nFailed: %3i\n", failures);
   if(failures){
@@ -307,6 +336,7 @@ int run_tests(struct test *tests, uint32_t count){
   }
   return (failures == 0);
 }
+
 
 void compute_keypoints(char *file, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   ezsift::Image<unsigned char> img;
