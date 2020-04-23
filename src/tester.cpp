@@ -242,7 +242,7 @@ void write_logfile() {
     char filename[100] = "../logs/logfile_";
     strcat(filename, date_string);
     strcat(filename, time_string);
-    strcat(filename, ".txt");
+    strcat(filename, ".csv");
 
     std::ofstream myfile;
     myfile.open(filename);
