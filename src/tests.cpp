@@ -40,7 +40,7 @@ define_test(SimpleAllocation, 0, {
 
 define_test(RandomAllocation, 0, {
     // Perform a bunch of randomised runs.
-    for(int r=0; r<NR_RUNS; ++r){
+    for(int r=0; r<100; ++r){
       int pyramid_size = rand() % 10 + 1;
       struct ethsift_image pyramid[pyramid_size];
       uint32_t ref_w = 2 << (rand()%4 + 1 + pyramid_size);
@@ -67,7 +67,7 @@ define_test(RandomAllocation, 0, {
   })
 
 
-define_test(TestNMeasureDownscale, 1, {
+define_test(TestDownscale, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -84,30 +84,18 @@ define_test(TestNMeasureDownscale, 1, {
     int dstH = srcH >> 1;
     struct ethsift_image eth_img_downscaled = allocate_image(dstW, dstH);
     if(!eth_img_downscaled.pixels)
-      fail("Failed to allocate downscaled image");
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-              if (!ethsift_downscale_half(eth_img, eth_img_downscaled))
-                fail("Failed to downscale image!");
-            });
-    }
+      fail("Failed to downscale image");
+    ethsift_downscale_half(eth_img, eth_img_downscaled);
 
     //Downscale ezSIFT Image
-    ezsift::Image<unsigned char> ez_img_downscaled;
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ez_img_downscaled = ez_img.downsample_2x();
-            });
-    }
-
+    const ezsift::Image<unsigned char> ez_img_downscaled = ez_img.downsample_2x();
     //compare files 
     int res = compare_image_approx(ez_img_downscaled, eth_img_downscaled);
     return res;
   })
 
 
-define_test(TestNMeasureConvolution, 1, {  
+define_test(TestConvolution, 0, {
     char const *file = data_file("lena.pgm");
     // init files 
     ezsift::Image<unsigned char> ez_img;
@@ -128,35 +116,23 @@ define_test(TestNMeasureConvolution, 1, {
     // Create kernel
     float *kernel = (float*) malloc(kernel_size * sizeof(float)); 
     ethsift_generate_gaussian_kernel(kernel, kernel_size, kernel_rad, sigma);
-    
+
     // Blur ethsift image
     struct ethsift_image output = allocate_image(w, h);
-
-    // Measure performance of ethsift
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
-            });
-    }
-
+    ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
+        
     // Blur ezsift image
     std::vector<float> ez_kernel;
     for (int i = 0; i < kernel_size; ++i) {
       ez_kernel.push_back(kernel[i]);
     }
     ezsift::Image<float> ez_img_blurred(w, h);
-
-    // Measure performance of ezsift
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
-            });
-    }
-
+    ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
+        
     return compare_image_approx(ez_img_blurred, output);
   })
 
-define_test(TestNMeasureOctaves, 1, {
+define_test(TestOctaves, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -173,18 +149,11 @@ define_test(TestNMeasureOctaves, 1, {
     ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
 
     //Create Octaves for ethSift    
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-            });
-    }
+    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
 
-    //Create Octaves for ezSift   
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-            });
-    }
+    //Create Octaves for ezSift    
+    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
+
     int res = 0;
     //Compare obtained Octaves in a loop
     for(int i = 0; i < OCTAVE_COUNT; ++i){
@@ -195,27 +164,17 @@ define_test(TestNMeasureOctaves, 1, {
   })
 
 
-define_test(TestNMeasureGaussianKernelGeneration, 1, {
+define_test(TestGaussianKernelGeneration, 0, {
     //Create Kernels for ethSift
     int layers_count = GAUSSIAN_COUNT - 3;
     
     float* kernel_ptrs[GAUSSIAN_COUNT]; 
     int kernel_rads[GAUSSIAN_COUNT];
-    int kernel_sizes[GAUSSIAN_COUNT];
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            if(!ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes))
-                fail("Failed to generate the gaussian kernels");
-            });
-    }
+    int kernel_sizes[GAUSSIAN_COUNT];  
+    ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
 
     //Create Kernels for ezSift
-    std::vector<std::vector<float>> ez_kernels;
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ez_kernels = ezsift::compute_gaussian_coefs(OCTAVE_COUNT, GAUSSIAN_COUNT);
-            });
-    }
+    std::vector<std::vector<float>> ez_kernels = ezsift::compute_gaussian_coefs(OCTAVE_COUNT, GAUSSIAN_COUNT);
 
     if(ez_kernels.size() != GAUSSIAN_COUNT)
       fail("Expected %d kernels, but got %d", GAUSSIAN_COUNT, (int)ez_kernels.size());
@@ -229,7 +188,7 @@ define_test(TestNMeasureGaussianKernelGeneration, 1, {
     return (res == GAUSSIAN_COUNT);
   })
 
-define_test(TestNMeasureGaussianPyramid, 1, {
+define_test(TestGaussianPyramid, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -249,42 +208,28 @@ define_test(TestNMeasureGaussianPyramid, 1, {
     //Create Octaves for ethSift    
     ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
     // Create gaussians for ethSift
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-            });
-    }
-
+    ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     //Init ezSIFT Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
+    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
     //Init ezSIFT Gaussians
     std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ez_gaussians.clear();
-        build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-        with_measurement({
-            build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-            });
-    }
-
-    ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
     build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
     // Compare the gaussian outputs!
     int res = 0;
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < GAUSSIAN_COUNT; ++j) {        
-        res += compare_image_approx(ez_gaussians[i*GAUSSIAN_COUNT + j], eth_gaussians[i*GAUSSIAN_COUNT + j]);
+        res += compare_image_approx(ez_gaussians[i*OCTAVE_COUNT + j], eth_gaussians[i*OCTAVE_COUNT + j]);
       }
     }
 
     return (res == OCTAVE_COUNT*GAUSSIAN_COUNT);
-    })
+  })
 
 
-define_test(TestNMeasureDOGPyramid, 0, {
+define_test(TestDOGPyramid, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -312,11 +257,7 @@ define_test(TestNMeasureDOGPyramid, 0, {
 
     ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
-            });
-    }
+    ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
 
     //Create DOG for ezSift    
     build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
@@ -325,12 +266,7 @@ define_test(TestNMeasureDOGPyramid, 0, {
     build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
     std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-            });
-    }
+    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
 
     // Compare the gaussian outputs!
     int res = 0;
@@ -343,7 +279,7 @@ define_test(TestNMeasureDOGPyramid, 0, {
     return (res == OCTAVE_COUNT * DOG_COUNT);
   })
 
-define_test(TestNMeasureGradientPyramids, 1, {
+define_test(TestGradientPyramids, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -368,14 +304,11 @@ define_test(TestNMeasureGradientPyramids, 1, {
 
     // Calculate all pyramid contents
     ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
+
     ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
-            });
-    }
-
+    ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+    
     // Init EZSIFT Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
     build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
@@ -387,12 +320,7 @@ define_test(TestNMeasureGradientPyramids, 1, {
     // Init EZSIFT Gradients and Rotations
     std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
     std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-            });
-    }
+    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
 
     // Compare the Gradient outputs!
     int res_g = 0;
@@ -405,7 +333,7 @@ define_test(TestNMeasureGradientPyramids, 1, {
     return (res_g ==  OCTAVE_COUNT * GRAD_ROT_LAYERS);
   })
 
-define_test(TestNMeasureRotationPyramids, 1, {
+define_test(TestRotationPyramids, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -439,22 +367,11 @@ define_test(TestNMeasureRotationPyramids, 1, {
       }
     }
     //Calculate Rotations using results from ezSIFT
+    ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
-            });
-    }
-
-    // Build Rotations for ezSIFT
     std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
     std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-            });
-    }
+    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
 
     // Compare the gaussian outputs!
     int res_r = 0;
@@ -546,91 +463,8 @@ define_test(TestHistograms, 0, {
     }
   })
 
-define_test(MeasurementOneHistogram, 1, {
-  char const* file = data_file("lena.pgm");
-  //init files 
-  ezsift::Image<unsigned char> ez_img;
-  struct ethsift_image eth_img = {0};
-  if (ez_img.read_pgm(file) != 0)
-    fail("Failed to read image");
-  if (!convert_image(ez_img, &eth_img))
-    fail("Failed to convert image");
 
-  // Allocate the pyramids!
-  struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
-  ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-  struct ethsift_image eth_gradients[OCTAVE_COUNT * GAUSSIAN_COUNT];
-  ethsift_allocate_pyramid(eth_gradients, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-  struct ethsift_image eth_rotations[OCTAVE_COUNT * GAUSSIAN_COUNT];
-  ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-  //Init Octaves
-  std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-  build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-  std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-  build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-  std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-  build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-  std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-  std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-  build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-
-  //Convert ezSIFT Gaussians, Gradients and Rotations to ethSIFT format
-  for (int i = 0; i < OCTAVE_COUNT; ++i) {
-    for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
-      convert_image(ez_gradients[i * GAUSSIAN_COUNT + j], &(eth_gradients[i * GAUSSIAN_COUNT + j]));
-      convert_image(ez_rotations[i * GAUSSIAN_COUNT + j], &(eth_rotations[i * GAUSSIAN_COUNT + j]));
-    }
-  }
-
-  // Detect keypoints
-  std::list<ezsift::SiftKeypoint> kpt_list;
-  detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, kpt_list);
-
-  // Init histogram bins
-  float* ez_hist = new float[ETHSIFT_ORI_HIST_BINS];
-  float eth_hist[ETHSIFT_ORI_HIST_BINS];
-
-  // Measurement histograms: keypoint for measurement (Maybe randomize?)
-  ezsift::SiftKeypoint kpt = kpt_list.front();
-  // Calculate histograms
-  float ez_max_mag = 0.f;
-
-  for (int i = 0; i < NR_RUNS; ++i) {
-      with_measurement({
-        ez_max_mag = ezsift::compute_orientation_hist_with_gradient(ez_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist);
-      });
-  }
-
-  float eth_max_mag = 0.f;
-  struct ethsift_keypoint eth_kpt = convert_keypoint(&kpt);
-
-  for (int i = 0; i < NR_RUNS; ++i) {
-      with_measurement({
-          ethsift_compute_orientation_histogram(eth_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                eth_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                &eth_kpt, eth_hist, &eth_max_mag);
-      });
-  }
-
-  // Compare resulted histograms
-  float epsilon = 0.001f;
-  if (epsilon < abs(ez_max_mag - eth_max_mag))
-    fail("Maximum magnitude differs by %f at %f,%f,%f", abs(ez_max_mag - eth_max_mag), kpt.rlayer, kpt.ri, kpt.ci);
-
-  for (int i = 0; i < ETHSIFT_ORI_HIST_BINS; ++i) {
-    if (epsilon < abs(eth_hist[i] - ez_hist[i]))
-        fail("Histograms differ by %f in bin %i at %f,%f,%f", abs(eth_hist[i] - ez_hist[i]), i, kpt.rlayer, kpt.ri, kpt.ci);
-  }
-})
-
-define_test(TestNMeasureExtremaRefinement, 1, {
+define_test(TestExtremaRefinement, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -697,12 +531,8 @@ define_test(TestNMeasureExtremaRefinement, 1, {
 
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt1);
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt2);
+    refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3);
-        });
-    }
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < DOG_COUNT; ++j) {
@@ -712,12 +542,7 @@ define_test(TestNMeasureExtremaRefinement, 1, {
 
     ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt1);
     ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt2);
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3);
-        });
-    }
+    ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3);
 
     int res = 1;
 
@@ -740,7 +565,7 @@ define_test(TestNMeasureExtremaRefinement, 1, {
   })
 
 
-define_test(TestNMeasureKeypointDetection, 1, {
+define_test(TestKeypointDetection, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -786,13 +611,8 @@ define_test(TestNMeasureKeypointDetection, 1, {
 
     // EzSift: Detect keypoints
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
+    detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ez_kpt_list.clear();
-        with_measurement({
-            detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
-            });
-    }
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
@@ -808,14 +628,8 @@ define_test(TestNMeasureKeypointDetection, 1, {
     // Ethsift keypoint detection:
     struct ethsift_keypoint eth_kpt_list[100];
     uint32_t nKeypoints = 100;
-   
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({ 
-            nKeypoints = 100;
-            if (!ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints))
-                fail("Computation failed");
-            });
-    }
+    ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+
     if (ez_kpt_list.size() != nKeypoints)
       fail("No keypoints found.");
   
@@ -842,7 +656,7 @@ define_test(TestNMeasureKeypointDetection, 1, {
     }
   })
 
-define_test(TestExtractDescriptor, 1, {
+define_test(TestExtractDescriptor, 0, {
     char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -889,11 +703,7 @@ define_test(TestExtractDescriptor, 1, {
     }
 
     // EzSift: Extract Descriptors
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
-            });
-    }
+    extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
 
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
@@ -904,11 +714,7 @@ define_test(TestExtractDescriptor, 1, {
     }
 
     // Compute our descriptors which we want to test!
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
-            });
-    }
+    ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
 
     i = 0;
     // Compare descriptors for correctness
@@ -931,14 +737,10 @@ define_test(TestComputeKeypoints, 0, {
   fail("Failed to convert image");
 
 
-  //struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
+  struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
   uint32_t keypoints_tracked = ETHSIFT_MAX_TRACKABLE_KEYPOINTS;
-  for (int i = 0; i < NR_RUNS; ++i) {
-      struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
-      with_measurement({
-          ethsift_compute_keypoints(eth_img, eth_kpt_list, &keypoints_tracked);
-          });
-  }
+  ethsift_compute_keypoints(eth_img, eth_kpt_list, &keypoints_tracked);
+
   if(keypoints_tracked != LENA_KEYPOINTS) fail("Keypoints tracked mismatched: %d != %d", keypoints_tracked, ETHSIFT_MAX_TRACKABLE_KEYPOINTS);
   })
 
@@ -956,11 +758,7 @@ define_test(BenchmarkEZSIFT, 0, {
 
 
   std::list<ezsift::SiftKeypoint> ez_kpt_list;
-  for (int i = 0; i < NR_RUNS; ++i) {
-      ez_kpt_list.clear();
-      with_measurement({
-        sift_cpu(ez_img, ez_kpt_list, true);
-        });
-  }
+  sift_cpu(ez_img, ez_kpt_list, true);
+
   if ((int) ez_kpt_list.size() != LENA_KEYPOINTS) fail("Keypoints tracked mismatched: %d != %d", (int) ez_kpt_list.size(), ETHSIFT_MAX_TRACKABLE_KEYPOINTS);
   })
