@@ -22,7 +22,7 @@
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern std::vector<size_t> durations;
-typedef std::tuple<std::string, size_t, size_t> LogTuple;
+typedef std::tuple<std::string, size_t, double> LogTuple;
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
 #define NR_RUNS 30

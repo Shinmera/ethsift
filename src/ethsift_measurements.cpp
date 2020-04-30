@@ -111,7 +111,7 @@ define_test(eth_DOGPyramid, 1, {
     ethsift_free_pyramid(eth_differences);
   })
 
-define_test(eth_GradientPyramids, 1, {
+define_test(eth_GradientAndRotationPyramids, 1, {
     struct ethsift_image eth_img = {0};
     if(!load_image(get_testimg_path(), eth_img))
       fail("Failed to load image");
@@ -141,42 +141,6 @@ define_test(eth_GradientPyramids, 1, {
     ethsift_free_pyramid(eth_rotations);
   })
 
-define_test(eth_RotationPyramids, 1, {
-    ezsift::Image<unsigned char> ez_img;
-    struct ethsift_image eth_img = {0};
-    if(!load_image(get_testimg_path(), eth_img, &ez_img))
-      fail("Failed to load image");
-    
-    // Allocate the pyramids!
-    struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
-    ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
-    ethsift_allocate_pyramid(eth_gradients, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
-    ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    //Init Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);   
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    //Convert ezSIFT Gaussians to ethSIFT gaussians
-    for (int i = 0; i < OCTAVE_COUNT; ++i) {
-      for (int j = 0; j < GAUSSIAN_COUNT; ++j) {
-        convert_image(ez_gaussians[i * GAUSSIAN_COUNT + j], &(eth_gaussians[i * GAUSSIAN_COUNT + j]));
-      }
-    }
-
-    with_repeating(ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT));
-
-    ethsift_free_pyramid(eth_gaussians);
-    ethsift_free_pyramid(eth_gradients);
-    ethsift_free_pyramid(eth_rotations);
-  })
 
 define_test(eth_Histogram, 1, {
     ezsift::Image<unsigned char> ez_img;
@@ -245,7 +209,7 @@ define_test(eth_ExtremaRefinement, 1, {
     detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
     struct ethsift_keypoint eth_kpt;
 
-    eth_kpt = convert_keypoint(ez_kpt_list.front());
+    eth_kpt = convert_keypoint(&ez_kpt_list.front());
 
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {

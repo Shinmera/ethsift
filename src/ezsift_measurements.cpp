@@ -88,7 +88,7 @@ define_test(ez_DOGPyramid, 1, {
     with_repeating(build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT));
   })
 
-define_test(ez_GradientPyramids, 1, {
+define_test(ez_GradientAndRotationPyramids, 1, {
     ezsift::Image<unsigned char> ez_img;
     if(ez_img.read_pgm(get_testimg_path()) != 0) 
       fail("Failed to read image");
@@ -105,26 +105,6 @@ define_test(ez_GradientPyramids, 1, {
     std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
     std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
 
-    with_repeating(build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS));
-  })
-
-define_test(ez_RotationPyramids, 1, {
-    ezsift::Image<unsigned char> ez_img;
-    if(ez_img.read_pgm(get_testimg_path()) != 0)
-      fail("Failed to read image");
-
-    // Init Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);   
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    // Build Rotations for ezSIFT
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-
-    //Calculate Rotations using results from ezSIFT
     with_repeating(build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS));
   })
 
