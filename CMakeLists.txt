@@ -51,6 +51,7 @@ set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
+target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flag...")

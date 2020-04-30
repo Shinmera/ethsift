@@ -3,6 +3,11 @@
 #error "ETHSIFT_DATA must be defined."
 #endif
 
+#ifndef ETHSIFT_LOGS
+#error "ETHSIFT_LOGS must be defined."
+#endif
+
+
 #include "ethsift.h"
 #include "ezsift.h"
 #include <string>

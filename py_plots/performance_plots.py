@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-from os import listdir
-from os.path import isfile, join
 
 from architecture_config import config as arch_conf
 
@@ -90,40 +88,5 @@ class PerformancePlot:
 
 
 
-#=================================================================================================================================
-def filter_str(to_filt, filter_chars):
-    return ''.join(c for c in to_filt if c not in filter_chars)
-    
-def create_plotRDTSC(folder):
-    x_axis = np.zeros(20)
-    y_axis = np.zeros(20)
-
-    
-    max_performance = 0
-    
-    onlyfiles = [f for f in listdir(folder) if isfile(join(folder, f))]
-    it = 0
-    onlyfiles = np.sort(onlyfiles)
-    for f in onlyfiles:
-                
-        stream = open(folder + f,"r")
-        lines = stream.readlines()
-        vals = lines[1].split(',')
-        n = int(vals[0])
-        it = int(math.log(n,2)-4)
-        
-        x_axis[it] = it+4
-        
-        #flops = 6*n       
-        performance = float(vals[1])
-        # = flops/cycles
-        
-        if performance > max_performance:
-            max_performance = performance
-
-        y_axis[it] = y_axis[it] + performance
-
-
-    return max_performance, x_axis, y_axis
     
 

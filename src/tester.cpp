@@ -80,7 +80,8 @@ void write_logfile() {
     strftime(date_string, 50, "_%B_%d_%Y", curr_tm);
     strftime(time_string, 50, "_%X", curr_tm);
 
-    char filename[200] = "../logs/";
+    char filename[200] = ETHSIFT_LOGS;
+    strcat(filename, "/");
     strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
     strcat(filename, date_string);
     strcat(filename, time_string);
