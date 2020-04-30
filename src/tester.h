@@ -26,6 +26,13 @@
 #include "test_utils.h"
 #include "tsc_x86.h"
 
+// Specify which measurements you would like to run.
+#define RUN_ETHSIFT_MEASUREMENTS 1
+#define RUN_EZSIFT_MEASUREMENTS 0
+
+// Specify how many measurement runs it should do per function
+#define NR_RUNS 30
+
 // Specify if using rdtsc or chrono for runtime measures
 #define USE_RDTSC 1
 
@@ -41,7 +48,7 @@
 
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
-#define NR_RUNS 30
+
 
 extern std::string* g_testImgName;
 

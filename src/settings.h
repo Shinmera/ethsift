@@ -42,7 +42,7 @@
 #define ETHSIFT_INT_DESCR_FCTR 512.f;
 
 // Maximum amount of Keypoints we want to be able to track.
-#define ETHSIFT_MAX_TRACKABLE_KEYPOINTS 500
+#define ETHSIFT_MAX_TRACKABLE_KEYPOINTS 1000
 
 // default threshold on keypoint contrast |D(x)|
 #define ETHSIFT_CONTR_THR 8.0f; // 8.0f;

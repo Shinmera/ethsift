@@ -1,5 +1,7 @@
 #include "tester.h"
 
+#if RUN_EZSIFT_MEASUREMENTS
+
 define_test(ez_Downscale, 1, {
     ezsift::Image<unsigned char> ez_img;
     if(ez_img.read_pgm(get_testimg_path()) != 0)
@@ -193,3 +195,4 @@ define_test(ez_ExtractDescriptor, 1, {
     with_repeating(extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list));
   })
 
+#endif

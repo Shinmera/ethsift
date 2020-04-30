@@ -1,5 +1,7 @@
 #include "tester.h"
 
+#if RUN_ETHSIFT_MEASUREMENTS
+
 define_test(eth_Downscale, 1, {
     struct ethsift_image eth_img = {0};
     if(!load_image(get_testimg_path(), eth_img))
@@ -256,11 +258,11 @@ define_test(eth_KeypointDetection, 1, {
     }
 
     // Ethsift keypoint detection:
-    uint32_t nKeypoints = 100;
+    uint32_t nKeypoints = ETHSIFT_MAX_TRACKABLE_KEYPOINTS;
     struct ethsift_keypoint eth_kpt_list[nKeypoints];
 
     with_repeating({
-        nKeypoints = 100;
+        nKeypoints = ETHSIFT_MAX_TRACKABLE_KEYPOINTS;
         if (!ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints))
           fail("Computation failed");
       });
@@ -293,7 +295,7 @@ define_test(eth_ExtractDescriptor, 1, {
 
     // Ethsift descriptor extraction:
     const uint32_t keypoint_count = (uint32_t)ez_kpt_list.size();
-    struct ethsift_keypoint eth_kpt_list[250];
+    struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
 
     int i = 0;
     // Convert ezsift Keypoints to ethsift
@@ -315,3 +317,5 @@ define_test(eth_ExtractDescriptor, 1, {
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
   })
+  
+#endif
