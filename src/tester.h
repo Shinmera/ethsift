@@ -25,13 +25,6 @@ typedef std::tuple<std::string, size_t, size_t> LogTuple;
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
 #define NR_RUNS 30
-#define EPS 0.001
-#define OCTAVE_COUNT 6
-#define GAUSSIAN_COUNT 6
-#define DOG_COUNT 5
-#define GRAD_ROT_LAYERS 3
-
-#define LENA_KEYPOINTS 136
 
 int register_failure(int test, const char *reason);
 int register_test(const char *title, int has_measurement_comp, int (*func)());

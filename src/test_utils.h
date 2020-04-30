@@ -1,3 +1,10 @@
+#define EPS 0.001
+#define OCTAVE_COUNT 6
+#define GAUSSIAN_COUNT 6
+#define DOG_COUNT 5
+#define GRAD_ROT_LAYERS 3
+#define LENA_KEYPOINTS 136
+
 // Allocate the pixel array in the given output image according to its width and height.
 struct ethsift_image allocate_image(uint32_t width, uint32_t height);
 
