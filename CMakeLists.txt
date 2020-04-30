@@ -43,6 +43,7 @@ target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -
 ## Test Harness Build
 add_executable(tester
   "src/tester.cpp"
+  "src/test_utils.cpp"
   "src/tests.cpp"
   "src/ethsift_measurements.cpp"
   "src/ezsift_measurements.cpp")
