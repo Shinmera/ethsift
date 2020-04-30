@@ -5,8 +5,9 @@
 
 #include "ethsift.h"
 #include "ezsift.h"
-#include <string.h>
+#include <string>
 #include <stdlib.h>
+#include <iostream>
 #include <tuple>
 #include <stdio.h>
 #include <unistd.h>
@@ -32,6 +33,8 @@ extern bool measurement_pending;
 
 #define LENA_KEYPOINTS 136
 
+static std::string* g_testImgName;
+
 int register_failure(int test, const char *reason);
 int register_test(const char *title, int has_measurement_comp, int (*func)());
 
@@ -55,14 +58,23 @@ int register_test(const char *title, int has_measurement_comp, int (*func)());
     return 0;}
 
 // Return an absolute path to a file within the project root's data/ directory.
-static char *data_file(const char *file){
-  const char *data = ETHSIFT_DATA;
-  char *path = (char*)calloc(sizeof(char), strlen(data)+strlen(file)+1);
-  path = strcat(path, data);
-  path = strcat(path, "/");
-  path = strcat(path, file);
-  return path;
+static char* data_file(const char* file) {
+    const char* data = ETHSIFT_DATA;
+    char* path = (char*)calloc(sizeof(char), strlen(data) + strlen(file) + 1);
+    path = strcat(path, data);
+    path = strcat(path, "/");
+    path = strcat(path, file);
+    std::cout << "PATH TO IMAGE FILE: " << path << std::endl;
+    return path;
 }
+
+// Return an absolute path to a file within the project root's data/ directory.
+static char* data_file() {
+    const char* cstr = g_testImgName->c_str();
+    std::cout << "IMAGE FILE: " << cstr << "     should be "<<  g_testImgName <<  std::endl;
+    return data_file(cstr);
+}
+
 
 // Allocate the pixel array in the given output image according to its width and height.
 struct ethsift_image allocate_image(uint32_t width, uint32_t height);

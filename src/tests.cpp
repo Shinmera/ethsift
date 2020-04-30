@@ -1,7 +1,7 @@
 #include "tester.h"
 
 define_test(TestCompareImageApprox, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -68,7 +68,7 @@ define_test(RandomAllocation, 0, {
 
 
 define_test(TestDownscale, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -96,7 +96,7 @@ define_test(TestDownscale, 0, {
 
 
 define_test(TestConvolution, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     // init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -133,7 +133,7 @@ define_test(TestConvolution, 0, {
   })
 
 define_test(TestOctaves, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -189,7 +189,7 @@ define_test(TestGaussianKernelGeneration, 0, {
   })
 
 define_test(TestGaussianPyramid, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -230,7 +230,7 @@ define_test(TestGaussianPyramid, 0, {
 
 
 define_test(TestDOGPyramid, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -280,7 +280,7 @@ define_test(TestDOGPyramid, 0, {
   })
 
 define_test(TestGradientPyramids, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -334,7 +334,7 @@ define_test(TestGradientPyramids, 0, {
   })
 
 define_test(TestRotationPyramids, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -388,7 +388,7 @@ define_test(TestRotationPyramids, 0, {
   })
 
 define_test(TestHistograms, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -465,7 +465,7 @@ define_test(TestHistograms, 0, {
 
 
 define_test(TestExtremaRefinement, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -566,7 +566,7 @@ define_test(TestExtremaRefinement, 0, {
 
 
 define_test(TestKeypointDetection, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -657,7 +657,7 @@ define_test(TestKeypointDetection, 0, {
   })
 
 define_test(TestExtractDescriptor, 0, {
-    char const *file = data_file("lena.pgm");
+    char const *file = data_file();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -727,7 +727,7 @@ define_test(TestExtractDescriptor, 0, {
   })
 
 define_test(TestComputeKeypoints, 0, {
-  char const *file = data_file("lena.pgm");
+  char const *file = data_file();
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
@@ -745,7 +745,7 @@ define_test(TestComputeKeypoints, 0, {
   })
 
 define_test(BenchmarkEZSIFT, 0, {
-  char const *file = data_file("lena.pgm");
+  char const *file = data_file();
   //init files 
   ezsift::Image<unsigned char> ez_img;
 

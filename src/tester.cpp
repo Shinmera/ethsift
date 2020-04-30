@@ -361,9 +361,14 @@ int main(int argc, char *argv[]){
   if(!ethsift_init())
     abort("Failed to initialise ETHSIFT");
   srand(time(NULL));
-
-  if(argc <= 1){
-    return (run_tests(tests, test_count) == 0)? 1 : 0;
+  if (argc <= 1) {
+      g_testImgName = new std::string("lena.pgm");
+      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
+      return (run_tests(tests, test_count) == 0) ? 1 : 0;
+  }else if (2 == argc) {
+      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
+      g_testImgName = new std::string(argv[1]);
+      return (run_tests(tests, test_count) == 0) ? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;
     char *file2 = (2 < argc)? argv[2] : 0;
