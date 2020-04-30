@@ -4,7 +4,6 @@ struct test{
   const char *title;
   const char *reason;
   int has_measurement_comp;
-  int flop_count;
   int (*func)();
 };
 
@@ -16,11 +15,10 @@ int test_count = 0;
 struct test tests[1024] = {0};
 std::string* g_testImgName;
 
-int register_test(const char *title, int has_measurement_comp, int flop_count, int (*func)()){
+int register_test(const char *title, int has_measurement_comp, int (*func)()){
   tests[test_count].title = title;
   tests[test_count].reason = 0;
   tests[test_count].has_measurement_comp = has_measurement_comp;
-  tests[test_count].flop_count;
   tests[test_count].func = func;
   return test_count++;
 }
@@ -239,17 +237,18 @@ void write_logfile() {
 
     time(&curr_time);
     curr_tm = localtime(&curr_time);
-
-    strftime(date_string, 50, "%B_%d_%Y", curr_tm);
+    strftime(date_string, 50, "_%B_%d_%Y", curr_tm);
     strftime(time_string, 50, "_%X", curr_tm);
-    char filename[100] = "../logs/logfile_";
+
+    char filename[200] = "../logs/";
+    strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
     strcat(filename, date_string);
     strcat(filename, time_string);
     strcat(filename, ".csv");
 
     std::ofstream myfile;
     myfile.open(filename);
-    myfile << "MethodName, FLOPs, Median, Std" << std::endl;
+    myfile << "MethodName, Median, Std" << std::endl;
     for (auto t : test_logs) {
         myfile << std::get<0>(t) << ", " << std::get<1>(t)
             << ", " << std::get<2>(t) << std::endl;
@@ -285,7 +284,7 @@ int run_test(struct test test){
   size_t median = durations[durations.size()/2];
 
   if (test.has_measurement_comp) {
-      LogTuple t = { test.title, test.flop_count, median, stddev };
+      LogTuple t = { test.title, median, stddev };
       test_logs.push_back(t);
   }
 

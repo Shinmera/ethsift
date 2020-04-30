@@ -1,6 +1,6 @@
 #include "tester.h"
 
-define_test(ezMeasureDownscale, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureDownscale, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -25,7 +25,7 @@ define_test(ezMeasureDownscale, 1, FLOP_COUNT_PLACEHOLDER,{
   })
 
 
-define_test(ezMeasureConvolution, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureConvolution, 1, {
     char const *file = get_testimg_path();
     // init files 
     ezsift::Image<unsigned char> ez_img;
@@ -66,7 +66,7 @@ define_test(ezMeasureConvolution, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasureOctaves, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureOctaves, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -90,7 +90,7 @@ define_test(ezMeasureOctaves, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasureGaussianPyramid, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureGaussianPyramid, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -121,7 +121,7 @@ define_test(ezMeasureGaussianPyramid, 1, FLOP_COUNT_PLACEHOLDER,{
     })
 
 
-define_test(ezMeasureDOGPyramid, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureDOGPyramid, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -153,7 +153,7 @@ define_test(ezMeasureDOGPyramid, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasureGradientPyramids, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureGradientPyramids, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -185,7 +185,7 @@ define_test(ezMeasureGradientPyramids, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasureRotationPyramids, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureRotationPyramids, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -219,7 +219,7 @@ define_test(ezMeasureRotationPyramids, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasurementOneHistogram, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasurementHistogram, 1, {
   char const* file = get_testimg_path();
   //init files 
   ezsift::Image<unsigned char> ez_img;
@@ -264,7 +264,7 @@ define_test(ezMeasurementOneHistogram, 1, FLOP_COUNT_PLACEHOLDER,{
   return 1;
 })
 
-define_test(ezMeasureExtremaRefinement, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureExtremaRefinement, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -328,7 +328,7 @@ define_test(ezMeasureExtremaRefinement, 1, FLOP_COUNT_PLACEHOLDER,{
   })
 
 
-define_test(ezMeasureKeypointDetection, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureKeypointDetection, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
@@ -369,7 +369,7 @@ define_test(ezMeasureKeypointDetection, 1, FLOP_COUNT_PLACEHOLDER,{
     return 1;
   })
 
-define_test(ezMeasureExtractDescriptor, 1, FLOP_COUNT_PLACEHOLDER,{
+define_test(ezMeasureExtractDescriptor, 1, {
     char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;

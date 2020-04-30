@@ -21,7 +21,7 @@
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern std::vector<size_t> durations;
-typedef std::tuple<std::string, size_t, size_t, size_t> LogTuple;
+typedef std::tuple<std::string, size_t, size_t> LogTuple;
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
 #define NR_RUNS 30
@@ -31,21 +31,19 @@ extern bool measurement_pending;
 #define DOG_COUNT 5
 #define GRAD_ROT_LAYERS 3
 
-#define FLOP_COUNT_PLACEHOLDER 0
-
 #define LENA_KEYPOINTS 136
 
 extern std::string* g_testImgName;
 
 int register_failure(int test, const char *reason);
-int register_test(const char *title, int has_measurement_comp, int flop_count, int (*func)());
+int register_test(const char *title, int has_measurement_comp, int (*func)());
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
-#define define_test(TITLE, HAS_MEASUREMENT_COMP, FLOP_COUNT, ...)                                          \
+#define define_test(TITLE, HAS_MEASUREMENT_COMP, ...)                                          \
   int __testfun_ ## TITLE();                                            \
-  static int __test_ ## TITLE = register_test(# TITLE, HAS_MEASUREMENT_COMP, FLOP_COUNT, __testfun_ ## TITLE); \
+  static int __test_ ## TITLE = register_test(# TITLE, HAS_MEASUREMENT_COMP, __testfun_ ## TITLE); \
   int __testfun_ ## TITLE (){                                           \
     int __testid = __test_ ## TITLE;                                    \
     __VA_ARGS__                                                         \
