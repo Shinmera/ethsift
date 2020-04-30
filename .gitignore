@@ -1,4 +1,5 @@
 build/
+logs/
 debug/
 CMakeFiles/
 *.o
