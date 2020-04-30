@@ -83,6 +83,7 @@ static char* get_testimg_path() {
     //std::cout << "IMAGE FILE: " << cstr  <<  std::endl;
     return data_file(cstr);
 }
+
 #if USE_RDTSC
   //// Same runtime measurements using RDTSC.
 
@@ -101,12 +102,13 @@ static char* get_testimg_path() {
   // Note: A single test may have multiple start/end sections. The report will
   //       accumulate the measurements from every section.
   static inline void end_measurement(){
+    myInt64 runtime = stop_tsc(start);
     if(measurement_pending){
-      myInt64 runtime = stop_tsc(start);
       durations.push_back(runtime);
       measurement_pending = false;
     }
   }
+  
 #else
   // Start a time measurement section.
   // Note: If no explicit measurement sections are defined, the entire test
