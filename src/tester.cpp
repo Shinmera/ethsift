@@ -7,8 +7,14 @@ struct test{
   int (*func)();
 };
 
-std::chrono::time_point<std::chrono::high_resolution_clock> start;
-std::vector<size_t> durations;
+#if USE_RDTSC
+  myInt64 start;
+  std::vector<myInt64> durations;
+#else
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
+  std::vector<size_t> durations;
+#endif
+
 std::vector<LogTuple> test_logs;
 bool measurement_pending = false;
 int test_count = 0;
@@ -96,37 +102,68 @@ void write_logfile() {
 int run_test(struct test test){
   fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
-  // Start measurement without the pending check to allow user override
-  start = std::chrono::high_resolution_clock::now();
-  // Run the check.
-  int ret = test.func();
-  // If we had no other measurement so far, force our start by setting the pending now.
-  if(durations.size() == 0) measurement_pending = true;
-  // End any possible measurement that might still be going on now.
-  // We have to do this here in order to allow correct measurement even in the face
-  // of early returns from within measurement blocks. We do not have an unwind-protect
-  // operator in C after all.
-  end_measurement();
+
+  #if USE_RDTSC
+    // Start measurement without the pending check to allow user override
+    start = start_tsc();
+    // Run the check.
+    int ret = test.func();
+    // If we had no other measurement so far, force our start by setting the pending now.
+    if(durations.size() == 0) measurement_pending = true;
+    // End any possible measurement that might still be going on now.
+    // We have to do this here in order to allow correct measurement even in the face
+    // of early returns from within measurement blocks. We do not have an unwind-protect
+    // operator in C after all.
+    end_measurement();
+    if (test.has_measurement_comp) {
+        durations.pop_back();
+    }
+    // Compute statistics for ethsift
+    myInt64 cumulative = reduce(durations, [](auto a,auto b){return a+b;});
+    double average = ((double)cumulative) / durations.size();
+    std::vector<double> variances(durations.size());
+    map(durations, variances, [&](auto d){return (d- average)*(d- average);});
+    double stddev_ethsift = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
+    std::sort(durations.begin(), durations.end());
+    myInt64 median_ethsfit = durations[durations.size()/2];
+
+    // Show
+    fprintf(stderr, " %20llu cycles ±%20.3f", median_ethsfit, stddev_ethsift);
+
+  #else
+    // Start measurement without the pending check to allow user override
+    start = std::chrono::high_resolution_clock::now();
+    // Run the check.
+    int ret = test.func();
+    // If we had no other measurement so far, force our start by setting the pending now.
+    if(durations.size() == 0) measurement_pending = true;
+    // End any possible measurement that might still be going on now.
+    // We have to do this here in order to allow correct measurement even in the face
+    // of early returns from within measurement blocks. We do not have an unwind-protect
+    // operator in C after all.
+    end_measurement();
+    if (test.has_measurement_comp) {
+        durations.pop_back();
+    }
+
+    // Compute statistics for ethsift
+    size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
+    double average = ((double)cumulative) / durations.size();
+    std::vector<double> variances(durations.size());
+    map(durations, variances, [&](auto d){return (d- average)*(d- average);});
+    double stddev_ethsift = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
+    std::sort(durations.begin(), durations.end());
+    size_t median_ethsfit = durations[durations.size()/2];
+
+    // Show
+    fprintf(stderr, " %10liµs ±%9.3f", median_ethsfit, stddev_ethsift);  
+  #endif
+
   if (test.has_measurement_comp) {
-      durations.pop_back();
+    LogTuple t = { test.title, median_ethsfit, stddev_ethsift };
+    test_logs.push_back(t);
   }
 
-  // Compute statistics for ethsift
-  size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
-  double average = ((double)cumulative) / durations.size();
-  std::vector<double> variances(durations.size());
-  map(durations, variances, [&](auto d){return (d- average)*(d- average);});
-  double stddev_ethsift = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
-  std::sort(durations.begin(), durations.end());
-  size_t median_ethsfit = durations[durations.size()/2];
-
-  if (test.has_measurement_comp) {
-      LogTuple t = { test.title, median_ethsfit, stddev_ethsift };
-      test_logs.push_back(t);
-  }
-
-  // Show
-  fprintf(stderr, " %10liµs ±%9.3f", median_ethsfit, stddev_ethsift);
   fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;

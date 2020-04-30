@@ -46,7 +46,8 @@ add_executable(tester
   "src/test_utils.cpp"
   "src/tests.cpp"
   "src/ethsift_measurements.cpp"
-  "src/ezsift_measurements.cpp")
+  "src/ezsift_measurements.cpp"
+  )
 set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
