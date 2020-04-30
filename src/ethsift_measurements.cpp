@@ -6,18 +6,13 @@ define_test(ethMeasureDownscale, 1, {
       fail("Failed to load image");
     
     //Downscale ETH Image
-    int srcW = eth_img.width;
-    int srcH = eth_img.height;
-    int dstW = srcW >> 1;
-    int dstH = srcH >> 1;
-    struct ethsift_image eth_img_downscaled = allocate_image(dstW, dstH);
+    struct ethsift_image eth_img_downscaled = allocate_image(eth_img.width >> 1, eth_img.height >> 1);
     if(!eth_img_downscaled.pixels)
       fail("Failed to allocate downscaled image");
 
     with_repeating(if (!ethsift_downscale_half(eth_img, eth_img_downscaled))
                      fail("Failed to downscale image!"));
   })
-
 
 define_test(ethMeasureConvolution, 1, {
     struct ethsift_image eth_img = {0};
@@ -52,7 +47,7 @@ define_test(ethMeasureOctaves, 1, {
 
     with_repeating(ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT))
 
-    ethsift_free_pyramid(eth_octaves);
+      ethsift_free_pyramid(eth_octaves);
   })
 
 define_test(ethMeasureGaussianKernelGeneration, 1, {
@@ -85,7 +80,7 @@ define_test(ethMeasureGaussianPyramid, 1, {
     
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
-    })
+  })
 
 define_test(ethMeasureDOGPyramid, 1, {
     struct ethsift_image eth_img = {0};
@@ -107,7 +102,6 @@ define_test(ethMeasureDOGPyramid, 1, {
 
     //Create DOG for ethSift    
     ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-
     ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     with_repeating(ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT));
@@ -240,18 +234,13 @@ define_test(ethMeasurementHistogram, 1, {
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
-})
+  })
 
 define_test(ethMeasureExtremaRefinement, 1, {
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
     if(!load_image(data_file("lena.pgm"), eth_img, &ez_img))
       fail("Failed to load image");
-
-    int srcW = eth_img.width; 
-    int srcH = eth_img.height;
-    int dstW = srcW;
-    int dstH = srcH;
 
     // Allocate the gaussian pyramids!
     struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
@@ -347,13 +336,13 @@ define_test(ethMeasureKeypointDetection, 1, {
     }
 
     // Ethsift keypoint detection:
-    struct ethsift_keypoint eth_kpt_list[100];
     uint32_t nKeypoints = 100;
+    struct ethsift_keypoint eth_kpt_list[nKeypoints];
 
     with_repeating({
         nKeypoints = 100;
         if (!ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints))
-            fail("Computation failed");
+          fail("Computation failed");
       });
     
     ethsift_free_pyramid(eth_gradients);
