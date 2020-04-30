@@ -4,6 +4,7 @@ struct test{
   const char *title;
   const char *reason;
   int has_measurement_comp;
+  int flop_count;
   int (*func)();
 };
 
@@ -13,11 +14,13 @@ std::vector<LogTuple> test_logs;
 bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
+std::string* g_testImgName;
 
-int register_test(const char *title, int has_measurement_comp, int (*func)()){
+int register_test(const char *title, int has_measurement_comp, int flop_count, int (*func)()){
   tests[test_count].title = title;
   tests[test_count].reason = 0;
   tests[test_count].has_measurement_comp = has_measurement_comp;
+  tests[test_count].flop_count;
   tests[test_count].func = func;
   return test_count++;
 }
@@ -246,6 +249,7 @@ void write_logfile() {
 
     std::ofstream myfile;
     myfile.open(filename);
+    myfile << "MethodName, FLOPs, Median, Std" << std::endl;
     for (auto t : test_logs) {
         myfile << std::get<0>(t) << ", " << std::get<1>(t)
             << ", " << std::get<2>(t) << std::endl;
@@ -276,17 +280,17 @@ int run_test(struct test test){
   double average = ((double)cumulative) / durations.size();
   std::vector<double> variances(durations.size());
   map(durations, variances, [&](auto d){return (d- average)*(d- average);});
-  double stddev_ethsift = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
+  double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
   std::sort(durations.begin(), durations.end());
-  size_t median_ethsfit = durations[durations.size()/2];
+  size_t median = durations[durations.size()/2];
 
   if (test.has_measurement_comp) {
-      LogTuple t = { test.title, median_ethsfit, stddev_ethsift };
+      LogTuple t = { test.title, test.flop_count, median, stddev };
       test_logs.push_back(t);
   }
 
   // Show
-  fprintf(stderr, " %10liµs ±%3.3f", median_ethsfit, stddev_ethsift);
+  fprintf(stderr, " %10liµs ±%3.3f", median, stddev);
   fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
@@ -366,8 +370,8 @@ int main(int argc, char *argv[]){
       std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
       return (run_tests(tests, test_count) == 0) ? 1 : 0;
   }else if (2 == argc) {
-      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
       g_testImgName = new std::string(argv[1]);
+      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
       return (run_tests(tests, test_count) == 0) ? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;

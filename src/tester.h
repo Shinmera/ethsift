@@ -21,7 +21,7 @@
 
 extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
 extern std::vector<size_t> durations;
-typedef std::tuple<std::string, size_t, size_t> LogTuple;
+typedef std::tuple<std::string, size_t, size_t, size_t> LogTuple;
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
 #define NR_RUNS 30
@@ -31,19 +31,21 @@ extern bool measurement_pending;
 #define DOG_COUNT 5
 #define GRAD_ROT_LAYERS 3
 
+#define FLOP_COUNT_PLACEHOLDER 0
+
 #define LENA_KEYPOINTS 136
 
-static std::string* g_testImgName;
+extern std::string* g_testImgName;
 
 int register_failure(int test, const char *reason);
-int register_test(const char *title, int has_measurement_comp, int (*func)());
+int register_test(const char *title, int has_measurement_comp, int flop_count, int (*func)());
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
 // alphanumerics or underscores.
-#define define_test(TITLE, HAS_MEASUREMENT_COMP,...)                                          \
+#define define_test(TITLE, HAS_MEASUREMENT_COMP, FLOP_COUNT, ...)                                          \
   int __testfun_ ## TITLE();                                            \
-  static int __test_ ## TITLE = register_test(# TITLE, HAS_MEASUREMENT_COMP, __testfun_ ## TITLE); \
+  static int __test_ ## TITLE = register_test(# TITLE, HAS_MEASUREMENT_COMP, FLOP_COUNT, __testfun_ ## TITLE); \
   int __testfun_ ## TITLE (){                                           \
     int __testid = __test_ ## TITLE;                                    \
     __VA_ARGS__                                                         \
@@ -64,14 +66,13 @@ static char* data_file(const char* file) {
     path = strcat(path, data);
     path = strcat(path, "/");
     path = strcat(path, file);
-    std::cout << "PATH TO IMAGE FILE: " << path << std::endl;
     return path;
 }
 
 // Return an absolute path to a file within the project root's data/ directory.
-static char* data_file() {
+static char* get_testimg_path() {
     const char* cstr = g_testImgName->c_str();
-    std::cout << "IMAGE FILE: " << cstr << "     should be "<<  g_testImgName <<  std::endl;
+    //std::cout << "IMAGE FILE: " << cstr  <<  std::endl;
     return data_file(cstr);
 }
 

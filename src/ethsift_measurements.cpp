@@ -1,7 +1,7 @@
 #include "tester.h"
 
-define_test(ethMeasureDownscale, 1, {
-    char const *file = data_file();
+define_test(ethMeasureDownscale, 1, FLOP_COUNT_PLACEHOLDER,{
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -34,8 +34,8 @@ define_test(ethMeasureDownscale, 1, {
   })
 
 
-define_test(ethMeasureConvolution, 1, {  
-    char const *file = data_file();
+define_test(ethMeasureConvolution, 1, FLOP_COUNT_PLACEHOLDER,{
+    char const *file = get_testimg_path();
     // init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -74,8 +74,8 @@ define_test(ethMeasureConvolution, 1, {
     return 1;
   })
 
-define_test(ethMeasureOctaves, 1, {
-    char const *file = data_file();
+define_test(ethMeasureOctaves, 1, FLOP_COUNT_PLACEHOLDER,{
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -107,7 +107,7 @@ define_test(ethMeasureOctaves, 1, {
   })
 
 
-define_test(ethMeasureGaussianKernelGeneration, 1, {
+define_test(ethMeasureGaussianKernelGeneration, 1, FLOP_COUNT_PLACEHOLDER,{
     //Create Kernels for ethSift
     int layers_count = GAUSSIAN_COUNT - 3;
     
@@ -129,8 +129,8 @@ define_test(ethMeasureGaussianKernelGeneration, 1, {
     return 1;
   })
 
-define_test(ethMeasureGaussianPyramid, 1, {
-    char const *file = data_file();
+define_test(ethMeasureGaussianPyramid, 1, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -166,8 +166,8 @@ define_test(ethMeasureGaussianPyramid, 1, {
     })
 
 
-define_test(ethMeasureDOGPyramid, 1, {
-    char const *file = data_file();
+define_test(ethMeasureDOGPyramid, 1, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -205,8 +205,8 @@ define_test(ethMeasureDOGPyramid, 1, {
     return 1;
   })
 
-define_test(ethMeasureGradientPyramids, 1, {
-    char const *file = data_file();
+define_test(ethMeasureGradientPyramids, 1, FLOP_COUNT_PLACEHOLDER,{
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -245,8 +245,8 @@ define_test(ethMeasureGradientPyramids, 1, {
     return 1;
   })
 
-define_test(ethMeasureRotationPyramids, 1, {
-    char const *file = data_file();
+define_test(ethMeasureRotationPyramids, 1, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -297,8 +297,8 @@ define_test(ethMeasureRotationPyramids, 1, {
   })
 
 
-define_test(ethMeasurementHistogram, 1, {
-  char const* file = data_file();
+define_test(ethMeasurementHistogram, 1, FLOP_COUNT_PLACEHOLDER,{
+  char const* file = get_testimg_path();
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
@@ -371,8 +371,8 @@ define_test(ethMeasurementHistogram, 1, {
   return 1;
 })
 
-define_test(ethMeasureExtremaRefinement, 1, {
-    char const *file = data_file();
+define_test(ethMeasureExtremaRefinement, 1, FLOP_COUNT_PLACEHOLDER,{
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -446,8 +446,8 @@ define_test(ethMeasureExtremaRefinement, 1, {
   })
 
 
-define_test(ethMeasureKeypointDetection, 1, {
-    char const *file = data_file();
+define_test(ethMeasureKeypointDetection, 1, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -518,8 +518,8 @@ define_test(ethMeasureKeypointDetection, 1, {
     ethsift_free_pyramid(eth_differences);
   })
 
-define_test(ethMeasureExtractDescriptor, 1, {
-    char const *file = data_file();
+define_test(ethMeasureExtractDescriptor, 1, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = get_testimg_path();
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -555,7 +555,7 @@ define_test(ethMeasureExtractDescriptor, 1, {
 
     // Ethsift descriptor extraction:
     const uint32_t keypoint_count = (uint32_t)ez_kpt_list.size();
-    struct ethsift_keypoint eth_kpt_list[150];
+    struct ethsift_keypoint eth_kpt_list[250];
 
     int i = 0;
     // Convert ezsift Keypoints to ethsift

@@ -1,7 +1,7 @@
 #include "tester.h"
 
-define_test(TestCompareImageApprox, 0, {
-    char const *file = data_file();
+define_test(TestCompareImageApprox, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -13,7 +13,7 @@ define_test(TestCompareImageApprox, 0, {
     return compare_image_approx(ez_img, eth_img);
   })
 
-define_test(SimpleAllocation, 0, {
+define_test(SimpleAllocation, 0, FLOP_COUNT_PLACEHOLDER, {
     const int pyramid_size = 5;
     uint32_t ref_w = 1024;
     uint32_t ref_h = 512;
@@ -38,7 +38,7 @@ define_test(SimpleAllocation, 0, {
     ethsift_free_pyramid(pyramid);
   })
 
-define_test(RandomAllocation, 0, {
+define_test(RandomAllocation, 0, FLOP_COUNT_PLACEHOLDER, {
     // Perform a bunch of randomised runs.
     for(int r=0; r<100; ++r){
       int pyramid_size = rand() % 10 + 1;
@@ -67,8 +67,8 @@ define_test(RandomAllocation, 0, {
   })
 
 
-define_test(TestDownscale, 0, {
-    char const *file = data_file();
+define_test(TestDownscale, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -95,8 +95,8 @@ define_test(TestDownscale, 0, {
   })
 
 
-define_test(TestConvolution, 0, {
-    char const *file = data_file();
+define_test(TestConvolution, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     // init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -132,8 +132,8 @@ define_test(TestConvolution, 0, {
     return compare_image_approx(ez_img_blurred, output);
   })
 
-define_test(TestOctaves, 0, {
-    char const *file = data_file();
+define_test(TestOctaves, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -164,7 +164,7 @@ define_test(TestOctaves, 0, {
   })
 
 
-define_test(TestGaussianKernelGeneration, 0, {
+define_test(TestGaussianKernelGeneration, 0, FLOP_COUNT_PLACEHOLDER, {
     //Create Kernels for ethSift
     int layers_count = GAUSSIAN_COUNT - 3;
     
@@ -188,8 +188,8 @@ define_test(TestGaussianKernelGeneration, 0, {
     return (res == GAUSSIAN_COUNT);
   })
 
-define_test(TestGaussianPyramid, 0, {
-    char const *file = data_file();
+define_test(TestGaussianPyramid, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -229,8 +229,8 @@ define_test(TestGaussianPyramid, 0, {
   })
 
 
-define_test(TestDOGPyramid, 0, {
-    char const *file = data_file();
+define_test(TestDOGPyramid, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -279,8 +279,8 @@ define_test(TestDOGPyramid, 0, {
     return (res == OCTAVE_COUNT * DOG_COUNT);
   })
 
-define_test(TestGradientPyramids, 0, {
-    char const *file = data_file();
+define_test(TestGradientPyramids, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -333,8 +333,8 @@ define_test(TestGradientPyramids, 0, {
     return (res_g ==  OCTAVE_COUNT * GRAD_ROT_LAYERS);
   })
 
-define_test(TestRotationPyramids, 0, {
-    char const *file = data_file();
+define_test(TestRotationPyramids, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -387,8 +387,8 @@ define_test(TestRotationPyramids, 0, {
     return (res_r ==  OCTAVE_COUNT * GRAD_ROT_LAYERS);
   })
 
-define_test(TestHistograms, 0, {
-    char const *file = data_file();
+define_test(TestHistograms, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -464,8 +464,8 @@ define_test(TestHistograms, 0, {
   })
 
 
-define_test(TestExtremaRefinement, 0, {
-    char const *file = data_file();
+define_test(TestExtremaRefinement, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -565,8 +565,8 @@ define_test(TestExtremaRefinement, 0, {
   })
 
 
-define_test(TestKeypointDetection, 0, {
-    char const *file = data_file();
+define_test(TestKeypointDetection, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -656,8 +656,8 @@ define_test(TestKeypointDetection, 0, {
     }
   })
 
-define_test(TestExtractDescriptor, 0, {
-    char const *file = data_file();
+define_test(TestExtractDescriptor, 0, FLOP_COUNT_PLACEHOLDER, {
+    char const *file = data_file("lena.pgm");
     //init files 
     ezsift::Image<unsigned char> ez_img;
     struct ethsift_image eth_img = {0};
@@ -726,15 +726,15 @@ define_test(TestExtractDescriptor, 0, {
     }
   })
 
-define_test(TestComputeKeypoints, 0, {
-  char const *file = data_file();
+define_test(TestComputeKeypoints, 0, FLOP_COUNT_PLACEHOLDER, {
+  char const *file = data_file("lena.pgm");
   //init files 
   ezsift::Image<unsigned char> ez_img;
   struct ethsift_image eth_img = {0};
   if (ez_img.read_pgm(file) != 0)
-  fail("Failed to read image");
+    fail("Failed to read image");
   if (!convert_image(ez_img, &eth_img))
-  fail("Failed to convert image");
+    fail("Failed to convert image");
 
 
   struct ethsift_keypoint eth_kpt_list[ETHSIFT_MAX_TRACKABLE_KEYPOINTS];
@@ -744,17 +744,17 @@ define_test(TestComputeKeypoints, 0, {
   if(keypoints_tracked != LENA_KEYPOINTS) fail("Keypoints tracked mismatched: %d != %d", keypoints_tracked, ETHSIFT_MAX_TRACKABLE_KEYPOINTS);
   })
 
-define_test(BenchmarkEZSIFT, 0, {
-  char const *file = data_file();
+define_test(BenchmarkEZSIFT, 0, FLOP_COUNT_PLACEHOLDER, {
+  char const *file = data_file("lena.pgm");
   //init files 
   ezsift::Image<unsigned char> ez_img;
 
   //convert image so it has same overhead as TestComputeKeypoints
   struct ethsift_image eth_img = {0};
   if (ez_img.read_pgm(file) != 0)
-  fail("Failed to read image");
+    fail("Failed to read image");
   if (!convert_image(ez_img, &eth_img))
-  fail("Failed to convert image");
+    fail("Failed to convert image");
 
 
   std::list<ezsift::SiftKeypoint> ez_kpt_list;
