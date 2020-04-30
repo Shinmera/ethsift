@@ -103,10 +103,14 @@ int convert_image(const ezsift::Image<float> &input,
   return 1;
 }
 
-int load_image(const char *file, struct ethsift_image &image){
+int load_image(const char *file, struct ethsift_image &image, ezsift::Image<unsigned char> *out){
   ezsift::Image<unsigned char> img;
   if(img.read_pgm(file) != 0) return 0;
   if(!convert_image(img, &image)) return 0;
+  if(out != 0){
+    out->init(img.w, img.h);
+    memcpy(out->data, img.data, img.w * img.h * sizeof(unsigned char));
+  }
   return 1;
 }
 

@@ -77,7 +77,7 @@ int convert_image(const ezsift::Image<float> &input, struct ethsift_image *outpu
 struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k);
 
 // Directly load an ethsift image
-int load_image(const char *file, struct ethsift_image &image);
+int load_image(const char *file, struct ethsift_image &image, ezsift::Image<unsigned char> *ezimage = 0);
 
 // Compare two images for pixel precise equality
 int compare_image(const ezsift::Image<unsigned char> &ez_img, struct ethsift_image &eth_img);
