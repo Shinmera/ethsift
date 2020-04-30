@@ -19,17 +19,8 @@ define_test(ethMeasureDownscale, 1, {
     if(!eth_img_downscaled.pixels)
       fail("Failed to allocate downscaled image");
 
-    // Warm up cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        if (!ethsift_downscale_half(eth_img, eth_img_downscaled))
-            fail("Failed to downscale image!");
-    }
-    // Measure
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-              ethsift_downscale_half(eth_img, eth_img_downscaled);
-            });
-    }
+    with_repeating(if (!ethsift_downscale_half(eth_img, eth_img_downscaled))
+                     fail("Failed to downscale image!"));
   })
 
 
@@ -58,17 +49,7 @@ define_test(ethMeasureConvolution, 1, {
     // Blur ethsift image
     struct ethsift_image output = allocate_image(w, h);
 
-    // Measure performance of ethsift
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
-    }
-
-    // Measure performance of ethsift
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
-            });
-    }
+    with_repeating(ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output));
   })
 
 define_test(ethMeasureOctaves, 1, {
@@ -87,21 +68,10 @@ define_test(ethMeasureOctaves, 1, {
     struct ethsift_image eth_octaves[OCTAVE_COUNT];
     ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
 
-    //Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-    }
-
-    //Measure   
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-            });
-    }
+    with_repeating(ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT))
 
     ethsift_free_pyramid(eth_octaves);
   })
-
 
 define_test(ethMeasureGaussianKernelGeneration, 1, {
     //Create Kernels for ethSift
@@ -111,16 +81,7 @@ define_test(ethMeasureGaussianKernelGeneration, 1, {
     int kernel_rads[GAUSSIAN_COUNT];
     int kernel_sizes[GAUSSIAN_COUNT];
 
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
-    }
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
-            });
-    }
+    with_repeating(ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes));
   })
 
 define_test(ethMeasureGaussianPyramid, 1, {
@@ -143,21 +104,11 @@ define_test(ethMeasureGaussianPyramid, 1, {
     //Create Octaves for ethSift    
     ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
 
-    // Create gaussians for ethSift
-    for (int i = 0; i < NR_RUNS; ++i) {
-         ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-    }
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-            });
-    }
-
+    with_repeating(ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT));
+    
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
     })
-
 
 define_test(ethMeasureDOGPyramid, 1, {
     char const *file = data_file("lena.pgm");
@@ -187,11 +138,8 @@ define_test(ethMeasureDOGPyramid, 1, {
 
     ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
-            });
-    }
+    with_repeating(ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT));
+    
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_differences);
@@ -224,11 +172,7 @@ define_test(ethMeasureGradientPyramids, 1, {
     ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
     ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
-            });
-    }
+    with_repeating(ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT));
 
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
@@ -270,21 +214,12 @@ define_test(ethMeasureRotationPyramids, 1, {
       }
     }
 
-    //Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-         ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
-    }
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
-            });
-    }
+    with_repeating(ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT));
 
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
   })
-
 
 define_test(ethMeasurementHistogram, 1, {
   char const* file = data_file("lena.pgm");
@@ -339,20 +274,9 @@ define_test(ethMeasurementHistogram, 1, {
   float eth_max_mag = 0.f;
   struct ethsift_keypoint eth_kpt = convert_keypoint(&kpt);
 
-  // Warm up cache
-  for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_compute_orientation_histogram(eth_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                            eth_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                            &eth_kpt, eth_hist, &eth_max_mag);
-  }
-  // Measure
-  for (int i = 0; i < NR_RUNS; ++i) {
-      with_measurement({
-          ethsift_compute_orientation_histogram(eth_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                eth_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                &eth_kpt, eth_hist, &eth_max_mag);
-      });
-  }
+  with_repeating(ethsift_compute_orientation_histogram(eth_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
+                                                       eth_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
+                                                       &eth_kpt, eth_hist, &eth_max_mag));
 
   ethsift_free_pyramid(eth_gaussians);
   ethsift_free_pyramid(eth_gradients);
@@ -418,20 +342,10 @@ define_test(ethMeasureExtremaRefinement, 1, {
     ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt1);
     ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt2);
 
-    //Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3);
-    }
-
-    //Measurement
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3);
-        });
-    }
+    with_repeating(ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &eth_kpt3));
+    
     ethsift_free_pyramid(eth_differences);
   })
-
 
 define_test(ethMeasureKeypointDetection, 1, {
     char const *file = data_file("lena.pgm");
@@ -487,19 +401,12 @@ define_test(ethMeasureKeypointDetection, 1, {
     struct ethsift_keypoint eth_kpt_list[100];
     uint32_t nKeypoints = 100;
 
-    for (int i = 0; i < NR_RUNS; ++i) {
+    with_repeating({
         nKeypoints = 100;
         if (!ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints))
             fail("Computation failed");
-    }
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            nKeypoints = 100;
-            ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
-            });
-    }
-
+      });
+    
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
     ethsift_free_pyramid(eth_differences);
@@ -559,18 +466,8 @@ define_test(ethMeasureExtractDescriptor, 1, {
       }
     }
 
-    // Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
-    }
-
-    // Measure
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count);
-            });
-    }
-
+    with_repeating(ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, keypoint_count));
+    
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
   })

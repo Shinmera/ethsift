@@ -127,3 +127,14 @@ static inline void end_measurement(){
 
 // Convenience macro to measure a section.
 #define with_measurement(...) start_measurement(); __VA_ARGS__ end_measurement();
+
+// Convenience macro to measure something repeatedly with heated caches.
+#define with_repeating(...)                     \
+  for(int _i=0; _i<NR_RUNS; ++_i) {             \
+    __VA_ARGS__;                                \
+  }                                             \
+  for(int _i=0; _i<NR_RUNS; ++_i) {             \
+    start_measurement();                        \
+    __VA_ARGS__;                                \
+    end_measurement();                          \
+  }

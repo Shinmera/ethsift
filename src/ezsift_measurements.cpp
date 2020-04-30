@@ -10,17 +10,7 @@ define_test(ezMeasureDownscale, 1, {
 
     //Downscale ezSIFT Image
     ezsift::Image<unsigned char> ez_img_downscaled;
-    //Warm up cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ez_img_downscaled = ez_img.downsample_2x();
-    }
-
-    //Do measurement
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ez_img_downscaled = ez_img.downsample_2x();
-            });
-    }
+    with_repeating(ez_img_downscaled = ez_img.downsample_2x());
   })
 
 
@@ -49,18 +39,7 @@ define_test(ezMeasureConvolution, 1, {
       ez_kernel.push_back(kernel[i]);
     }
     ezsift::Image<float> ez_img_blurred(w, h);
-
-    // Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
-    }
-
-    // Measure performance of ezsift
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
-            });
-    }
+    with_repeating(ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel));
   })
 
 define_test(ezMeasureOctaves, 1, {
@@ -72,18 +51,7 @@ define_test(ezMeasureOctaves, 1, {
 
     //Init Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-    //Create Octaves for ethSift    
-    for (int i = 0; i < NR_RUNS; ++i) {
-        build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-    }
-
-    //Create Octaves for ezSift   
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-            });
-    }
+    with_repeating(build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT));
   })
 
 define_test(ezMeasureGaussianPyramid, 1, {
@@ -103,7 +71,6 @@ define_test(ezMeasureGaussianPyramid, 1, {
         ez_gaussians.clear();
         build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
         build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
     }
     //Measure
     for (int i = 0; i < NR_RUNS; ++i) {
@@ -114,7 +81,6 @@ define_test(ezMeasureGaussianPyramid, 1, {
             });
     }
     })
-
 
 define_test(ezMeasureDOGPyramid, 1, {
     char const *file = data_file("lena.pgm");
@@ -135,16 +101,7 @@ define_test(ezMeasureDOGPyramid, 1, {
 
     std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-    }
-
-
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-            });
-    }
+    with_repeating(build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT));
   })
 
 define_test(ezMeasureGradientPyramids, 1, {
@@ -166,16 +123,7 @@ define_test(ezMeasureGradientPyramids, 1, {
     std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
     std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
 
-    //Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-    }
-    //Measure
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-            });
-    }
+    with_repeating(build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS));
   })
 
 define_test(ezMeasureRotationPyramids, 1, {
@@ -192,23 +140,12 @@ define_test(ezMeasureRotationPyramids, 1, {
     std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
     build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
-
     // Build Rotations for ezSIFT
     std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
     std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
 
     //Calculate Rotations using results from ezSIFT
-    // Warm up cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-    }
-
-    //Measure
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
-            });
-    }
+    with_repeating(build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS));
   })
 
 define_test(ezMeasurementOneHistogram, 1, {
@@ -241,18 +178,8 @@ define_test(ezMeasurementOneHistogram, 1, {
   // Measurement histograms: keypoint for measurement (Maybe randomize?)
   ezsift::SiftKeypoint kpt = kpt_list.front();
   // Calculate histograms
-
-  for (int i = 0; i < NR_RUNS; ++i) {
-      ezsift::compute_orientation_hist_with_gradient(ez_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-          ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist);
-  }
-
-  for (int i = 0; i < NR_RUNS; ++i) {
-      with_measurement({
-        ezsift::compute_orientation_hist_with_gradient(ez_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
-                                                ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist);
-      });
-  }
+  with_repeating(ezsift::compute_orientation_hist_with_gradient(ez_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
+                                                                ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist));
 })
 
 define_test(ezMeasureExtremaRefinement, 1, {
@@ -273,7 +200,6 @@ define_test(ezMeasureExtremaRefinement, 1, {
     // Allocate the gaussian pyramids!
     struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
     ethsift_allocate_pyramid(eth_differences, eth_img.width, eth_img.height, OCTAVE_COUNT, DOG_COUNT);
-
 
     // 3 random unrefined Keypoints to test refinement: 
     ezsift::SiftKeypoint kpt1;
@@ -307,14 +233,7 @@ define_test(ezMeasureExtremaRefinement, 1, {
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt1);
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt2);
 
-    for (int i = 0; i < NR_RUNS; ++i) {
-        refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3);
-    }
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3);
-            });
-    }
+    with_repeating(refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3));
   })
 
 
@@ -325,7 +244,6 @@ define_test(ezMeasureKeypointDetection, 1, {
     if(ez_img.read_pgm(file) != 0)
       fail("Failed to read image");
 
-  
     //Init EZSift Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
 
@@ -345,6 +263,8 @@ define_test(ezMeasureKeypointDetection, 1, {
     // EzSift: Detect keypoints
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
 
+    // std::list is O(n) to clear, meaning it will actually impact measurement, so we can't
+    // simply use with_repeating here. That sucks.
     for (int i = 0; i < NR_RUNS; ++i) {
         ez_kpt_list.clear();
         detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
@@ -364,8 +284,7 @@ define_test(ezMeasureExtractDescriptor, 1, {
     ezsift::Image<unsigned char> ez_img;
     if(ez_img.read_pgm(file) != 0)
       fail("Failed to read image");
-        
-
+    
     //Init EZSift Objects
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
     build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
@@ -384,17 +303,6 @@ define_test(ezMeasureExtractDescriptor, 1, {
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
     detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
 
-
-    // Warmup cache
-    for (int i = 0; i < NR_RUNS; ++i) {
-        extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
-    }
-
-    // Measure
-    for (int i = 0; i < NR_RUNS; ++i) {
-        with_measurement({
-            extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
-            });
-    }
+    with_repeating(extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list));
   })
 

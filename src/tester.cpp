@@ -254,7 +254,7 @@ void write_logfile() {
 }
 
 int run_test(struct test test){
-  fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
+  fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
   // Start measurement without the pending check to allow user override
   start = std::chrono::high_resolution_clock::now();
@@ -286,8 +286,8 @@ int run_test(struct test test){
   }
 
   // Show
-  fprintf(stderr, " %10liµs ±%3.3f", median_ethsfit, stddev_ethsift);
-  fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
+  fprintf(stderr, " %10liµs ±%9.3f", median_ethsfit, stddev_ethsift);
+  fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
 }
