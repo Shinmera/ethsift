@@ -30,7 +30,6 @@ define_test(ethMeasureDownscale, 1, {
               ethsift_downscale_half(eth_img, eth_img_downscaled);
             });
     }
-    return 1;
   })
 
 
@@ -70,8 +69,6 @@ define_test(ethMeasureConvolution, 1, {
             ethsift_apply_kernel(eth_img, kernel, kernel_size, kernel_rad, output);
             });
     }
-
-    return 1;
   })
 
 define_test(ethMeasureOctaves, 1, {
@@ -103,7 +100,6 @@ define_test(ethMeasureOctaves, 1, {
     }
 
     ethsift_free_pyramid(eth_octaves);
-    return 1;
   })
 
 
@@ -125,8 +121,6 @@ define_test(ethMeasureGaussianKernelGeneration, 1, {
             ethsift_generate_all_kernels(layers_count, GAUSSIAN_COUNT, kernel_ptrs, kernel_rads, kernel_sizes);
             });
     }
-
-    return 1;
   })
 
 define_test(ethMeasureGaussianPyramid, 1, {
@@ -162,7 +156,6 @@ define_test(ethMeasureGaussianPyramid, 1, {
 
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
-
     })
 
 
@@ -202,7 +195,6 @@ define_test(ethMeasureDOGPyramid, 1, {
     ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_differences);
-    return 1;
   })
 
 define_test(ethMeasureGradientPyramids, 1, {
@@ -242,7 +234,6 @@ define_test(ethMeasureGradientPyramids, 1, {
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
-    return 1;
   })
 
 define_test(ethMeasureRotationPyramids, 1, {
@@ -292,8 +283,6 @@ define_test(ethMeasureRotationPyramids, 1, {
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
-
-    return 1;
   })
 
 
@@ -368,7 +357,6 @@ define_test(ethMeasurementHistogram, 1, {
   ethsift_free_pyramid(eth_gaussians);
   ethsift_free_pyramid(eth_gradients);
   ethsift_free_pyramid(eth_rotations);
-  return 1;
 })
 
 define_test(ethMeasureExtremaRefinement, 1, {
@@ -442,7 +430,6 @@ define_test(ethMeasureExtremaRefinement, 1, {
         });
     }
     ethsift_free_pyramid(eth_differences);
-    return 1;
   })
 
 

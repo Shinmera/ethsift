@@ -21,7 +21,6 @@ define_test(ezMeasureDownscale, 1, {
             ez_img_downscaled = ez_img.downsample_2x();
             });
     }
-    return 1;
   })
 
 
@@ -62,8 +61,6 @@ define_test(ezMeasureConvolution, 1, {
             ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel);
             });
     }
-    
-    return 1;
   })
 
 define_test(ezMeasureOctaves, 1, {
@@ -87,7 +84,6 @@ define_test(ezMeasureOctaves, 1, {
             build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
             });
     }
-    return 1;
   })
 
 define_test(ezMeasureGaussianPyramid, 1, {
@@ -117,7 +113,6 @@ define_test(ezMeasureGaussianPyramid, 1, {
             build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
             });
     }
-    return 1;
     })
 
 
@@ -150,7 +145,6 @@ define_test(ezMeasureDOGPyramid, 1, {
             build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
             });
     }
-    return 1;
   })
 
 define_test(ezMeasureGradientPyramids, 1, {
@@ -182,7 +176,6 @@ define_test(ezMeasureGradientPyramids, 1, {
             build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
             });
     }
-    return 1;
   })
 
 define_test(ezMeasureRotationPyramids, 1, {
@@ -216,7 +209,6 @@ define_test(ezMeasureRotationPyramids, 1, {
             build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
             });
     }
-    return 1;
   })
 
 define_test(ezMeasurementOneHistogram, 1, {
@@ -261,7 +253,6 @@ define_test(ezMeasurementOneHistogram, 1, {
                                                 ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist);
       });
   }
-  return 1;
 })
 
 define_test(ezMeasureExtremaRefinement, 1, {
@@ -324,7 +315,6 @@ define_test(ezMeasureExtremaRefinement, 1, {
             refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt3);
             });
     }
-    return 1;
   })
 
 
@@ -366,7 +356,6 @@ define_test(ezMeasureKeypointDetection, 1, {
             detect_keypoints(ez_differences, ez_gradients, ez_rotations, OCTAVE_COUNT, DOG_COUNT, ez_kpt_list);
             });
     }
-    return 1;
   })
 
 define_test(ezMeasureExtractDescriptor, 1, {
@@ -407,6 +396,5 @@ define_test(ezMeasureExtractDescriptor, 1, {
             extract_descriptor(ez_gradients, ez_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, ez_kpt_list);
             });
     }
-    return 1;
   })
 
