@@ -8,16 +8,37 @@ from architecture_config import config as arch_conf
 
 class PerformancePlot:
     def __init__(self, pi, pi_simd, beta):
-        self.pi = pi
-        self.pi_simd = pi_simd
-        self.beta = beta
-        self.title = "Roofline plot"
+        self.pi = arch_conf['maxflops_sisd']
+        self.pi_simd = arch_conf['maxflops_simd']
+        self.beta = arch_conf['roofline_beta']
+        self.title = "Performance plot"
         self.method_used = ""
         self.print_method = False
-        self.x_label ="Image Resolution"
+        self.x_label ="Image Resolution [pixels]"
         self.y_label = "Performance [flops/cycle]"
         self.title_font = {'fontname':'Calibri'}
         self.init_plot()
+
+    def init_plot(self):
+        self.max_performance = 0
+
+        fig = plt.figure()
+        r = math.ceil(math.log2(self.pi_simd))
+        self.x_min = 200
+        self.x_max = 5000
+        self.y_min = pow(2, -1)
+        self.y_max = pow(2, r)
+        
+        self.axes= fig.add_axes([0.1,0.1,0.8,0.8])
+
+        # Plot memory bound
+        plt_mesh = '-b'
+        x_axis = [self.x_min, self.x_max]
+        y_axis = [x * self.beta for x in x_axis]
+        self.axes.plot(x_axis, y_axis, plt_mesh, label="Roofline")
+        
+        self.axes.set_xlim([self.x_min,self.x_max])
+        self.axes.set_ylim([self.y_min,self.y_max]) 
 
     def set_method_used(self, method_used):
         self.method_used = method_used
@@ -43,29 +64,7 @@ class PerformancePlot:
             
             self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Max Performance SIMD')
             self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linestyles='dashed', label='Memory boundary SIMD')
-    
 
-    def init_plot(self):
-        self.max_performance = 0
-
-        fig = plt.figure()
-        r = math.ceil(math.log2(self.pi_simd))
-        self.x_min = 200
-        self.x_max = 5000
-        self.y_min = pow(2, -1)
-        self.y_max = pow(2, r)
-        
-        self.axes= fig.add_axes([0.1,0.1,0.8,0.8])
-
-        # Plot memory bound
-        plt_mesh = '-b'
-        x_axis = [self.x_min, self.x_max]
-        y_axis = [x * self.beta for x in x_axis]
-        self.axes.plot(x_axis, y_axis, plt_mesh, label="Roofline")
-        
-        self.axes.set_xlim([self.x_min,self.x_max])
-        self.axes.set_ylim([self.y_min,self.y_max]) 
-    
     def plot_points(self, x, y, marker, color='c', point_label='', linewidth=2, markersize=8):
         self.axes.plot(x, y, color=color, marker=marker, linestyle='dashed', linewidth=linewidth, markersize=markersize, label=point_label)
 

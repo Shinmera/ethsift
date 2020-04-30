@@ -4,18 +4,25 @@ import math
 from os import listdir
 from os.path import isfile, join
 
+# Settings for reading the logs
 logs_folder = "../logs"
 
 start_line = 1
 end_line = 21
 
-nr_resoltuions = 6
+resolution_map = dict()
+resolution_map['240p'] = 240*427
+resolution_map['360p'] = 360*640
+resolution_map['480p'] = 480*853
+resolution_map['720p'] = 720*1280
+resolution_map['1080p'] = 1080*1920
+resolution_map['2160p'] = 2160*3840
+resolution_map['4320p'] = 4320*7680
 
-def read_logs():
-    x_axis = np.zeros(20)
-    y_axis = np.zeros(20)
+def read_logs(nr_resoltuions):
 
     measurements = dict()
+    resolutions = np.zeros(nr_resoltuions)
     
     onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
     onlyfiles = np.sort(onlyfiles)
@@ -24,13 +31,16 @@ def read_logs():
     for f in onlyfiles:                
         stream = open(logs_folder + f,"r")
         lines = stream.readlines()
-        resolution = int(f.split('-')[1].split('p')[0])
+        
+        resolution = f.split('-')[1].split('.')[0]
+        resolutions[index] = resolution_map[resolution]
+
         for i in range(start_line, end_line):
             vals = lines[i].split(',')
             method_name_split = vals[0].split('_')
             lib = method_name_split[0]
             func_name = method_name_split[1]
-            cycles = int(vals[1])
+            median = int(vals[1])
             std_dev = float(vals[2])
                         
             if func_name in measurements:
@@ -42,18 +52,11 @@ def read_logs():
                 pass
             else:
                 measurements[func_name][lib] = dict()
-                measurements[func_name][lib]['cycles'] = np.zeros(nr_resoltuions)
-                measurements[func_name][lib]['res'] = np.zeros(nr_resoltuions)
+                measurements[func_name][lib]['median'] = np.zeros(nr_resoltuions)
                 measurements[func_name][lib]['std'] = np.zeros(nr_resoltuions)
             
-            measurements[func_name][lib]['cycles'][index] = cycles
+            measurements[func_name][lib]['median'][index] = median
             measurements[func_name][lib]['std'] = std_dev
-            measurements[func_name][lib]['res']  = resolution
 
-        if index == nr_resoltuions:
-            index = 0
-            
-
-
-    return 
+    return measurements, resolutions
 
