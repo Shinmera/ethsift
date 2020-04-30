@@ -113,7 +113,7 @@ define_test(ezMeasureRotationPyramids, 1, {
     if(ez_img.read_pgm(data_file("lena.pgm")) != 0)
       fail("Failed to read image");
 
-    //Init Octaves
+    // Init Octaves
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);   
     build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
 
@@ -133,19 +133,9 @@ define_test(ezMeasurementOneHistogram, 1, {
     if (ez_img.read_pgm(data_file("lena.pgm")) != 0)
       fail("Failed to read image");
 
-    //Init Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // Detect keypoints
     std::list<ezsift::SiftKeypoint> kpt_list;
@@ -183,17 +173,9 @@ define_test(ezMeasureExtremaRefinement, 1, {
     kpt3.ri = 405.0f;
     kpt3.ci = 489.0f;
   
-    //Init EZSift Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-    //Create DOG for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt1);
     refine_local_extrema(ez_differences, OCTAVE_COUNT, DOG_COUNT, kpt2);
@@ -206,21 +188,9 @@ define_test(ezMeasureKeypointDetection, 1, {
     if(ez_img.read_pgm(data_file("lena.pgm")) != 0)
       fail("Failed to read image");
 
-    //Init EZSift Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-    //Create DOG for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // EzSift: Detect keypoints
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
@@ -245,19 +215,9 @@ define_test(ezMeasureExtractDescriptor, 1, {
     if(ez_img.read_pgm(data_file("lena.pgm")) != 0)
       fail("Failed to read image");
     
-    //Init EZSift Objects
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // EzSift: Detect keypoints
     std::list<ezsift::SiftKeypoint> ez_kpt_list;

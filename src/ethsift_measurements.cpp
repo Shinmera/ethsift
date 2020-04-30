@@ -193,20 +193,10 @@ define_test(ethMeasurementHistogram, 1, {
 
     struct ethsift_image eth_rotations[OCTAVE_COUNT * GAUSSIAN_COUNT];
     ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    //Init Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     //Convert ezSIFT Gaussians, Gradients and Rotations to ethSIFT format
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
@@ -263,18 +253,9 @@ define_test(ethMeasureExtremaRefinement, 1, {
     eth_kpt3.layer_pos.y = 405.0f;
     eth_kpt3.layer_pos.x = 489.0f;
   
-    //Init EZSift Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-    //Create DOG for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
@@ -307,21 +288,9 @@ define_test(ethMeasureKeypointDetection, 1, {
     struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
     ethsift_allocate_pyramid(eth_differences, eth_img.width, eth_img.height, OCTAVE_COUNT, DOG_COUNT);
 
-    //Init EZSift Octaves
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-
-    //Create DOG for ezSift    
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // Convert ezsift images to ethsift images:
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
@@ -362,20 +331,10 @@ define_test(ethMeasureExtractDescriptor, 1, {
 
     struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
     ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    //Init EZSift Objects
-    std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
-    build_octaves(ez_img, ez_octaves, 0, OCTAVE_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gaussians(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_gaussian_pyramid(ez_octaves, ez_gaussians, OCTAVE_COUNT, GAUSSIAN_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_differences(OCTAVE_COUNT * DOG_COUNT);
-    build_dog_pyr(ez_gaussians, ez_differences, OCTAVE_COUNT, DOG_COUNT);
-
-    std::vector<ezsift::Image<float>> ez_gradients(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    std::vector<ezsift::Image<float>> ez_rotations(OCTAVE_COUNT * GAUSSIAN_COUNT);
-    build_grd_rot_pyr(ez_gaussians, ez_gradients, ez_rotations, OCTAVE_COUNT, GRAD_ROT_LAYERS);
+    
+    // Init pyramids
+    std::vector<ezsift::Image<float>> ez_differences, ez_gradients, ez_rotations;
+    build_ezsift_pyramids(ez_img, ez_differences, ez_gradients, ez_rotations);
 
     // EzSift: Detect keypoints
     std::list<ezsift::SiftKeypoint> ez_kpt_list;
