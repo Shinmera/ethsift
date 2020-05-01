@@ -7,6 +7,8 @@
 #error "ETHSIFT_LOGS must be defined."
 #endif
 
+// Specify if using rdtsc or chrono for runtime measurements
+#define USE_RDTSC 1
 
 #include "ethsift.h"
 #include "ezsift.h"
@@ -24,7 +26,6 @@
 #include <algorithm>
 #include "settings.h"
 #include "test_utils.h"
-#include "tsc_x86.h"
 
 // Specify which measurements you would like to run.
 #define RUN_ETHSIFT_MEASUREMENTS 1
@@ -33,19 +34,15 @@
 // Specify how many measurement runs it should do per function
 #define NR_RUNS 30
 
-// Specify if using rdtsc or chrono for runtime measures
-#define USE_RDTSC 1
-
 #if USE_RDTSC
+  #include "tsc_x86.h"
   extern myInt64 start;
-  extern std::vector<myInt64> durations;
-  typedef std::tuple<std::string, myInt64, double> LogTuple;
 #else
   extern std::chrono::time_point<std::chrono::high_resolution_clock> start;
-  extern std::vector<size_t> durations;
-  typedef std::tuple<std::string, size_t, double> LogTuple;
 #endif
 
+extern std::vector<size_t> durations;
+typedef std::tuple<std::string, size_t, double> LogTuple;
 extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
 
@@ -91,54 +88,39 @@ static char* get_testimg_path() {
     return data_file(cstr);
 }
 
-#if USE_RDTSC
-  //// Same runtime measurements using RDTSC.
-
-  // Start a time measurement section.
-  // Note: If no explicit measurement sections are defined, the entire test
-  //       is measured instead.
-  // Note: Defined in header as static inline to avoid function call overhead
-  static inline void start_measurement(){
-    if(!measurement_pending){
-      measurement_pending = true;
+// Start a time measurement section.
+// Note: If no explicit measurement sections are defined, the entire test
+//       is measured instead.
+// Note: Defined in header as static inline to avoid function call overhead
+static inline void start_measurement(){
+  if(!measurement_pending){
+    measurement_pending = true;
+    #if USE_RDTSC
       start = start_tsc();
-    }
+    #else
+      start = std::chrono::high_resolution_clock::now();
+    #endif
   }
+}
 
-  // End a time measurement section.
-  // Note: A single test may have multiple start/end sections. The report will
-  //       accumulate the measurements from every section.
-  static inline void end_measurement(){
+// End a time measurement section.
+// Note: A single test may have multiple start/end sections. The report will
+//       accumulate the measurements from every section.
+static inline void end_measurement(){
+  #if USE_RDTSC
     myInt64 runtime = stop_tsc(start);
     if(measurement_pending){
-      durations.push_back(runtime);
+      durations.push_back((size_t) runtime);
       measurement_pending = false;
     }
-  }
-  
-#else
-  // Start a time measurement section.
-  // Note: If no explicit measurement sections are defined, the entire test
-  //       is measured instead.
-  // Note: Defined in header as static inline to avoid function call overhead
-  static inline void start_measurement(){
-    if(!measurement_pending){
-      measurement_pending = true;
-      start = std::chrono::high_resolution_clock::now();
-    }
-  }
-
-  // End a time measurement section.
-  // Note: A single test may have multiple start/end sections. The report will
-  //       accumulate the measurements from every section.
-  static inline void end_measurement(){
+  #else
     auto end = std::chrono::high_resolution_clock::now();
     if(measurement_pending){
       durations.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
       measurement_pending = false;
     }
-  }
-#endif
+  #endif
+}
 
 // Convenience macro to measure a section.
 #define with_measurement(...) start_measurement(); __VA_ARGS__ end_measurement();
