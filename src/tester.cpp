@@ -106,11 +106,10 @@ int run_test(struct test test){
   fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
 
+  // Start measurement without the pending check to allow user override
   #if USE_RDTSC
-    // Start measurement without the pending check to allow user override
     start = start_tsc();
   #else
-    // Start measurement without the pending check to allow user override
     start = std::chrono::high_resolution_clock::now();
   #endif
   
@@ -142,11 +141,10 @@ int run_test(struct test test){
     test_logs.push_back(t);
   }
   
+  // Show
   #if USE_RDTSC
-    // Show
     fprintf(stderr, " %20llu cycles ±%20.3f", median, stddev);
   #else
-    // Show
     fprintf(stderr, " %10liµs ±%9.3f", median, stddev);  
   #endif
 
