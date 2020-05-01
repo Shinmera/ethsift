@@ -3,18 +3,27 @@
 struct test{
   const char *title;
   const char *reason;
+  int has_measurement_comp;
   int (*func)();
 };
 
-std::chrono::time_point<std::chrono::high_resolution_clock> start;
+#if USE_RDTSC
+  myInt64 start;
+#else
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
+#endif
+
 std::vector<size_t> durations;
+std::vector<LogTuple> test_logs;
 bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
+std::string* g_testImgName;
 
-int register_test(const char *title, int (*func)()){
+int register_test(const char *title, int has_measurement_comp, int (*func)()){
   tests[test_count].title = title;
   tests[test_count].reason = 0;
+  tests[test_count].has_measurement_comp = has_measurement_comp;
   tests[test_count].func = func;
   return test_count++;
 }
@@ -38,166 +47,6 @@ int register_failure(int test, const char *reason){
   tests[test].reason = reason;
   debug_break();
   return 1;
-}
-
-struct ethsift_image allocate_image(uint32_t width, uint32_t height){
-  struct ethsift_image output = {0};
-  output.width = width;
-  output.height = height;
-  output.pixels = (float*) calloc(sizeof(float), width*height);
-  return output;
-}
-
-struct ethsift_keypoint convert_keypoint(ezsift::SiftKeypoint *k) {
-    struct ethsift_keypoint ret = {0};
-
-    ret.layer = k->layer;
-    ret.magnitude = k->mag;
-    ret.orientation = k->ori;
-    ret.octave = k->octave;
-    ret.global_pos.scale = k->scale;
-    ret.global_pos.y = k->r;
-    ret.global_pos.x = k->c;
-
-    ret.layer_pos.scale = k->layer_scale;
-    ret.layer_pos.y = k->ri;
-    ret.layer_pos.x = k->ci;
-
-    for (int i = 0; i < DESCRIPTORS; ++i) {
-        ret.descriptors[i] = k->descriptors[i];
-    }
-
-    return ret;
-}
-
-int convert_image(const ezsift::Image<unsigned char> &input,
-                  struct ethsift_image *output){
-  output->width = input.w;
-  output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
-  if(output->pixels == 0) return 0;
-  for(int y=0; y<input.h; ++y){
-    for(int x=0; x<input.w; ++x){
-      size_t idx = y*input.w+x;
-      output->pixels[idx] = (float) input.data[idx];
-    }
-  }
-  return 1;
-}
-
-int convert_image(const ezsift::Image<float> &input,
-                  struct ethsift_image *output){
-  output->width = input.w;
-  output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
-  if(output->pixels == 0) return 0;
-  for(int y=0; y<input.h; ++y){
-    for(int x=0; x<input.w; ++x){
-      size_t idx = y*input.w+x;
-      output->pixels[idx] = (float) input.data[idx];
-    }
-  }
-  return 1;
-}
-
-int load_image(const char *file, struct ethsift_image &image){
-  ezsift::Image<unsigned char> img;
-  if(img.read_pgm(file) != 0) return 0;
-  if(!convert_image(img, &image)) return 0;
-  return 1;
-}
-
-int compare_image(const ezsift::Image<unsigned char> &ez_img,
-                  struct ethsift_image &eth_img){
-               
-  struct ethsift_image conv_ez_img = {0};     
-  convert_image(ez_img, &conv_ez_img);
-  return compare_image(conv_ez_img, eth_img);
-}
-
-int compare_image(struct ethsift_image a, struct ethsift_image b){
-  return (a.width == b.width)
-    && (a.height == b.height)
-    && (memcmp(a.pixels, b.pixels, a.width*a.height*sizeof(float)) == 0);
-}
-
-int compare_image_approx(const ezsift::Image<unsigned char> &ez_img,
-                  struct ethsift_image &eth_img){
-               
-  struct ethsift_image conv_ez_img = {0};     
-  convert_image(ez_img, &conv_ez_img);
-  return compare_image_approx(conv_ez_img, eth_img, EPS);
-}
-
-int compare_image_approx(const ezsift::Image<float> &ez_img,
-                  struct ethsift_image &eth_img){
-               
-  struct ethsift_image conv_ez_img = {0};     
-  convert_image(ez_img, &conv_ez_img);
-  return compare_image_approx(conv_ez_img, eth_img, EPS);
-}
-
-
-int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float eps){
-  if(a.width != b.width){
-    printf("COMPARE_IMAGE_APPROX WIDTH: a.w = %d ; b.w = %d\n", a.width, b.width);
-    return 0;
-  }
-  if(a.height != b.height){
-    printf("COMPARE_IMAGE_APPROX HEIGHT: a.h = %d ; b.h = %d\n", a.height, b.height);
-    return 0;
-  }
-  for(size_t i=0; i<a.width*a.height; ++i){
-    float diff = a.pixels[i] - b.pixels[i];
-    if(diff < 0.0) diff *= -1;
-    if(eps < diff) {
-      printf("COMPARE_IMAGE_APPROX PIXEL: index = %d ; val a = %f ; val b = %f\n", (int)i, a.pixels[i], b.pixels[i]);
-      return 0;
-    }
-  }
-  return 1;
-}
-
-// Compare an ezsift kernel with an ethsift kernel for correctness
-int compare_kernel(std::vector<float> ez_kernel, float* eth_kernel, int eth_kernel_size){
-  if((int)ez_kernel.size() != eth_kernel_size)
-  {
-    printf("Kernel sizes do not match %d != %d", (int)ez_kernel.size(), eth_kernel_size);
-    return 0;
-  }
-  for(int i = 0; i < eth_kernel_size; ++i){
-    float diff = ez_kernel[i] - eth_kernel[i];
-    if(diff < 0.0) diff *= -1;
-    if(EPS < diff) {
-      printf("COMPARE_KERNEL: index = %d ; val a = %f ; val b = %f\n", i, ez_kernel[i], eth_kernel[i]);
-      return 0;
-    }
-  }
-  return 1;
-}
-
-// Compare an ezsift descriptor with an ethsift descriptor for correctness
-int compare_descriptor(float* ez_descriptors, float* eth_descriptors) {
-  for (int i = 0; i < (int) DESCRIPTORS; ++i) {
-    float diff = ez_descriptors[i] - eth_descriptors[i];
-    if (EPS < abs(diff)) {
-      printf("COMPARE_DESCRIPTORS: index = %d ; val a = %f ; val b = %f\n", i, ez_descriptors[i], eth_descriptors[i]);
-      return 0;
-    }
-  }
-  return 1;
-}
-
-int write_image(struct ethsift_image image, const char* filename){
-
-    unsigned char* pixels_to_write = (unsigned char *)malloc( image.width * image.height *sizeof(unsigned char));
-    for (int i = 0; i < (int) image.height; ++i) {
-      for (int j = 0; j < (int) image.width; ++j) {
-        pixels_to_write[i * image.width + j] = (unsigned char) (image.pixels[i * image.width + j]);
-      }
-    }
-    ezsift::write_pgm(filename, pixels_to_write, (int) image.width, (int) image.height);
-    return 1;
 }
 
 void abort(const char *message){
@@ -225,13 +74,48 @@ void map(std::vector<U> &in, std::vector<V> &out, Func func){
     out[i] = func(in[i]);
 }
 
+void write_logfile() {
+    time_t curr_time;
+    tm* curr_tm;
+    char date_string[100];
+    char time_string[100];
+
+    time(&curr_time);
+    curr_tm = localtime(&curr_time);
+    strftime(date_string, 50, "_%B_%d_%Y", curr_tm);
+    strftime(time_string, 50, "_%X", curr_tm);
+
+    char filename[200] = ETHSIFT_LOGS;
+    strcat(filename, "/");
+    strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
+    strcat(filename, date_string);
+    strcat(filename, time_string);
+    strcat(filename, ".csv");
+
+    std::ofstream myfile;
+    myfile.open(filename);
+    myfile << "MethodName, Median, Std" << std::endl;
+    for (auto t : test_logs) {
+        myfile << std::get<0>(t) << ", " << std::get<1>(t)
+            << ", " << std::get<2>(t) << std::endl;
+    }
+    myfile.close();
+}
+
 int run_test(struct test test){
-  fprintf(stderr, "Running %-32s \033[0;90m...\033[0;0m ", test.title);
+  fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
+
   // Start measurement without the pending check to allow user override
-  start = std::chrono::high_resolution_clock::now();
+  #if USE_RDTSC
+    start = start_tsc();
+  #else
+    start = std::chrono::high_resolution_clock::now();
+  #endif
+  
   // Run the check.
   int ret = test.func();
+
   // If we had no other measurement so far, force our start by setting the pending now.
   if(durations.size() == 0) measurement_pending = true;
   // End any possible measurement that might still be going on now.
@@ -239,18 +123,32 @@ int run_test(struct test test){
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  
-  // Compute statistics
+  if (test.has_measurement_comp) {
+      durations.pop_back();
+  }
+
+  // Compute statistics for ethsift
   size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
   double average = ((double)cumulative) / durations.size();
   std::vector<double> variances(durations.size());
-  map(durations, variances, [&](auto d){return (d-average)*(d-average);});
+  map(durations, variances, [&](auto d){return (d- average)*(d- average);});
   double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
   std::sort(durations.begin(), durations.end());
   size_t median = durations[durations.size()/2];
+
+  if (test.has_measurement_comp) {
+    LogTuple t = { test.title, median, stddev };
+    test_logs.push_back(t);
+  }
+  
   // Show
-  fprintf(stderr, " %10liµs ±%3.3f", median, stddev);
-  fprintf(stderr, (ret==0)?"\033[1;31m[FAIL]":"\033[0;32m[OK  ]");
+  #if USE_RDTSC
+    fprintf(stderr, " %20llu cycles ±%20.3f", median, stddev);
+  #else
+    fprintf(stderr, " %10liµs ±%9.3f", median, stddev);  
+  #endif
+
+  fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":"\033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
 }
@@ -269,6 +167,8 @@ int run_tests(struct test *tests, uint32_t count){
       failures++;
     }
   }
+  write_logfile();
+
   fprintf(stderr, "\nPassed: %3i", passes);
   fprintf(stderr, "\nFailed: %3i\n", failures);
   if(failures){
@@ -280,6 +180,7 @@ int run_tests(struct test *tests, uint32_t count){
   }
   return (failures == 0);
 }
+
 
 void compute_keypoints(char *file, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   ezsift::Image<unsigned char> img;
@@ -321,9 +222,14 @@ int main(int argc, char *argv[]){
   if(!ethsift_init())
     abort("Failed to initialise ETHSIFT");
   srand(time(NULL));
-
-  if(argc <= 1){
-    return (run_tests(tests, test_count) == 0)? 1 : 0;
+  if (argc <= 1) {
+      g_testImgName = new std::string("lena.pgm");
+      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
+      return (run_tests(tests, test_count) == 0) ? 1 : 0;
+  }else if (2 == argc) {
+      g_testImgName = new std::string(argv[1]);
+      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
+      return (run_tests(tests, test_count) == 0) ? 1 : 0;
   }else{
     char *file1 = (1 < argc)? argv[1] : 0;
     char *file2 = (2 < argc)? argv[2] : 0;

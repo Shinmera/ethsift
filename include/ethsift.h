@@ -43,6 +43,7 @@ extern "C" {
   /// Possibly necessary initialisation of the library.
   /// </summary>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> 0 flops </remarks>
   int ethsift_init();
   
   /// <summary> 
@@ -54,6 +55,7 @@ extern "C" {
   /// <param name="layer_count"> IN: Number of layers the pyramid has. </param>
   /// <param name="image_per_layer_count"> IN: Number of images the pyramid has per layer. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> (layer_count * image_per_layer_count * 3) flops </remarks>
   int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width, uint32_t ref_height, uint32_t layer_count, uint32_t image_per_layer_count);
 
   /// <summary> 
@@ -61,6 +63,7 @@ extern "C" {
   /// </summary>
   /// <param name="pyramid"> IN: The pyramid we want to free up. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> 1 (or pixels) flops (?) </remarks>
   int ethsift_free_pyramid(struct ethsift_image pyramid[]);
 
   /// <summary> 
@@ -71,6 +74,7 @@ extern "C" {
   /// <param name="kernerl_rad"> IN: Kernel radius. </param>
   /// <param name="sigma"> IN: Standard deviation of the gaussian kernel. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> (kernel_size * 8) + 1 + kernel_size flops = 9 * kernel_size + 1 flops </remarks>
   int ethsift_generate_gaussian_kernel(float *kernel, int kernel_size, int kernerl_rad, float sigma);
 
   /// <summary> 
@@ -82,6 +86,7 @@ extern "C" {
   /// <param name="kernel_rads"> OUT: The radii of all the kernels stored in an array. </param> 
   /// <param name="kernel_sizes"> OUT: The sizes of all the kernels stored in an array. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> 9 + ethsift_generate_gaussian_kernel </remarks>
   int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, float **kernels_ptrs, int kernel_rads[], int kernel_sizes[]);
 
   /// <summary> 
@@ -90,6 +95,7 @@ extern "C" {
   /// <param name="kernel_ptrs"> IN: Pointers to the kernels for freeing up</param>
   /// <param name="gaussian_count"> IN: Amount of gaussian kernels. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> 0? flops </remarks>
   int ethsift_free_kernels(float** kernel_ptrs, uint32_t gaussian_count);
 
   
@@ -102,6 +108,7 @@ extern "C" {
   /// <param name="kernel_rad"> IN: Radius of the kernel. </param>
   /// <param name="output"> OUT: Blurred output image. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> h * (2 + (2 * kernel_rad) + (w * (kernel_size * 2 + 3)) flops </remarks>
   int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output);
 
   /// <summary> 
@@ -110,6 +117,7 @@ extern "C" {
   /// <param name="image"> IN: Image to downscale. </param>
   /// <param name="output"> OUT: Downscaled image. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> dstH * dstW flops </remarks>
   int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image output);
 
   /// <summary> 
@@ -119,6 +127,7 @@ extern "C" {
   /// <param name="octaves"> OUT: Octaves to generate. </param>
   /// <param name="kernerl_rad"> IN: Octaves image array size. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> memcpy OR ethsift_downscale_half flops</remarks>
   int ethsift_generate_octaves(struct ethsift_image image, struct ethsift_image octaves[], uint32_t octave_count);
 
   /// <summary> 
@@ -130,6 +139,7 @@ extern "C" {
   /// NOTE: Size = octave_count * gaussian_count. </param>
   /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> ethsift_generate_all_kernels flops + (ethsift_apply_kernel OR ethsift_downscale_half) flops </remarks>
   int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
 
   /// <summary> 
@@ -142,6 +152,7 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers in the DoG pyramid.  </param>
   /// <param name="octave_count"> IN: Number of octaves.  </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> 3 * width * height flops </remarks>
   int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image differences[], uint32_t layers, uint32_t octave_count);
 
   /// <summary> 
@@ -155,6 +166,7 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers in the gradients and rotation pyramids.  </param>
   /// <param name="octave_count"> IN: Number of octaves.  </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
+  /// <remarks> layers * (hight * width * ((4 * get_pixel_f) + 6) ) flops </remarks>
   int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t layers, uint32_t octave_count);
 
   /// <summary> 
@@ -166,6 +178,7 @@ extern "C" {
   /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
   /// <param name="max_histval"> OUT: Maximum value in the histogram. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> 14 + 2*win_radius(2*win_radius * 19) flops </remarks>
   int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram, float *max_histval);
 
   
@@ -181,6 +194,7 @@ extern "C" {
   /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
   ///                               OUT: Number of keypoints found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> 1 + (layersDoG - 1)*(h - 2*image_border(w - 2*image_border(if (isExtrema) then ... ))) flops</remarks>
   int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count);
 
   
@@ -194,6 +208,7 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers. </param> 
   /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> max_interp_steps * (25 * get_pixel_f + 40 + scale_adjoint_3x3 + mat_dot_vec_3x3) + 16 flops </remarks>
   int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint);
 
   
@@ -209,6 +224,7 @@ extern "C" {
   /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
   ///                               OUT: Number of keypoints found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> 2 + keypoint_count(13 + ((bottom-top+1)((right-left+1)(44))))</remarks>
   int ethsift_extract_descriptor(struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t keypoint_count);
 
   
@@ -220,6 +236,7 @@ extern "C" {
   /// <param name="keypoint_count"> IN: How many keypoints we can store at most (allocated size of memory).
   ///                               OUT: Number of keypoints found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> 5 * ethsift_allocate_pyramid + ethsift_generate_octaves + ethsift_generate_gaussian_pyramid + ethsift_generate_difference_pyramid + ethsift_generate_gradient_pyramid + ethsift_detect_keypoints + ethsift_extract_descriptor flops </remarks>
   int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count);
 
 
@@ -234,6 +251,7 @@ extern "C" {
   /// <param name="match_count"> IN: How many matches we can store at most (allocated size of memory).
   ///                            OUT: Number of matches found. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
+  /// <remarks> 0 flops </remarks>
   int ethsift_match_keypoints(struct ethsift_keypoint a[], uint32_t a_count, struct ethsift_keypoint b[], uint32_t b_count, struct ethsift_match matches[], uint32_t *match_count);
  
 #ifdef __cplusplus
