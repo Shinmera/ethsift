@@ -53,8 +53,8 @@ def read_logs(nr_resoltuions, mode='rdtsc'):
     measurements = dict()
     
     onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
-    onlyfiles = np.sort(onlyfiles)
-
+    #onlyfiles = np.sort(onlyfiles)
+    print(onlyfiles)
     for f in onlyfiles:                
         stream = open(logs_folder + f,"r")
         lines = stream.readlines()

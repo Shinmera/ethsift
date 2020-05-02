@@ -17,16 +17,17 @@ def main():
     print("Start Plotting Script")
     measurements = read_logs(6)
     
-    for key1 in measurements:
-        print(key1)
-        print("======================================================\n")
-        for key2 in measurements[key1]:
-            print(key2)
-            for key3 in measurements[key1][key2]:
-                print(key3 + ":")
-                print(measurements[key1][key2][key3])
+    if False:
+        for key1 in measurements:
+            print(key1)
+            print("======================================================\n")
+            for key2 in measurements[key1]:
+                print(key2)
+                for key3 in measurements[key1][key2]:
+                    print(key3 + ":")
+                    print(measurements[key1][key2][key3])
+                print("\n")
             print("\n")
-        print("\n")
 
     for method in measurements:
         p = PerformancePlot()
