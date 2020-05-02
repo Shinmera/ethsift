@@ -127,7 +127,7 @@ extern "C" {
   /// <param name="octaves"> OUT: Octaves to generate. </param>
   /// <param name="kernerl_rad"> IN: Octaves image array size. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> memcpy OR ethsift_downscale_half flops</remarks>
+  /// <remarks> 0 flops</remarks>
   int ethsift_generate_octaves(struct ethsift_image image, struct ethsift_image octaves[], uint32_t octave_count);
 
   /// <summary> 
@@ -152,7 +152,7 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers in the DoG pyramid.  </param>
   /// <param name="octave_count"> IN: Number of octaves.  </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> 3 * width * height flops </remarks>
+  /// <remarks> octave_count * layers * width * height flops </remarks>
   int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[], uint32_t gaussian_count, struct ethsift_image differences[], uint32_t layers, uint32_t octave_count);
 
   /// <summary> 
