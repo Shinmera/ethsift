@@ -3,7 +3,7 @@ import math
 
 convolution_kernel_size = 9
 
-calc_layers = 3 # Defualt value set in settings.c
+calc_layers = 3 # Default value set in settings.c
 calc_gaussian_count = calc_layers + 3
 calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
 calc_fast_atan2_f = lambda y: 10 if (y < 0) else 9 
