@@ -7,7 +7,7 @@ import math
 from architecture_config import config as arch_conf
 
 class PerformancePlot:
-    def __init__(self, pi, pi_simd, beta):
+    def __init__(self):
         self.pi = arch_conf['maxflops_sisd']
         self.pi_simd = arch_conf['maxflops_simd']
         self.beta = arch_conf['roofline_beta']
@@ -42,6 +42,7 @@ class PerformancePlot:
 
     def set_method_used(self, method_used):
         self.method_used = method_used
+        self.print_method = True
     
     def set_title(self, title, with_peak_perf=False, peak_performance=0):
         self.title = title
@@ -77,7 +78,7 @@ class PerformancePlot:
         
         plt.suptitle(self.title, **self.title_font, fontsize=25)
         if self.print_method:
-            title = "(Based on" + self.method_used +" Function, Peak Performance: {:.2f} )".format(self.max_performance)
+            title = "(Based on " + self.method_used +" Function, Peak Performance: {:.2f} )".format(self.max_performance)
             plt.title(title, **self.title_font, fontsize=20)
         
         plt.xlabel(self.x_label, fontsize=15)
