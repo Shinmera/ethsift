@@ -70,6 +70,9 @@ class PerformancePlot:
     def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8):
         self.axes.plot(x, y, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
 
+    def set_peak_performance(self, perf):
+        self.max_performance =perf
+
     def plot_graph(self):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)

@@ -16,7 +16,7 @@ lib_cols['ez'] = '#e0e070'
 def main():
     print("Start Plotting Script")
     measurements = read_logs(6)
-    
+
     if False:
         for key1 in measurements:
             print(key1)
@@ -43,6 +43,8 @@ def main():
                         linestyle='solid',
                         markersize=12
                         )
+            if lib == 'eth':
+                p.set_peak_performance(np.amax(measurements[method][lib]['performance']))
         p.plot_graph()
 
     
