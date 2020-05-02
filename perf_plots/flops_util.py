@@ -15,9 +15,19 @@ calc_get_pixel_f = 0
 
 # FLOP values to discuss at meeting !
 exp_flops = 1
+floor_flops = 1
 ceilf_flops = 1
 sqrt_flops = 1
 powf_flops = 1
+sinf_flops = 1
+cosf_flops = 1
+minf_flops = 1
+
+keypoint_count = 1000
+descriptor_width = 4
+descriptor_bin = 8
+descriptor_size = 3.0
+approx_kpt_scale = 1
 
 flops_util = dict()
 
@@ -32,7 +42,7 @@ flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['eth']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
 flops_util['eth']['KeypointDetection'] = lambda w, h: keypoint_detection_flops * (11 + flops_util['eth']['ExtremaRefinement'](w,h) + flops_util['eth']['Histogram'](w,h))
-flops_util['eth']['ExtractDescriptor'] = lambda w, h:     w*h
+flops_util['eth']['ExtractDescriptor'] = lambda w, h: 2 + keypoint_count * (13 + sinf_flops + cosf_flops + descriptor_ops())
 
 flops_util['ez'] = dict()
 flops_util['ez']['Downscale'] = lambda w, h: 0 # Conducts only memcpy
@@ -45,7 +55,7 @@ flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['ez']['Histogram'] = lambda w, h:  11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['ez']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
 flops_util['ez']['KeypointDetection'] = lambda w, h:  keypoint_detection_flops * (11 + flops_util['ez']['ExtremaRefinement'](w,h) + flops_util['ez']['Histogram'](w,h))
-flops_util['ez']['ExtractDescriptor'] = lambda w, h:     w*h
+flops_util['ez']['ExtractDescriptor'] = lambda w, h:     2 + keypoint_count * (13 + sinf_flops + cosf_flops + descriptor_ops())
 
 def get_kernel_sizes(gaussian_count):
     kernel_sizes = np.zeros(gaussian_count)
@@ -108,3 +118,32 @@ def keypoint_detection_flops(w, h):
         width /= 2
         height /= 2
     return res* (calc_gaussian_count-1)
+
+
+def descriptor_ops():
+
+    nSubregion = descriptor_width
+    subregion_width = descriptor_size * approx_kpt_scale
+    nBins = nSubregion * nSubregion * descriptor_bin
+    win_size = 1.414213562373095 * subregion_width * (nSubregion + 1) * 0.5 + 0.5
+        
+    left = -win_size
+    right = win_size
+    top = -win_size
+    bottom = win_size
+
+    ops = 0
+
+    for _x in range(top,1,bottom):
+        for _y in range(left,1,right):
+                ops += 14
+                ops += (3 * floor_flops)
+                ops += 7
+                ops += exp_flops
+                ops += 23
+
+    ops += nBins
+    ops += nBins(minf_flops + 2)
+    ops += nBins
+
+    return ops
