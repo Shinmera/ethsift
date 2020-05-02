@@ -49,7 +49,7 @@ flops_util['ez']['Downscale'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['ez']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_size
 flops_util['ez']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['ez']['GaussianKernelGeneration'] = lambda w, h: gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(gaussian_count)*(6.0+exp_flops) + gaussian_count))
-flops_util['ez']['GaussianPyramid'] = lambda w, h: flops_util['ez']['GaussianKernelGeneration'](w,h) +  ((gaussian_count-1) * calc_octave_count(w,h) + 1) * flops_util['ez']['Convolution'](w,h)
+flops_util['ez']['GaussianPyramid'] = lambda w, h: gaussian_pyr_flops(w, h)
 flops_util['ez']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w,h)
 flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['ez']['Histogram'] = lambda w, h:  11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
@@ -96,10 +96,8 @@ def gaussian_kernel_gen_flops(w,h):
 
 def gaussian_pyr_flops(w, h):
     ggk = gaussian_kernel_gen_flops(w,h)
-    print(ggk)
     conv = conv_flops(w,h)
-    print(conv)
-    return 0 + ((gaussian_count-1) * calc_octave_count(w,h) + 1) * conv
+    return ggk + ((gaussian_count-1) * calc_octave_count(w,h) + 1) * conv
 
 
 def diff_pyr_ops(w, h):

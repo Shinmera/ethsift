@@ -23,8 +23,8 @@ class PerformancePlot:
         self.max_performance = 0
 
         fig = plt.figure()
-        self.x_min = 200
-        self.x_max = 5000
+        self.x_min = 427*240
+        self.x_max = 7680*4320
         self.y_min = 0
         self.y_max = self.pi_simd + 0.5
         
@@ -67,12 +67,12 @@ class PerformancePlot:
             self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Max Performance SIMD')
             self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linestyles='dashed', label='Memory boundary SIMD')
 
-    def plot_points(self, x, y, marker, color='c', point_label='', linewidth=2, markersize=8):
-        self.axes.plot(x, y, color=color, marker=marker, linestyle='dashed', linewidth=linewidth, markersize=markersize, label=point_label)
+    def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8):
+        self.axes.plot(x, y, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
 
     def plot_graph(self):  
         self.axes.legend()  
-        # self.axes.set_xscale('log', basex=2)
+        self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
         self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
