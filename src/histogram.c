@@ -8,6 +8,7 @@
 /// <param name="keypoint"> IN: Detected Keypoints.
 /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
 /// <returns> max value in the histogram IF computation was successful, ELSE 0. </returns>
+/// <remarks> 11 + (2*win_radius+1)^2 * (18 + EXP) + (bin_count * 10) FLOPs </remarks>
 int ethsift_compute_orientation_histogram(struct ethsift_image gradient, 
                                           struct ethsift_image rotation, 
                                           struct ethsift_keypoint *keypoint, 
@@ -20,14 +21,14 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     float kptc = keypoint->layer_pos.x;
     float kpt_scale = keypoint->layer_pos.scale;
 
-    int kptr_i = (int)(kptr + 0.5f);
-    int kptc_i = (int)(kptc + 0.5f);
-    float d_kptr = kptr - kptr_i;
-    float d_kptc = kptc - kptc_i;
+    int kptr_i = (int)(kptr + 0.5f); // 1 ADD
+    int kptc_i = (int)(kptc + 0.5f); // 1 ADD
+    float d_kptr = kptr - kptr_i; // 1SUB
+    float d_kptc = kptc - kptc_i; // 1SUB
 
-    float sigma = ETHSIFT_ORI_SIG_FCTR * kpt_scale;
-    int win_radius = (int)(ETHSIFT_ORI_RADIUS * kpt_scale);
-    float exp_factor = -1.0f / (2.0f * sigma * sigma);
+    float sigma = ETHSIFT_ORI_SIG_FCTR * kpt_scale; // 1MUL
+    int win_radius = (int)(ETHSIFT_ORI_RADIUS * kpt_scale); // 1MUL
+    float exp_factor = -1.0f / (2.0f * sigma * sigma); // 2MUL + 1 DIV
 
     float *gradient_pixels = gradient.pixels;
     float *rotation_pixels = rotation.pixels;
@@ -41,7 +42,7 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
 
     float tmpHist[bin_count];
     memset(tmpHist, 0, bin_count * sizeof(float));
-
+    // (2*win_radius+1)^2 * (18 + EXP)
     for (int i = -win_radius; i <= win_radius; i++) // rows
     {
         r = kptr_i + i;
@@ -56,41 +57,42 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
             magnitude = gradient_pixels[r * w + c];
             angle = rotation_pixels[r * w + c];
 
-            fbin = angle * bin_count / M_TWOPI;
+            fbin = angle * bin_count / M_TWOPI; // 1 MUL and + 1 DIV
             weight = expf(
                 ((i - d_kptr) * (i - d_kptr) + (j - d_kptc) * (j - d_kptc)) *
-                exp_factor);
+                exp_factor); // 4 SUBS + 3 MULs + 1 ADD + 1 EXP
 
-            bin = (int)(fbin - 0.5f);
-            float d_fbin = fbin - 0.5f - bin;
+            bin = (int)(fbin - 0.5f); // 1 SUB
+            float d_fbin = fbin - 0.5f - bin; // 2 SUBs
 
-            float mw = weight * magnitude;
-            float dmw = d_fbin * mw;
-            tmpHist[(bin + bin_count) % bin_count] += mw - dmw;
-            tmpHist[(bin + 1) % bin_count] += dmw;
+            float mw = weight * magnitude; // 1 MUL
+            float dmw = d_fbin * mw;// 1 MUL
+            tmpHist[(bin + bin_count) % bin_count] += mw - dmw; // 1ADD + 1 SUB
+            tmpHist[(bin + 1) % bin_count] += dmw; // 1ADD
         }
     }
 
+   
+    // bin_count * 10 FLOPs
     // Smooth the histogram. Algorithm comes from OpenCV.
-    histogram[0] = (tmpHist[0] + tmpHist[2]) * 1.0f / 16.0f +
-              (tmpHist[0] + tmpHist[1]) * 4.0f / 16.0f +
-              tmpHist[0] * 6.0f / 16.0f;
-    histogram[1] = (tmpHist[0] + tmpHist[3]) * 1.0f / 16.0f +
-              (tmpHist[0] + tmpHist[2]) * 4.0f / 16.0f +
-              tmpHist[1] * 6.0f / 16.0f;
-    histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHist[bin_count - 1]) * 1.0f / 16.0f +
-                      (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 4.0f / 16.0f +
-                      tmpHist[bin_count - 2] * 6.0f / 16.0f;
-    histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 1.0f / 16.0f +
-                      (tmpHist[bin_count - 2] + tmpHist[bin_count - 1]) * 4.0f / 16.0f +
-                      tmpHist[bin_count - 1] * 6.0f / 16.0f;
+    histogram[0] = (tmpHist[0] + tmpHist[2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+              (tmpHist[0] + tmpHist[1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+              tmpHist[0] * 6.0f / 16.0f;  //  1 MUL + 1 DIV
+    histogram[1] = (tmpHist[0] + tmpHist[3]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+              (tmpHist[0] + tmpHist[2]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+              tmpHist[1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+    histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                      (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                      tmpHist[bin_count - 2] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+    histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                      (tmpHist[bin_count - 2] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                      tmpHist[bin_count - 1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
 
     for (int i = 2; i < bin_count - 2; i++) {
-        histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * 1.0f / 16.0f +
-                  (tmpHist[i - 1] + tmpHist[i + 1]) * 4.0f / 16.0f +
-                  tmpHist[i] * 6.0f / 16.0f;
+        histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                  (tmpHist[i - 1] + tmpHist[i + 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
+                  tmpHist[i] * 6.0f / 16.0f; //  1 MUL + 1 DIV
     }
-
 
     // Find the maximum item of the histogram
     float temp = histogram[0];
@@ -103,7 +105,7 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     }
     *max_histval = temp;
 
-    keypoint->orientation = max_i * M_TWOPI / bin_count;
+    keypoint->orientation = max_i * M_TWOPI / bin_count; // 1 MUL + 1 DIV
 
     //free(tmpHist);
     //tmpHist = nullptr;

@@ -178,7 +178,7 @@ extern "C" {
   /// <param name="histogram"> OUT: Histogram of the detected keypoints. </param> 
   /// <param name="max_histval"> OUT: Maximum value in the histogram. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-  /// <remarks> 14 + 2*win_radius(2*win_radius * 19) flops </remarks>
+/// <remarks> 11 + (2*win_radius+1)^2 * (18 + EXP) + (bin_count * 10) FLOPs </remarks>
   int ethsift_compute_orientation_histogram(struct ethsift_image gradient, struct ethsift_image rotation, struct ethsift_keypoint *keypoint, float *histogram, float *max_histval);
 
   
