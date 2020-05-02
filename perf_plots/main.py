@@ -32,7 +32,7 @@ def main():
     for function in measurements:
         p = PerformancePlot()
         p.set_method_used(measurement_method)
-        p.plot_pi()
+        p.plot_pi(linewidth=3)
         peak_perf = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
@@ -40,8 +40,6 @@ def main():
                         marker=lib_markers[lib],
                         point_label=lib,
                         color=lib_cols[lib],
-                        linewidth=5,
-                        linestyle='solid',
                         markersize=12
                         )
             if lib == 'eth':
