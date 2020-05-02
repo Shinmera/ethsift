@@ -39,7 +39,7 @@ flops_util['eth']['GaussianPyramid'] = lambda w, h: flops_util['eth']['GaussianK
 flops_util['eth']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w, h)
 flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
-flops_util['eth']['ExtremaRefinement'] = lambda w, h:     w*h
+flops_util['eth']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
 flops_util['eth']['KeypointDetection'] = lambda w, h:     w*h
 flops_util['eth']['ExtractDescriptor'] = lambda w, h:     2 + keypoint_count * (13 + sinf_flops + cosf_flops + descriptor_ops())
 
@@ -52,7 +52,7 @@ flops_util['ez']['GaussianPyramid'] = lambda w, h: flops_util['ez']['GaussianKer
 flops_util['ez']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w,h)
 flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['ez']['Histogram'] = lambda w, h:  11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
-flops_util['ez']['ExtremaRefinement'] = lambda w, h:     w*h
+flops_util['ez']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
 flops_util['ez']['KeypointDetection'] = lambda w, h:     w*h
 flops_util['ez']['ExtractDescriptor'] = lambda w, h:     2 + keypoint_count * (13 + sinf_flops + cosf_flops + descriptor_ops())
 

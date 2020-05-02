@@ -208,7 +208,8 @@ extern "C" {
   /// <param name="layers"> IN: Number of layers. </param> 
   /// <param name="keypoints"> OUT: Array of detected keypoints. </param> 
   /// <returns> 1 IF computation was successful, ELSE 0. </returns>
-  /// <remarks> max_interp_steps * (25 * get_pixel_f + 40 + scale_adjoint_3x3 + mat_dot_vec_3x3) + 16 flops </remarks>
+  /// <remarks> Costanza: max_interp_steps * (25 * get_pixel_f + 40 + scale_adjoint_3x3 + mat_dot_vec_3x3) + 16 flops </remarks>
+  /// <remarks> Zsombor: 477 + 2POWs FLOPs </remarks>
   int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint *keypoint);
 
   
