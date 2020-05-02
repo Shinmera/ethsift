@@ -12,9 +12,8 @@ lib_markers['ez'] = '^'
 
 def main():
     print("Start Plotting Script")
-    measurements, resolutions = read_logs(6)
+    measurements = read_logs(6)
     print(measurements)
-    print(resolutions)
 
     for method in measurements:
         p = PerformancePlot()

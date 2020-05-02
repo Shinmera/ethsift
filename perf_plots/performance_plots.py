@@ -23,7 +23,6 @@ class PerformancePlot:
         self.max_performance = 0
 
         fig = plt.figure()
-        r = math.ceil(math.log2(self.pi_simd))
         self.x_min = 200
         self.x_max = 5000
         self.y_min = 0
