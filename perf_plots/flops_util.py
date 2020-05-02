@@ -3,16 +3,24 @@ import math
 
 convolution_kernel_size = 9
 
+#Variables loops are depending on in our code
 layers = 3 # Default value set in settings.c
 gaussian_count = layers + 3
 calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
 bin_count = 36
 approx_keypoint_scale = 1 # Value to discuss at meeting !
+keypoint_count = 1000
+descriptor_width = 4
+descriptor_bin = 8
+descriptor_size = 3.0
 histogram_window_size = (2 * 4.5 * approx_keypoint_scale + 1)
+
+#Custom Methods in our code
 calc_fast_atan2_f = lambda y: 10 if (y < 0) else 9 
 fast_ata2_f_worst_case = 10
 get_pixel_flops = 0
 
+# STD-C method FLOP counts (all methods occuring in our code) 
 # FLOP values to discuss at meeting !
 exp_flops = 1
 floor_flops = 1
@@ -23,11 +31,6 @@ sinf_flops = 1
 cosf_flops = 1
 minf_flops = 1
 
-keypoint_count = 1000
-descriptor_width = 4
-descriptor_bin = 8
-descriptor_size = 3.0
-approx_kpt_scale = 1
 
 flops_util = dict()
 
@@ -135,7 +138,7 @@ def keypoint_detection_flops(w, h):
 def descriptor_ops():
 
     nSubregion = descriptor_width
-    subregion_width = descriptor_size * approx_kpt_scale
+    subregion_width = descriptor_size * approx_keypoint_scale
     nBins = nSubregion * nSubregion * descriptor_bin
     win_size = int(1.414213562373095 * subregion_width * (nSubregion + 1) * 0.5 + 0.5)
 
