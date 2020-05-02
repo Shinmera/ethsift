@@ -62,7 +62,7 @@ def read_logs(nr_resoltuions, mode='rdtsc'):
         lines = stream.readlines()
         lines.pop(0)
         resolution = f.split('-')[1].split('_')[0]
-        resolutions[index] = resolution_map[resolution]
+        resolutions[index] = resolution_map[resolution]['tot_pixels']
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -90,10 +90,12 @@ def read_logs(nr_resoltuions, mode='rdtsc'):
             elif mode == 'chrono':
                 cycles = get_cycles_from_time_measurement(median)
                 std_dev = get_cycles_from_time_measurement(std_dev)
-            
-            measurements[func_name][lib]['performance'].append(flops_util[lib][func_name](resolutions[index]['width'], resolutions[index]['height']) / cycles)
-            measurements[func_name][lib]['std'].append(flops_util[lib][func_name](resolutions[index]['width'], resolutions[index]['height']) / std_dev)
-            measurements[func_name][lib]['resolutions'].append(resolutions[index])
+                
+            flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+
+            measurements[func_name][lib]['performance'].append( flops / cycles)
+            measurements[func_name][lib]['std'].append(flops/ std_dev)
+            measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
 
         index += 1
 
