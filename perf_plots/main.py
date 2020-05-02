@@ -15,7 +15,8 @@ lib_cols['ez'] = '#e0e070'
 
 def main():
     print("Start Plotting Script")
-    measurements = read_logs(6)
+    measurement_method = 'rdtsc'
+    measurements = read_logs(6, measurement_method)
 
     if False:
         for key1 in measurements:
@@ -28,14 +29,14 @@ def main():
                     print(measurements[key1][key2][key3])
                 print("\n")
             print("\n")
-
-    for method in measurements:
+    for function in measurements:
         p = PerformancePlot()
-        p.set_method_used(method)
+        p.set_method_used(measurement_method)
         p.plot_pi()
-        for lib in measurements[method]:
-            p.plot_points(x=np.array(measurements[method][lib]['resolutions']),
-                        y=np.array(measurements[method][lib]['performance']),
+        peak_perf = 0
+        for lib in measurements[function]:
+            p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
+                        y=np.array(measurements[function][lib]['performance']),
                         marker=lib_markers[lib],
                         point_label=lib,
                         color=lib_cols[lib],
@@ -44,8 +45,10 @@ def main():
                         markersize=12
                         )
             if lib == 'eth':
-                p.set_peak_performance(np.amax(measurements[method][lib]['performance']))
-        p.plot_graph()
+                temp = np.amax(measurements[function][lib]['performance'])
+                peak_perf = max(temp, peak_perf)
+                p.set_peak_performance(peak_perf)
+        p.plot_graph(function)
 
     
 

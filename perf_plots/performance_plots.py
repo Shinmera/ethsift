@@ -11,7 +11,7 @@ class PerformancePlot:
         self.pi = arch_conf['maxflops_sisd']
         self.pi_simd = arch_conf['maxflops_simd']
         self.beta = arch_conf['roofline_beta']
-        self.title = "Performance plot"
+        self.title = "Performance "
         self.method_used = ""
         self.print_method = False
         self.x_label ="Image Resolution [pixels]"
@@ -54,17 +54,17 @@ class PerformancePlot:
     def plot_pi(self, mode='all'):
         if(mode == "simd"):
             #Plot SIMD and SISD max performance boundary            
-            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Max Performance SIMD')
+            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Performance Boundary SIMD')
             self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linestyles='dashed', label='Memory boundary SIMD')
         elif(mode == "sisd"):           
-            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linestyles='solid', label='Max Performance SISD')
+            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linestyles='solid', label='Performance Boundary SISD')
             self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors='m', linestyles='dashed', label='Memory boundary SISD')
         else:            
             #Plot SIMD and SISD max performance boundary
-            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linestyles='solid', label='Max Performance SISD')
+            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linestyles='solid', label='Performance Boundary SISD')
             self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors='m', linestyles='dashed', label='Memory boundary SISD')
             
-            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Max Performance SIMD')
+            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linestyles='solid', label='Performance Boundary SIMD')
             self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linestyles='dashed', label='Memory boundary SIMD')
 
     def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8):
@@ -73,17 +73,19 @@ class PerformancePlot:
     def set_peak_performance(self, perf):
         self.max_performance =perf
 
-    def plot_graph(self):  
+    def plot_graph(self, func_name):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
         self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
-        
-        plt.suptitle(self.title, **self.title_font, fontsize=25)
-        if self.print_method:
-            title = "(Based on " + self.method_used +" Function, Peak Performance: {:.2f} )".format(self.max_performance)
+        if self.print_method:            
+            plt.suptitle(self.title + func_name, **self.title_font, fontsize=25)
+            title = "(Measured with " + self.method_used +"; Peak Performance ethSIFT: {:.2f} )".format(self.max_performance)
             plt.title(title, **self.title_font, fontsize=20)
+        else:
+            plt.suptitle(self.title, **self.title_font, fontsize=25)
+        
         
         plt.xlabel(self.x_label, fontsize=15)
         plt.ylabel(self.y_label, fontsize=15)
