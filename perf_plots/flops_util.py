@@ -7,14 +7,19 @@ calc_layers = 3 # Defualt value set in settings.c
 calc_gaussian_count = calc_layers + 3
 calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
 
+exp_flops = 1
+ceilf_flops = 1
+sqrt_flops = 1
+powf_flops = 1
+
 flops_util = dict()
 
 flops_util['eth'] = dict()
 flops_util['eth']['Downscale'] = lambda  w, h: 0 # Conducts only memcpy
 flops_util['eth']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_size # 2 * (h * w (2* kernel_size))
 flops_util['eth']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
-flops_util['eth']['GaussianKernelGeneration'] = lambda w, h:     w*h
-flops_util['eth']['GaussianPyramid'] = lambda w, h:     w*h
+flops_util['eth']['GaussianKernelGeneration'] = lambda w, h: calc_gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(calc_gaussian_count)*(6.0+exp_flops) + calc_gaussian_count)
+flops_util['eth']['GaussianPyramid'] = lambda w, h: flops_util['eth']['GaussianKernelGeneration'](w,h) +  ((calc_gaussian_count-1) * calc_octave_count + 1) * flops_util['eth']['Convolution'](w,h)
 flops_util['eth']['DOGPyramid'] = lambda w, h:     w*h
 flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h:     w*h
 flops_util['eth']['Histogram'] = lambda w, h:     w*h
@@ -26,8 +31,8 @@ flops_util['ez'] = dict()
 flops_util['ez']['Downscale'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['ez']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_size
 flops_util['ez']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
-flops_util['ez']['GaussianKernelGeneration'] = lambda w, h:     w*h
-flops_util['ez']['GaussianPyramid'] = lambda w, h:     w*h
+flops_util['ez']['GaussianKernelGeneration'] = lambda w, h: calc_gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(calc_gaussian_count)*(6.0+exp_flops) + calc_gaussian_count)
+flops_util['ez']['GaussianPyramid'] = lambda w, h: flops_util['ez']['GaussianKernelGeneration'](w,h) +  ((calc_gaussian_count-1) * calc_octave_count + 1) * flops_util['ez']['Convolution'](w,h)
 flops_util['ez']['DOGPyramid'] = lambda w, h:     w*h
 flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h:     w*h
 flops_util['ez']['Histogram'] = lambda w, h:     w*h

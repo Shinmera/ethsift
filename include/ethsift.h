@@ -74,7 +74,7 @@ extern "C" {
   /// <param name="kernerl_rad"> IN: Kernel radius. </param>
   /// <param name="sigma"> IN: Standard deviation of the gaussian kernel. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> (kernel_size * 8) + 1 + kernel_size flops = 9 * kernel_size + 1 flops </remarks>
+  /// <remarks> ggk =  kernel_size * (7 + EXP) + 1 flops </remarks>
   int ethsift_generate_gaussian_kernel(float *kernel, int kernel_size, int kernerl_rad, float sigma);
 
   /// <summary> 
@@ -86,7 +86,7 @@ extern "C" {
   /// <param name="kernel_rads"> OUT: The radii of all the kernels stored in an array. </param> 
   /// <param name="kernel_sizes"> OUT: The sizes of all the kernels stored in an array. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> 9 + ethsift_generate_gaussian_kernel </remarks>
+  /// <remarks> ak = gaussian_count * (powf + sqrt + ceilf + 7 + ggk) </remarks>
   int ethsift_generate_all_kernels(int layers_count, uint32_t gaussian_count, float **kernels_ptrs, int kernel_rads[], int kernel_sizes[]);
 
   /// <summary> 
@@ -139,7 +139,7 @@ extern "C" {
   /// NOTE: Size = octave_count * gaussian_count. </param>
   /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> ethsift_generate_all_kernels flops + (ethsift_apply_kernel OR ethsift_downscale_half) flops </remarks>
+  /// <remarks> ggk + ((gaussian_count-1)*octave_count + 1) * ak </remarks>
   int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
 
   /// <summary> 
