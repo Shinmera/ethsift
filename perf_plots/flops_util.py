@@ -10,6 +10,7 @@ bin_count = 36
 approx_keypoint_scale = 1
 histogram_window_size = (2 * 4.5 * approx_keypoint_scale + 1)
 calc_fast_atan2_f = lambda y: 10 if (y < 0) else 9 
+calc_fast_ata2f_worst_case = 10
 calc_get_pixel_f = 0
 
 exp_flops = 1
@@ -25,8 +26,8 @@ flops_util['eth']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_s
 flops_util['eth']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['eth']['GaussianKernelGeneration'] = lambda w, h: calc_gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(calc_gaussian_count)*(6.0+exp_flops) + calc_gaussian_count))
 flops_util['eth']['GaussianPyramid'] = lambda w, h: flops_util['eth']['GaussianKernelGeneration'](w,h) +  ((calc_gaussian_count-1) * calc_octave_count + 1) * flops_util['eth']['Convolution'](w,h)
-flops_util['eth']['DOGPyramid'] = lambda w, h: calc_octave_count * 5 * w * h
-flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: calc_octave_count * 3 * w * h * (2 + (4 * calc_get_pixel_f) + sqrt + calc_fast_atan2_f(0))
+flops_util['eth']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w, h)
+flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: calc_octave_count * 3 * w * h * (2 + (4 * calc_get_pixel_f) + sqrt_flops + calc_fast_ata2f_worst_case)
 flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['eth']['ExtremaRefinement'] = lambda w, h:     w*h
 flops_util['eth']['KeypointDetection'] = lambda w, h:     w*h
@@ -38,7 +39,7 @@ flops_util['ez']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_si
 flops_util['ez']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['ez']['GaussianKernelGeneration'] = lambda w, h: calc_gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(calc_gaussian_count)*(6.0+exp_flops) + calc_gaussian_count))
 flops_util['ez']['GaussianPyramid'] = lambda w, h: flops_util['ez']['GaussianKernelGeneration'](w,h) +  ((calc_gaussian_count-1) * calc_octave_count + 1) * flops_util['ez']['Convolution'](w,h)
-flops_util['ez']['DOGPyramid'] = lambda w, h:     w*h
+flops_util['ez']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w,h)
 flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h:     w*h
 flops_util['ez']['Histogram'] = lambda w, h:  11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['ez']['ExtremaRefinement'] = lambda w, h:     w*h
@@ -75,3 +76,13 @@ def get_kernel_sizes(gaussian_count):
 
 
     return kernel_sizes
+
+def diff_pyr_ops(w, h):
+    width = w
+    height = h
+    ops = 0
+    for _x in range(calc_octave_count):
+        ops += (5 * width * height)
+        width /= 2
+        height /= 2
+    return ops
