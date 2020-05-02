@@ -14,38 +14,38 @@ end_line = 21
 
 resolution_map = dict()
 resolution_map['240p']= dict()
-resolution_map['240p']['width'] = 240
-resolution_map['240p']['height'] = 427
+resolution_map['240p']['width'] = 427
+resolution_map['240p']['height'] = 240
 resolution_map['240p']['tot_pixels'] = resolution_map['240p']['width']*resolution_map['240p']['height'] 
 
 resolution_map['360p']= dict()
-resolution_map['360p']['width'] = 360
-resolution_map['360p']['height'] = 640
+resolution_map['360p']['width'] = 640
+resolution_map['360p']['height'] = 360
 resolution_map['360p']['tot_pixels'] = resolution_map['360p']['width']*resolution_map['360p']['height'] 
 
 resolution_map['480p']= dict()
-resolution_map['480p']['width'] = 480
-resolution_map['480p']['height'] = 853
+resolution_map['480p']['width'] = 853 
+resolution_map['480p']['height'] = 480
 resolution_map['480p']['tot_pixels'] = resolution_map['480p']['width']*resolution_map['480p']['height'] 
 
 resolution_map['720p']= dict()
-resolution_map['720p']['width'] = 720
-resolution_map['720p']['height'] = 1280
+resolution_map['720p']['width'] = 1280
+resolution_map['720p']['height'] = 720
 resolution_map['720p']['tot_pixels'] = resolution_map['720p']['width']*resolution_map['720p']['height'] 
 
 resolution_map['1080p']= dict()
-resolution_map['1080p']['width'] = 1080
-resolution_map['1080p']['height'] = 1920
+resolution_map['1080p']['width'] = 1920
+resolution_map['1080p']['height'] = 1080
 resolution_map['1080p']['tot_pixels'] = resolution_map['1080p']['width']*resolution_map['1080p']['height'] 
 
 resolution_map['2160p']= dict()
-resolution_map['2160p']['width'] = 2160
-resolution_map['2160p']['height'] = 3840
+resolution_map['2160p']['width'] = 3840
+resolution_map['2160p']['height'] = 2160
 resolution_map['2160p']['tot_pixels'] = resolution_map['2160p']['width']*resolution_map['2160p']['height'] 
 
 resolution_map['4320p']= dict()
-resolution_map['4320p']['width'] = 4320
-resolution_map['4320p']['height'] = 7680
+resolution_map['4320p']['width'] = 7680
+resolution_map['4320p']['height'] = 4320
 resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolution_map['4320p']['height'] 
 
 def read_logs(nr_resoltuions, mode='rdtsc'):

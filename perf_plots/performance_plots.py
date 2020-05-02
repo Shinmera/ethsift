@@ -26,17 +26,11 @@ class PerformancePlot:
         r = math.ceil(math.log2(self.pi_simd))
         self.x_min = 200
         self.x_max = 5000
-        self.y_min = pow(2, -1)
-        self.y_max = pow(2, r)
+        self.y_min = 0
+        self.y_max = self.pi_simd + 0.5
         
         self.axes= fig.add_axes([0.1,0.1,0.8,0.8])
 
-        # Plot memory bound
-        plt_mesh = '-b'
-        x_axis = [self.x_min, self.x_max]
-        y_axis = [x * self.beta for x in x_axis]
-        self.axes.plot(x_axis, y_axis, plt_mesh, label="Roofline")
-        
         self.axes.set_xlim([self.x_min,self.x_max])
         self.axes.set_ylim([self.y_min,self.y_max]) 
 
@@ -46,6 +40,14 @@ class PerformancePlot:
     
     def set_title(self, title, with_peak_perf=False, peak_performance=0):
         self.title = title
+
+    def plot_memory_bound(self):        
+        # Plot memory bound
+        plt_mesh = '-b'
+        x_axis = [self.x_min, self.x_max]
+        y_axis = [x * self.beta for x in x_axis]
+        self.axes.plot(x_axis, y_axis, plt_mesh, label="Roofline")
+        
 
     def plot_performance_bound(self, bound, color, bound_label=''):        
         self.axes.hlines(bound, self.x_min, self.x_max, colors=color, linestyles='solid', label=bound_label)

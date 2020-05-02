@@ -7,12 +7,13 @@ calc_layers = 3 # Default value set in settings.c
 calc_gaussian_count = calc_layers + 3
 calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
 bin_count = 36
-approx_keypoint_scale = 1
+approx_keypoint_scale = 1 # Value to discuss at meeting !
 histogram_window_size = (2 * 4.5 * approx_keypoint_scale + 1)
 calc_fast_atan2_f = lambda y: 10 if (y < 0) else 9 
 calc_fast_ata2_f_worst_case = 10
 calc_get_pixel_f = 0
 
+# FLOP values to discuss at meeting !
 exp_flops = 1
 ceilf_flops = 1
 sqrt_flops = 1
@@ -30,7 +31,7 @@ flops_util['eth']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w, h)
 flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['eth']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
-flops_util['eth']['KeypointDetection'] = lambda w, h:     w*h
+flops_util['eth']['KeypointDetection'] = lambda w, h: keypoint_detection_flops * (11 + flops_util['eth']['ExtremaRefinement'](w,h) + flops_util['eth']['Histogram'](w,h))
 flops_util['eth']['ExtractDescriptor'] = lambda w, h:     w*h
 
 flops_util['ez'] = dict()
@@ -43,7 +44,7 @@ flops_util['ez']['DOGPyramid'] = lambda w, h: diff_pyr_ops(w,h)
 flops_util['ez']['GradientAndRotationPyramids'] = lambda w, h: gr_pyr_ops(w, h)
 flops_util['ez']['Histogram'] = lambda w, h:  11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['ez']['ExtremaRefinement'] = lambda w, h: 477 + 2* powf_flops
-flops_util['ez']['KeypointDetection'] = lambda w, h:     w*h
+flops_util['ez']['KeypointDetection'] = lambda w, h:  keypoint_detection_flops * (11 + flops_util['ez']['ExtremaRefinement'](w,h) + flops_util['ez']['Histogram'](w,h))
 flops_util['ez']['ExtractDescriptor'] = lambda w, h:     w*h
 
 def get_kernel_sizes(gaussian_count):
@@ -96,4 +97,14 @@ def gr_pyr_ops(w, h):
         width /= 2
         height /= 2
     return ops
-                
+
+
+def keypoint_detection_flops(w, h):
+    width = w
+    height = h
+    res = 0
+    for i in range(0, calc_octave_count):
+        res += (width-10)*(height-10)
+        width /= 2
+        height /= 2
+    return res* (calc_gaussian_count-1)

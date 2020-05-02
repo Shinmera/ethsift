@@ -108,6 +108,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
     w = (int) differences[i * layersDoG].width;
     h = (int) differences[i * layersDoG].height;
 
+    // (h-10)(w-10)(11 + rle + coh)*layersDoG*
     for (int j = 1; j < layersDoG - 1; ++j) {
       layer_ind = i * layersDoG + j;
 
@@ -115,6 +116,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
       curData  = differences[layer_ind ].pixels; 
       lowData  = differences[layer_ind - 1].pixels; 
 
+      // (h-10)(w-10)(11 + rle + coh)
       // Iterate over all pixels in image, ignore border values
       for (int r = image_border; r < h - image_border; ++r) {
         for (int c = image_border; c < w - image_border; ++c) {
@@ -127,6 +129,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
             (pixel >= threshold  && is_local_max(pixel, pos, w, curData, lowData, highData)) ||
             (pixel <= -threshold && is_local_min(pixel, pos, w, curData, lowData, highData));
 
+          // 11 + rle + coh
           if (isExtrema) {
             if (keypoints_found < keypoints_required) {
               keypoints[keypoints_current].layer = j;
@@ -148,7 +151,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &(keypoints[keypoints_current]), 
                 hist, &max_mag);
 
-              float hist_threshold = max_mag * orientation_peak_ratio;
+              float hist_threshold = max_mag * orientation_peak_ratio; // 1 MUL
 
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;
@@ -163,23 +166,23 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // http://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
                   float accu_ii =
                     ii + 0.5f * (lhist - rhist) /
-                    (lhist - 2.0f * currHist + rhist);
+                    (lhist - 2.0f * currHist + rhist);  // 2 ADD + 2 SUBs + 2 MULs
 
                   // Since bin index means the starting point of a
                   // bin, so the real orientation should be bin
                   // index plus 0.5. for example, angles in bin 0
                   // should have a mean value of 5 instead of 0;
-                  accu_ii += 0.5f;
-                  accu_ii = accu_ii < 0 ? (accu_ii + nBins)
+                  accu_ii += 0.5f; // 1 ADD
+                  accu_ii = accu_ii < 0 ? (accu_ii + nBins) // 1 ADD
                                         : accu_ii >= nBins
-                                          ? (accu_ii - nBins)
+                                          ? (accu_ii - nBins) // 1 SUB
                                           : accu_ii;
                   // The magnitude should also calculate the max
                   // number based on fitting But since we didn't
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
                   keypoints[keypoints_current].magnitude = currHist;
-                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins;
+                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins; // 1 MUL + 1 DIV
 
                   // Update keypoint counters
                   ++keypoints_current;
@@ -219,7 +222,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &temp, 
                 hist, &max_mag);
 
-              float hist_threshold = max_mag * orientation_peak_ratio;
+              float hist_threshold = max_mag * orientation_peak_ratio; // 1 MUL
 
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;
