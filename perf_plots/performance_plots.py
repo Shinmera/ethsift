@@ -72,8 +72,8 @@ class PerformancePlot:
 
     def plot_graph(self):  
         self.axes.legend()  
-        self.axes.set_xscale('log', basex=2)
-        self.axes.set_yscale('log', basey=2)
+        # self.axes.set_xscale('log', basex=2)
+        # self.axes.set_yscale('log', basey=2)
         self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         
