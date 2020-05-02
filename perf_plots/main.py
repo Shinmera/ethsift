@@ -20,8 +20,8 @@ def main():
         p.set_method_used(method)
         p.plot_pi()
         for lib in measurements[method]:
-            p.plot_points(x=np.array(measurements[method][lib]['performance']),
-                        y=np.array(measurements[method][lib]['resolutions']),
+            p.plot_points(x=np.array(measurements[method][lib]['resolutions']),
+                        y=np.array(measurements[method][lib]['performance']),
                         marker=lib_markers[lib],
                         point_label=lib)
         p.plot_graph()
