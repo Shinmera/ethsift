@@ -62,7 +62,7 @@ int ethsift_generate_all_kernels(int layers_count,
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
     // sequential dependencies in the section where we calculate the gaussian pyramids.
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
-    kernel_ptrs[0] = (float*) calloc(kernel_sizes[0], sizeof(float)); 
+    kernel_ptrs[0] = (float*) calloc(kernel_sizes[0], sizeof(float));
     ethsift_generate_gaussian_kernel(kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], sigma_i);
 
     //Calculate all other sigmas and create the according kernel

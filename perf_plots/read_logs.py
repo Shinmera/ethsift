@@ -91,8 +91,8 @@ def read_logs(nr_resoltuions, mode='rdtsc'):
                 cycles = get_cycles_from_time_measurement(median)
                 std_dev = get_cycles_from_time_measurement(std_dev)
             
-            measurements[func_name][lib]['performance'].append(flops_util[lib][func_name](resolutions[index]) / cycles)
-            measurements[func_name][lib]['std'].append(flops_util[lib][func_name](resolutions[index]) / std_dev)
+            measurements[func_name][lib]['performance'].append(flops_util[lib][func_name](resolutions[index]['width'], resolutions[index]['height']) / cycles)
+            measurements[func_name][lib]['std'].append(flops_util[lib][func_name](resolutions[index]['width'], resolutions[index]['height']) / std_dev)
             measurements[func_name][lib]['resolutions'].append(resolutions[index])
 
         index += 1

@@ -108,7 +108,7 @@ extern "C" {
   /// <param name="kernel_rad"> IN: Radius of the kernel. </param>
   /// <param name="output"> OUT: Blurred output image. </param>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
-  /// <remarks> h * (2 + (2 * kernel_rad) + (w * (kernel_size * 2 + 3)) flops </remarks>
+  /// <remarks> 2 * (h * w * (2 * kernel_size)) flops </remarks>
   int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output);
 
   /// <summary> 
