@@ -3,6 +3,10 @@ import math
 
 convolution_kernel_size = 9
 
+calc_layers = 3 # Defualt value set in settings.c
+calc_gaussian_count = calc_layers + 3
+calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
+
 flops_util = dict()
 
 flops_util['eth'] = dict()
@@ -33,11 +37,10 @@ flops_util['ez']['ExtractDescriptor'] = lambda w, h:     w*h
 
 def get_kernel_sizes(gaussian_count):
     kernel_sizes = np.zeros(gaussian_count)
-    kernel_rads = np.zeros(gaussian_count)
-    k = pow(2.0, 1.0 / layers_count)
+    k = pow(2.0, 1.0 / calc_layers)
 
-    sigma_pre = 0.5 #Defualt value set in settings.c
-    sigma0 = 1.6 #Defualt value set in settings.c
+    sigma_pre = 0.5 # Defualt value set in settings.c
+    sigma0 = 1.6 # Defualt value set in settings.c
 
     sigma_i = np.sqrtf(sigma0 * sigma0 - sigma_pre * sigma_pre)
     curr_rad = sigma_i * 3.0
