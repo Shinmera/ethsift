@@ -6,14 +6,11 @@ convolution_kernel_size = 9
 calc_layers = 3 # Default value set in settings.c
 calc_gaussian_count = calc_layers + 3
 calc_octave_count = lambda w, h: (int) (math.log2(min([w, h])) - 3)
-<<<<<<< HEAD
 bin_count = 36
 approx_keypoint_scale = 1
 histogram_window_size = (2 * 4.5 * approx_keypoint_scale + 1)
-=======
 calc_fast_atan2_f = lambda y: 10 if (y < 0) else 9 
 calc_get_pixel_f = 0
->>>>>>> 5259b18005910c0f1a97d61bc4b88da8ee320c75
 
 exp_flops = 1
 ceilf_flops = 1
@@ -28,15 +25,9 @@ flops_util['eth']['Convolution'] = lambda w, h: 4 * w * h * convolution_kernel_s
 flops_util['eth']['Octaves'] = lambda w, h: 0 # Conducts only memcpy
 flops_util['eth']['GaussianKernelGeneration'] = lambda w, h: calc_gaussian_count * (powf_flops + sqrt_flops + ceilf_flops + 7 + (get_kernel_sizes(calc_gaussian_count)*(6.0+exp_flops) + calc_gaussian_count))
 flops_util['eth']['GaussianPyramid'] = lambda w, h: flops_util['eth']['GaussianKernelGeneration'](w,h) +  ((calc_gaussian_count-1) * calc_octave_count + 1) * flops_util['eth']['Convolution'](w,h)
-<<<<<<< HEAD
-flops_util['eth']['DOGPyramid'] = lambda w, h:     w*h
-flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h:     w*h
-flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
-=======
 flops_util['eth']['DOGPyramid'] = lambda w, h: calc_octave_count * 5 * w * h
 flops_util['eth']['GradientAndRotationPyramids'] = lambda w, h: calc_octave_count * 3 * w * h * (2 + (4 * calc_get_pixel_f) + sqrt + calc_fast_atan2_f(0))
-flops_util['eth']['Histogram'] = lambda w, h:     w*h
->>>>>>> 5259b18005910c0f1a97d61bc4b88da8ee320c75
+flops_util['eth']['Histogram'] = lambda w, h: 11 + histogram_window_size * histogram_window_size * (18.0 + exp_flops) + bin_count * 10
 flops_util['eth']['ExtremaRefinement'] = lambda w, h:     w*h
 flops_util['eth']['KeypointDetection'] = lambda w, h:     w*h
 flops_util['eth']['ExtractDescriptor'] = lambda w, h:     w*h
