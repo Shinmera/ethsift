@@ -34,6 +34,9 @@
 // Specify how many measurement runs it should do per function
 #define NR_RUNS 30
 
+// Scaling factor for the MAD. Assuming normal distribution:
+#define K_FACTOR 1.4826
+
 #if USE_RDTSC
   #include "tsc_x86.h"
   extern myInt64 start;
