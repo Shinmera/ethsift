@@ -36,12 +36,12 @@ def main():
         peak_perf = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
-                        y=np.array(measurements[function][lib]['performance']),
-                        marker=lib_markers[lib],
-                        point_label=lib,
-                        color=lib_cols[lib],
-                        markersize=12
-                        )
+                          y=np.array(measurements[function][lib]['performance']),
+                          marker=lib_markers[lib],
+                          point_label=lib,
+                          color=lib_cols[lib],
+                          markersize=12,
+                          error=np.array(measurements[function][lib]['std']))
             if lib == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
