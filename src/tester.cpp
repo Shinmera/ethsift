@@ -129,26 +129,26 @@ int run_test(struct test test){
 
   // Compute statistics for ethsift
   size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
-  double average = ((double)cumulative) / durations.size();
-  std::vector<double> variances(durations.size());
-  map(durations, variances, [&](auto d){return (d- average)*(d- average);});
-  double stddev = reduce(variances, [](auto a,auto b){return a+b;}) / durations.size();
   std::sort(durations.begin(), durations.end());
   size_t median = durations[durations.size()/2];
+  std::vector<size_t> deviations(durations.size());
+  map(durations, deviations, [&](auto d){return std::abs((int64_t)d - (int64_t)median);});
+  std::sort(deviations.begin(), deviations.end());
+  double mad = K_FACTOR * deviations[deviations.size()/2];
 
   if (test.has_measurement_comp) {
-    LogTuple t = { test.title, median, stddev };
+    LogTuple t = { test.title, median, mad };
     test_logs.push_back(t);
   }
   
   // Show
   #if USE_RDTSC
-    fprintf(stderr, " %20llu cycles ±%20.3f", median, stddev);
+    fprintf(stderr, " %20li cycles ±%10.2f", median, mad);
   #else
-    fprintf(stderr, " %10liµs ±%9.3f", median, stddev);  
+    fprintf(stderr, " %10liµs ±%10.2f", median, mad);
   #endif
 
-  fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":"\033[0;32m[OK  ]");
+  fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":" \033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
   return ret;
 }
