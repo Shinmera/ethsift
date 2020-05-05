@@ -95,6 +95,7 @@ static char* get_testimg_path() {
 // Note: If no explicit measurement sections are defined, the entire test
 //       is measured instead.
 // Note: Defined in header as static inline to avoid function call overhead
+__attribute__((always_inline))
 static inline void start_measurement(){
   if(!measurement_pending){
     measurement_pending = true;
@@ -109,6 +110,7 @@ static inline void start_measurement(){
 // End a time measurement section.
 // Note: A single test may have multiple start/end sections. The report will
 //       accumulate the measurements from every section.
+__attribute__((always_inline))
 static inline void end_measurement(){
   #if USE_RDTSC
     myInt64 runtime = stop_tsc(start);

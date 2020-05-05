@@ -102,6 +102,10 @@ void write_logfile() {
     myfile.close();
 }
 
+//// Empty test to measure base noise. Seems we incur 14-20 (median 15)
+//// cycles per measurement no matter what.
+// define_test(foo, 0, {with_repeating()})
+
 int run_test(struct test test){
   fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
   durations.clear();
@@ -123,9 +127,6 @@ int run_test(struct test test){
   // of early returns from within measurement blocks. We do not have an unwind-protect
   // operator in C after all.
   end_measurement();
-  if (test.has_measurement_comp) {
-      durations.pop_back();
-  }
 
   // Compute statistics for ethsift
   size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
