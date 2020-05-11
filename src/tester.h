@@ -32,7 +32,7 @@
 #define RUN_EZSIFT_MEASUREMENTS 0
 
 // Specify how many measurement runs it should do per function
-#define NR_RUNS 30
+extern int NR_RUNS;
 
 // Scaling factor for the MAD. Assuming normal distribution:
 #define K_FACTOR 1.4826
