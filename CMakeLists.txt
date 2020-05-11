@@ -38,7 +38,6 @@ add_library(ethsift STATIC
   )
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
-target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)
 
 ## Test Harness Build
 add_executable(tester
@@ -50,12 +49,16 @@ add_executable(tester
   )
 set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
-target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  message("Adding debug flag...")
-  target_compile_definitions(ethsift PRIVATE -DDEBUG)
-  target_compile_definitions(tester PRIVATE -DDEBUG)
+  message("Adding debug flags...")
+  target_link_options(tester PRIVATE -pg)
+  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
+  target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
+else()
+  message("Adding optimise flags...")
+  target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
+  target_compile_options(tester PRIVATE -O3 -mfma -mavx2)
 endif()
