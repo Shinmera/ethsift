@@ -317,5 +317,17 @@ define_test(eth_ExtractDescriptor, 1, {
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);
   })
+
+define_test(eth_MeasureFull, 1, {
+    ezsift::Image<unsigned char> ez_img;
+    struct ethsift_image eth_img = {0};
+    if(!load_image(get_testimg_path(), eth_img, &ez_img))
+      fail("Failed to load image");
+    
+    uint32_t keypoint_count = 2048;
+    struct ethsift_keypoint keypoints[keypoint_count] = {0};
+
+    with_repeating(ethsift_compute_keypoints(eth_img, keypoints, keypoint_count))
+  })
   
 #endif
