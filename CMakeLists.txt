@@ -57,8 +57,24 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   target_link_options(tester PRIVATE -pg)
   target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
   target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
+
+  add_custom_target(gprof
+    COMMAND ./tester lena.pgm eth_MeasureFull
+    COMMAND gprof tester > gprof.txt
+    COMMAND echo "Wrote gropf output to ${CMAKE_BINARY_DIR}/gropf.text"
+    DEPENDS tester)
 else()
   message("Adding optimise flags...")
   target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
   target_compile_options(tester PRIVATE -O3 -mfma -mavx2)
+
+  add_custom_target(gprof
+    COMMAND echo "Cannot run gprof! Please set CMAKE_BUILD_TYPE to Debug!")
 endif()
+
+add_custom_target(flamegraph
+  COMMAND perf record -F MAX -g ./tester lena.pgm eth_MeasureFull
+  COMMAND perf script | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
+  COMMAND "${PROJECT_SOURCE_DIR}/perf/flamegraph.pl" out.perf-folded > flamegraph.svg
+  COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"
+  DEPENDS tester)
