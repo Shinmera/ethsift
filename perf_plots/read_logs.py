@@ -2,6 +2,7 @@ import numpy as np
 import math
 
 from flops_util import flops_util
+from architecture_config import config as arch_conf
 
 from os import listdir
 from os.path import isfile, join
@@ -49,13 +50,22 @@ resolution_map['4320p']['height'] = 4320
 resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolution_map['4320p']['height'] 
 
 def read_logs(nr_resoltuions, mode='rdtsc'):
-    #modes are rdtsc and chrono
-    measurements = dict()
+    
     
     onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
     #onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
-    for f in onlyfiles:                
+    
+    if mode == 'runtime':
+        return get_runtime_measurements(onlyfiles, mode)
+    else:
+        return get_performance_measurements(onlyfiles, mode)
+
+def get_performance_measurements(log_files, mode):
+    # modes are rdtsc, chrono and runtime
+    measurements = dict()
+
+    for f in log_files:                
         stream = open(logs_folder + f,"r")
         lines = stream.readlines()
         lines.pop(0)
@@ -94,9 +104,45 @@ def read_logs(nr_resoltuions, mode='rdtsc'):
             measurements[func_name][lib]['std'].append(flops/ std_dev)
             measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
 
+    return measurements
+
+def get_runtime_measurements(log_files, mode):
+    # modes are rdtsc, chrono and runtime
+    measurements = dict()
+
+    for f in log_files:                
+        stream = open(logs_folder + f,"r")
+        lines = stream.readlines()
+        lines.pop(0)
+        resolution = f.split('-')[1].split('_')[0]
+        for l in lines:
+            vals = l.split(',')
+            method_name_split = vals[0].split('_')
+            lib = method_name_split[0]
+            func_name = method_name_split[1]
+            median = int(vals[1])
+            std_dev = float(vals[2])
+                        
+            if func_name in measurements:
+                pass
+            else:                
+                measurements[func_name] = dict()
+
+            if lib in measurements[func_name]:
+                pass
+            else:
+                measurements[func_name][lib] = dict()
+                measurements[func_name][lib]['runtime'] = []
+                measurements[func_name][lib]['resolutions'] = []
+                measurements[func_name][lib]['std'] = []
+
+            measurements[func_name][lib]['runtime'].append(median)
+            measurements[func_name][lib]['std'].append(std_dev)
+            measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
 
     return measurements
 
+
 def get_cycles_from_time_measurement(median):
     #calculate the approximate number of cycles the algorithm had according to the time measured
-    return median
+    return median * arch_conf['frequency']
