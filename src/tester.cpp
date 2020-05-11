@@ -210,10 +210,9 @@ int main(int argc, char *argv[]){
     }
   }
   if(getenv("TESTS")){
-    // Disable only if we have not done so already.
-    if(argc <= 2)
-      for(int i=0; i<test_count; ++i)
-        tests[i].enabled = false;
+    // Disable all tests
+    for(int i=0; i<test_count; ++i)
+      tests[i].enabled = false;
     char *name;
     name = strtok(getenv("TESTS"), " ");
     while(name){
