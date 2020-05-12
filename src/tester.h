@@ -68,10 +68,10 @@ int register_test(const char *title, int has_measurement_comp, int (*func)());
   };
 
 // Macro to fail a test. You should call this with a good reason whenever the test should fail.
-#define fail(...) {                             \
-    char __message[1024] = {0};                 \
-    sprintf(__message, __VA_ARGS__);            \
-    register_failure(__testid, __message);      \
+#define fail(...) {                                     \
+    char *__message = (char*)calloc(1024,sizeof(char)); \
+    sprintf(__message, __VA_ARGS__);                    \
+    register_failure(__testid, __message);              \
     return 0;}
 
 // Return an absolute path to a file within the project root's data/ directory.
