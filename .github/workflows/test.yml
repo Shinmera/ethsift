@@ -4,20 +4,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Install prerequisites
-      run: |
-        sudo apt-get -qq install rename
     - name: Configure project
       run: |
-        mkdir build logs
+        mkdir build
         cd build && cmake .. -DCMAKE_BUILD_TYPE=Release
     - name: Build project
       run: |
         cd build && make VERBOSE=1
     - name: Run tests
       run: |
-        cd build && ./tester 2>&1 | tee test.log
+        cd build && ./tester
+    - name: Create build artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: build/
+  profile:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install prerequisites
+      run: |
+        sudo apt-get -qq install rename
+    - uses: actions/download-artifact@v2
+      with:
+        name: build
+        path: build/
+    - name: Run tests
+      run: |
         for IMAGE in data/*.pgm; do ./build/tester; done
     - name: Build flamegraph
       run: |
@@ -25,17 +40,13 @@ jobs:
         cd build && make flamegraph
     - name: Build artifact
       run: |
-        mkdir rel
-        cp logs/* rel
-        cp build/flamegraph.svg rel
-        cp build/tester rel
-        cp build/test.log rel
-        cd rel && rename 's|:|-|g' *
-    - name: Create artifact
+        cp cp/flamegraph.svg logs
+        cd logs && rename 's|:|-|g' *
+    - name: Create logs artifact
       uses: actions/upload-artifact@v2
       with:
-        name: rel
-        path: rel/
+        name: logs
+        path: logs/
     - name: Post to discord
       uses: appleboy/discord-action@master
       with:
