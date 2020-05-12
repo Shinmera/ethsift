@@ -34,6 +34,7 @@ jobs:
         path: build/
     - name: Run tests
       run: |
+        chmod +x build/tester
         for IMAGE in data/*.pgm; do ./build/tester; done
     - name: Build flamegraph
       run: |
@@ -41,7 +42,7 @@ jobs:
         cd build && make flamegraph
     - name: Build artifact
       run: |
-        cp cp/flamegraph.svg logs
+        cp build/flamegraph.svg logs
         cd logs && rename 's|:|-|g' *
     - name: Create logs artifact
       uses: actions/upload-artifact@v2
