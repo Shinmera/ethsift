@@ -49,6 +49,7 @@ add_executable(tester
   )
 set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
+target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
@@ -56,7 +57,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags...")
   target_link_options(tester PRIVATE -pg)
   target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
-  target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
 
   add_custom_target(gprof
     COMMAND ./tester lena.pgm eth_MeasureFull
@@ -66,7 +66,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 else()
   message("Adding optimise flags...")
   target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
-  target_compile_options(tester PRIVATE -O3 -mfma -mavx2)
 
   add_custom_target(gprof
     COMMAND echo "Cannot run gprof! Please set CMAKE_BUILD_TYPE to Debug!")
