@@ -1,5 +1,5 @@
 name: Test
-on: [push, pull_request]
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -7,14 +7,38 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install prerequisites
       run: |
-        sudo apt-get -qq update | true
-        sudo apt-get -qq install cmake extra-cmake-modules gcc
+        sudo apt-get -qq install rename
     - name: Configure project
       run: |
-        mkdir build && cd build && cmake ..
+        mkdir build logs
+        cd build && cmake .. -DCMAKE_BUILD_TYPE=Release
     - name: Build project
       run: |
         cd build && make VERBOSE=1
     - name: Run tests
       run: |
-        ./build/tester
+        cd build && ./tester 2>&1 | tee test.log
+    - name: Build flamegraph
+      run: |
+        sudo sh -c 'echo 0 > /proc/sys/kernel/perf_event_paranoid'
+        cd build && make flamegraph
+    - name: Build artifact
+      run: |
+        mkdir rel
+        cp logs/* rel
+        cp build/flamegraph.svg rel
+        cp build/tester rel
+        cp build/test.log rel
+        cd rel && rename 's|:|-|g' *
+    - name: Create artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: rel
+        path: rel/
+    - name: Post to discord
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ secrets.WEBHOOK_ID }}
+        webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+        message: "Build for ${{ github.sha }} on ${{ github.ref }}: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        file: "./rel/flamegraph.svg"

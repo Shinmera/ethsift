@@ -71,7 +71,7 @@ add_executable(tester
   )
 set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
-target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
+target_compile_options(tester PRIVATE -DDEBUG -g -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
@@ -119,6 +119,7 @@ target_compile_definitions(count_flops PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSIO
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags")
   set_property(TARGET tester APPEND_STRING PROPERTY LINK_FLAGS " -pg")
+  target_compile_options(tester PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
   target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
 
   add_custom_target(gprof
@@ -128,15 +129,14 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     DEPENDS tester)
 else()
   message("Adding optimise flags")
-  target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
-
+  target_compile_options(ethsift PRIVATE -g -O3 -mfma -mavx2)
   add_custom_target(gprof
     COMMAND echo "Cannot run gprof! Please set CMAKE_BUILD_TYPE to Debug!")
 endif()
 
 add_custom_target(flamegraph
-  COMMAND perf record -F MAX -g "${CMAKE_BINARY_DIR}/tester" lena.pgm eth_MeasureFull
-  COMMAND perf script | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
+  COMMAND perf record -F99 -g -o perf.data "${CMAKE_BINARY_DIR}/tester" lena.pgm eth_MeasureFull
+  COMMAND perf script -i perf.data | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
   COMMAND "${PROJECT_SOURCE_DIR}/perf/flamegraph.pl" out.perf-folded > flamegraph.svg
   COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"
   DEPENDS tester)
