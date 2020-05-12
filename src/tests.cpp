@@ -638,14 +638,14 @@ define_test(TestKeypointDetection, 0, {
       // Returned values are identical using identical inputs
       if(!(((int) eth_kpt_list[i].octave) == kpt.octave &&
            ((int) eth_kpt_list[i].layer) == kpt.layer &&
-           eth_kpt_list[i].layer_pos.y == kpt.ri &&
-           eth_kpt_list[i].layer_pos.x == kpt.ci &&
-           eth_kpt_list[i].layer_pos.scale == kpt.layer_scale &&
-           eth_kpt_list[i].global_pos.y == kpt.r &&
-           eth_kpt_list[i].global_pos.x == kpt.c &&
-           eth_kpt_list[i].global_pos.scale == kpt.scale &&
-           eth_kpt_list[i].orientation == kpt.ori &&
-           eth_kpt_list[i].magnitude == kpt.mag))
+           abs(eth_kpt_list[i].layer_pos.y - kpt.ri) < EPS &&
+           abs(eth_kpt_list[i].layer_pos.x - kpt.ci) < EPS &&
+           abs(eth_kpt_list[i].layer_pos.scale - kpt.layer_scale) < EPS &&
+           abs(eth_kpt_list[i].global_pos.y - kpt.r) < EPS &&
+           abs(eth_kpt_list[i].global_pos.x - kpt.c) < EPS &&
+           abs(eth_kpt_list[i].global_pos.scale - kpt.scale) < EPS &&
+           abs(eth_kpt_list[i].orientation - kpt.ori < EPS) &&
+           abs(eth_kpt_list[i].magnitude - kpt.mag < EPS)))
         fail("Keypoint mismatch at %f,%f,%f", kpt.rlayer, kpt.ri, kpt.ci);
     
       ++i;
