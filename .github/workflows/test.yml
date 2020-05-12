@@ -18,6 +18,7 @@ jobs:
     - name: Run tests
       run: |
         cd build && ./tester 2>&1 | tee test.log
+        for IMAGE in data/*.pgm; do ./build/tester; done
     - name: Build flamegraph
       run: |
         sudo sh -c 'echo 0 > /proc/sys/kernel/perf_event_paranoid'
