@@ -37,19 +37,23 @@ jobs:
         chmod +x build/tester
         for file in data/*.pgm; do IMAGE=$(basename $file) ./build/tester; done
     - name: Build flamegraph
+      continue-on-error: true
       run: |
         sudo sh -c 'echo 0 > /proc/sys/kernel/perf_event_paranoid'
         cd build && make flamegraph
     - name: Build artifact
+      continue-on-error: true
       run: |
         cp build/flamegraph.svg logs
         cd logs && rename 's|:|-|g' *
     - name: Create logs artifact
+      continue-on-error: true
       uses: actions/upload-artifact@v2
       with:
         name: logs
         path: logs/
     - name: Post to discord
+      continue-on-error: true
       uses: appleboy/discord-action@master
       with:
         webhook_id: ${{ secrets.WEBHOOK_ID }}
