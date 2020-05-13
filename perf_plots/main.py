@@ -9,8 +9,8 @@ lib_markers = dict()
 lib_markers['eth'] = '*'
 lib_markers['ez'] = '^'
 lib_cols = dict()
-lib_cols['eth'] = '#207020'
-lib_cols['ez'] = '#e0e070'
+lib_cols['eth'] = '#4b6113'
+lib_cols['ez'] = '#f0944d'
 
 
 
