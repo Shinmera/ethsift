@@ -50,7 +50,7 @@ def make_performance_plot(measurements, cycle_measurement_method, debug=False):
                           marker=lib_markers[lib],
                           point_label=lib,
                           color=lib_cols[lib],
-                          markersize=12,
+                          markersize=8,
                           error=np.array(measurements[function][lib]['std']))
             if lib == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
