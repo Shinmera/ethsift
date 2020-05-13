@@ -1,7 +1,6 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import math
 
 
 from architecture_config import config as arch_conf
@@ -16,7 +15,7 @@ class PerformancePlot:
         self.print_method = False
         self.x_label ="Image Resolution [pixels]"
         self.y_label = "Performance [flops/cycle]"
-        self.title_font = {'fontname':'Calibri'}
+        self.title_font = {'fontname':'Times New Roman'}
         self.init_plot()
 
     def init_plot(self):
@@ -92,7 +91,9 @@ class PerformancePlot:
         else:
             plt.suptitle(self.title, **self.title_font, fontsize=25)
         
-        
+        #plt.grid(color='w', linestyle='-', linewidth=2)
+        plt.rcParams['axes.facecolor'] = 'xkcd:light grey'
+        plt.grid(color='w', linestyle='-', linewidth=0.5)
         plt.xlabel(self.x_label, fontsize=15)
         plt.ylabel(self.y_label, fontsize=15)
         plt.show()
