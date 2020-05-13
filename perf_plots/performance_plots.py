@@ -22,7 +22,7 @@ class PerformancePlot:
     def init_plot(self):
         self.max_performance = 0
 
-        fig = plt.figure()
+        fig = plt.figure( figsize=arch_conf['figure_size'])
         x_offset_min = 30000
         x_offset_max = 1000*x_offset_min
         self.x_min = 427*240 - x_offset_min
@@ -79,7 +79,7 @@ class PerformancePlot:
     def set_peak_performance(self, perf):
         self.max_performance =perf
 
-    def plot_graph(self, func_name):  
+    def plot_graph(self, func_name, show=True, autosave=False, format='svg'):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
@@ -95,8 +95,15 @@ class PerformancePlot:
         
         plt.xlabel(self.x_label, fontsize=15)
         plt.ylabel(self.y_label, fontsize=15)
-        plt.show()
-
+        
+        if autosave:
+            plt.savefig("perfplot_"+func_name.lower().replace(' ', '_') + '.' + format,
+                        dpi=None, facecolor='w', edgecolor='w',
+                        orientation='portrait', papertype=None, format=format,
+                        transparent=False, bbox_inches=None, pad_inches=0.1,
+                        frameon=None, metadata=None)
+        if show:
+            plt.show()
 
 
 
