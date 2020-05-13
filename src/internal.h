@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ethsift.h"
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "settings.h"
 #include <float.h>
+#include "settings.h"
+#include "ethsift.h"
+#include "flop_counters.h"
 
 // Wrap image pixel access. Note this does not handle border conditions!
 static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){
@@ -44,9 +44,6 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
     }
     return val;
 }
-
-
-
 
 // MATH
 #define M_TWOPI 6.283185307179586f

@@ -25,6 +25,8 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     int kptc_i = (int)(kptc + 0.5f); // 1 ADD
     float d_kptr = kptr - kptr_i; // 1SUB
     float d_kptc = kptc - kptc_i; // 1SUB
+    
+    inc_adds(4);
 
     float sigma = ETHSIFT_ORI_SIG_FCTR * kpt_scale; // 1MUL
     int win_radius = (int)(ETHSIFT_ORI_RADIUS * kpt_scale); // 1MUL
