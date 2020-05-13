@@ -100,7 +100,7 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
             it += 1
     p.plot_graph("All Functions", show=show_plot, autosave=autosave)
 
-def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosave=True, debug=False):
+def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosave=True, debug=True):
     if debug:
         for key1 in measurements:
             print(key1)
@@ -123,11 +123,13 @@ def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosav
 
     np_runtimes = dict()
     for lib in tot_runtimes:
-        np_runtimes[lib]= np.zeros(len(tot_runtimes[lib]))
+        nr_resolutions = len([tot_runtimes[lib][i] for i in tot_runtimes[lib] if tot_runtimes[lib][i]>0])
+        np_runtimes[lib]= np.zeros(nr_resolutions)
         it = 0
-        for res_key in tot_runtimes[lib]:       
-            np_runtimes[lib][it] = tot_runtimes[lib][res_key]
-            it += 1
+        for res_key in tot_runtimes[lib]:
+            if it < nr_resolutions:
+                np_runtimes[lib][it] = tot_runtimes[lib][res_key]
+                it += 1
 
     plots = dict()
     
@@ -137,8 +139,11 @@ def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosav
     for function in measurements:
         for lib in measurements[function]:
             if lib not in plots:
-                plots[lib] = StackedPlot(len(tot_runtimes[lib]))   
-            y_mod = np.array(measurements[function][lib]['runtime']) / np_runtimes[lib] 
+                nr_resolutions = len([tot_runtimes[lib][i] for i in tot_runtimes[lib] if tot_runtimes[lib][i]>0])
+                plots[lib] = StackedPlot(nr_resolutions)   
+            
+            y_mod = np.array(measurements[function][lib]['runtime']) / np_runtimes[lib]
+            
             error=np.array(measurements[function][lib]['std']) / np_runtimes[lib] 
             plots[lib].plot_points(y=y_mod, std=error, func_name=function)
     for lib in plots:
