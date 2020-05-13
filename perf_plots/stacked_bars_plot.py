@@ -32,14 +32,18 @@ class StackedPlot:
     def set_title(self, title, with_peak_perf=False, peak_performance=0):
         self.title = title
 
-    def plot_points(self, y, std=None, func_name='', width=0.5):
+    def plot_points(self, y, std=None, bottom=None, func_name='', width=0.5):
         ind = np.arange(self.nr_resolutions)
         if std is None:
             std = np.zeros(self.nr_resolutions)
         print(y)
         print(ind)
 
-        handle = self.axes.bar(ind, y, width, yerr=std)[0]
+        if bottom is None:
+            handle = self.axes.bar(ind, y, width, yerr=std)[0]
+        else:    
+            handle = self.axes.bar(ind, y, width, yerr=std, bottom = bottom)[0]
+
         self.handles.append(handle)
         self.bar_names.append(func_name)
         #plt.legend((b[0]), (func_name))

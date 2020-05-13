@@ -135,6 +135,8 @@ def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosav
     
     col_map =cm.get_cmap('jet', nr_lines)
     colors = col_map(np.linspace(0, 1, nr_lines))
+    
+    prev = dict()
 
     for function in measurements:
         for lib in measurements[function]:
@@ -142,10 +144,20 @@ def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosav
                 nr_resolutions = len([tot_runtimes[lib][i] for i in tot_runtimes[lib] if tot_runtimes[lib][i]>0])
                 plots[lib] = StackedPlot(nr_resolutions)   
             
+            if lib not in prev:
+                prev[lib] = None
+            
             y_mod = np.array(measurements[function][lib]['runtime']) / np_runtimes[lib]
             
             error=np.array(measurements[function][lib]['std']) / np_runtimes[lib] 
-            plots[lib].plot_points(y=y_mod, std=error, func_name=function)
+            if prev[lib] is None:
+                plots[lib].plot_points(y=y_mod, std=error, func_name=function)
+                prev[lib] = y_mod
+            else:
+                plots[lib].plot_points(y=y_mod, std=error, func_name=function, bottom=prev[lib])
+                prev[lib] = np.add(y_mod, prev[lib])
+
+
     for lib in plots:
         plots[lib].plot_graph("All Functions " + lib, show=show_plot, autosave=autosave)
 
