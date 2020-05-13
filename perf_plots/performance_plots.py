@@ -13,8 +13,8 @@ class PerformancePlot:
         self.title = "Performance "
         self.method_used = ""
         self.print_method = False
-        self.x_label ="Image Resolution [pixels]"
-        self.y_label = "Performance [flops/cycle]"
+        self.x_label ="Image Resolution \n [pixels]"
+        self.y_label = "Performance \n [flops/cycle]"
         self.title_font = {'fontname':'sans serif'}
         self.init_plot()
 
@@ -95,7 +95,7 @@ class PerformancePlot:
         plt.grid(color='w', linestyle='-', linewidth=0.5)
         self.axes.xaxis.grid() # only showing horizontal lines
         plt.xlabel(self.x_label, fontsize=15)
-        plt.ylabel(self.y_label, fontsize=15)
+        plt.ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
         
         plt.show()
 
