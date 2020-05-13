@@ -52,22 +52,22 @@ class PerformancePlot:
     def plot_performance_bound(self, bound, color, bound_label=''):        
         self.axes.hlines(bound, self.x_min, self.x_max, colors=color, linestyles='solid', label=bound_label)
 
-    def plot_pi(self, mode='all', linewidth=5):
+    def plot_pi(self, mode='all', linewidth=1):
 
         if(mode == "simd"):
             #Plot SIMD and SISD max performance boundary            
-            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
-            self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
+            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
+            self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='#7b0323', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
         elif(mode == "sisd"):           
-            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linewidth=linewidth, linestyles='solid', label='Max Performance SISD')
-            self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors='m', linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD')
+            self.axes.hlines(self.pi, self.x_min, self.x_max, colors="#c44240", linewidth=linewidth, linestyles='solid', label='Max Performance SISD')
+            self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors="#c44240", linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD')
         else:            
             #Plot SIMD and SISD max performance boundary
-            self.axes.hlines(self.pi, self.x_min, self.x_max, colors='m', linewidth=linewidth, linestyles='solid', label='Max Performance SISD')
-            self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors='m', linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD')
+            self.axes.hlines(self.pi, self.x_min, self.x_max, colors="#c44240", linewidth=linewidth, linestyles='solid', label='Max Performance SISD')
+            self.axes.vlines(self.pi/self.beta, self.y_min, self.pi, colors="#c44240", linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD')
             
-            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='r', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
-            self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='r', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
+            self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
+            self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='#7b0323', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
 
     def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8, error=None):
         if(error is None):
