@@ -7,12 +7,27 @@ int test_count = 10;
 size_t add_counts[1024];
 size_t mult_counts[1024];
 size_t mem_counts[1024];
+size_t div_counts[1024];
 
 // Input image
 char * img = "lena.pgm";
 struct ethsift_image input_img;
 
-/// Add tests here
+/// Helper functions and fields
+struct ethsift_image eth_octaves[OCTAVE_COUNT];
+struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
+
+int init_gaussian() {
+  ethsift_allocate_pyramid(eth_octaves, input_img.width, input_img.height, OCTAVE_COUNT, 1);
+  ethsift_allocate_pyramid(eth_gaussians, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+  
+  // Generate gaussian pyramid for input picture
+  ethsift_generate_octaves(input_img, eth_octaves, OCTAVE_COUNT);
+  ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+}
+
+
+////////////////////////////////////  Add tests here  /////////////////////////////////////// 
 int test_downscale() {
   int dstW = input_img.width >> 1;
   int dstH = input_img.height >> 1;
@@ -46,48 +61,215 @@ int test_convolution() {
 }
 
 int test_gaussian_pyramid() {
+  // Allocate the pyramids!
+  struct ethsift_image eth_octaves[OCTAVE_COUNT];
+  ethsift_allocate_pyramid(eth_octaves, input_img.width, input_img.height, OCTAVE_COUNT, 1);
 
+  struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gaussians, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  //Create Octaves for ethSift    
+  ethsift_generate_octaves(input_img, eth_octaves, OCTAVE_COUNT);
+  // Create gaussians for ethSift
+  #ifdef IS_COUNTING
+  reset_counters();
+  #endif
+  ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
   return 1;
 }
 
 int test_dog() {
-
+  // Allocate the pyramids!  
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
+  ethsift_allocate_pyramid(eth_differences, input_img.width, input_img.height, OCTAVE_COUNT, DOG_COUNT);
+  
+  #ifdef IS_COUNTING
+  reset_counters();
+  #endif
+  ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
   return 1;
 }
 
 int test_grad_rot() {
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gradients, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_rotations, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  #ifdef IS_COUNTING
+  reset_counters();
+  #endif
+  ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
   return 1;
 }
 
 int test_histogram() {
+  // Allocate the pyramids!  
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
+  ethsift_allocate_pyramid(eth_differences, input_img.width, input_img.height, OCTAVE_COUNT, DOG_COUNT);
+  
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gradients, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_rotations, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
+  ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+
+  struct ethsift_keypoint eth_kpt_list[100];
+  uint32_t nKeypoints = 100;
+  ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+
+  size_t adds_temp = 0;
+  size_t mults_temp = 0;
+  size_t mem_temp = 0;
+  size_t div_temp = 0;
+
+  int lim = (nKeypoints < 100)? nKeypoints : 100;
+  float eth_hist[ETHSIFT_ORI_HIST_BINS];
+  for (int i = 0; i < lim; ++i) {
+    struct ethsift_keypoint kpt = eth_kpt_list[i];
+    float max_mag = 0.f;
+    
+    #ifdef IS_COUNTING
+    reset_counters();
+    #endif
+    ethsift_compute_orientation_histogram(eth_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
+                                          eth_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
+                                          &kpt, eth_hist, &max_mag);
+
+    #ifdef IS_COUNTING
+    adds_temp += add_count;
+    mults_temp += mult_count;
+    mem_temp += mem_count;
+    div_temp += div_count;
+    #endif
+  }
+
+  // Average the counts
+  #ifdef IS_COUNTING
+  add_count = (size_t) floor(adds_temp / lim);
+  mult_count = (size_t) floor(mults_temp / lim);
+  mem_count = (size_t) floor(mem_temp / lim);
+  div_count = (size_t) floor(div_temp / lim);
+  #endif
   return 1;
 }
 
 int test_refinement() {
+  // Allocate the pyramids!  
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
+  ethsift_allocate_pyramid(eth_differences, input_img.width, input_img.height, OCTAVE_COUNT, DOG_COUNT);
+  
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gradients, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_rotations, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
+  ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+
+  struct ethsift_keypoint eth_kpt_list[100];
+  uint32_t nKeypoints = 100;
+  ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+
+  size_t adds_temp = 0;
+  size_t mults_temp = 0;
+  size_t mem_temp = 0;
+  size_t div_temp = 0;
+
+  int lim = (nKeypoints < 100)? nKeypoints : 100;
+  for (int i = 0; i < lim; ++i) {
+    struct ethsift_keypoint kpt = eth_kpt_list[i];
+
+    #ifdef IS_COUNTING
+    reset_counters();
+    #endif
+    ethsift_refine_local_extrema(eth_differences, OCTAVE_COUNT, GAUSSIAN_COUNT, &kpt);
+    
+    #ifdef IS_COUNTING
+    adds_temp += add_count;
+    mults_temp += mult_count;
+    mem_temp += mem_count;
+    div_temp += div_count;
+    #endif
+  }
+
+  // Average the counts
+  #ifdef IS_COUNTING
+  add_count = (size_t) floor(adds_temp / lim);
+  mult_count = (size_t) floor(mults_temp / lim);
+  mem_count = (size_t) floor(mem_temp / lim);
+  div_count = (size_t) floor(div_temp / lim);
+  #endif
   return 1;
 }
 
 int test_keypoint_detection() {
+// Allocate the pyramids!  
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
+  ethsift_allocate_pyramid(eth_differences, input_img.width, input_img.height, OCTAVE_COUNT, DOG_COUNT);
+  
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gradients, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_rotations, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
+  ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+
+  struct ethsift_keypoint eth_kpt_list[100];
+  uint32_t nKeypoints = 100;
+
+  #ifdef IS_COUNTING
+  reset_counters();
+  #endif
+  ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
   return 1;
 }
 
 int test_extract_descriptor() {
+  // Allocate the pyramids!  
+  struct ethsift_image eth_differences[OCTAVE_COUNT*DOG_COUNT];
+  ethsift_allocate_pyramid(eth_differences, input_img.width, input_img.height, OCTAVE_COUNT, DOG_COUNT);
+  
+  struct ethsift_image eth_gradients[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_gradients, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
+  struct ethsift_image eth_rotations[OCTAVE_COUNT*GAUSSIAN_COUNT];
+  ethsift_allocate_pyramid(eth_rotations, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
+
+  ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
+  ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+
+  struct ethsift_keypoint eth_kpt_list[100];
+  uint32_t nKeypoints = 100;
+  ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+  
+  #ifdef IS_COUNTING
+  reset_counters();
+  #endif
+  ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, 100);
   return 1;
 }
 
 int test_compute_keypoints() {
-
+  // Allocate the pyramids!
+  uint32_t nKeypoints = 1000;
+  struct ethsift_keypoint eth_kpt_list[1000];
+  ethsift_compute_keypoints(input_img, eth_kpt_list, &nKeypoints);
   return 1;
 }
-
-/// End of tests
+////////////////////////////////////  End of tests  ///////////////////////////////////////
 
 int init_tests() {
+  // Precompute gaussian pyramid
+  init_gaussian();
+
   tests = (test *)malloc(test_count * sizeof(test));
   // Add tests here
   tests[0] = (test){"CountDownscale", 1, test_downscale};
@@ -95,11 +277,11 @@ int init_tests() {
   tests[2] = (test){"CountGaussianPyramid", 1, test_gaussian_pyramid};
   tests[3] = (test){"CountDoG", 1, test_dog};
   tests[4] = (test){"CountGradRot", 1, test_grad_rot};
-  tests[5] = (test){"CountHistogram", 1, test_histogram};
-  tests[6] = (test){"CountRefinement", 1, test_refinement};
+  tests[5] = (test){"CountHistogram avg", 1, test_histogram};
+  tests[6] = (test){"CountRefinement avg", 1, test_refinement};
   tests[7] = (test){"CountKeypointDetection", 1, test_keypoint_detection};
   tests[8] = (test){"CountExtractDescriptor", 1, test_extract_descriptor};
-  tests[9] = (test){"CountComputeKeypoints", 1, test_compute_keypoints};
+  tests[9] = (test){"CountSIFTComplete1000", 1, test_compute_keypoints};
 
   return 1;
 }

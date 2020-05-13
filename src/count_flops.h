@@ -32,6 +32,7 @@ typedef struct {
 extern size_t add_counts[];
 extern size_t mult_counts[];
 extern size_t mem_counts[];
+extern size_t div_counts[];
 
 // Array containing all tests that get executed
 extern int test_count;
@@ -41,16 +42,17 @@ int init_tests();
 
 int run_test(int id, test test) {
   #ifdef IS_COUNTING
-    fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
+    fprintf(stderr, "Running %-25s \033[0;90m...\033[0;0m ", test.title);
     // Reset counters to zero
     reset_counters();
 
     int ret = test.func();
 
-    fprintf(stderr, " %8ld adds/subs, %8ld mults, %8ld read/writes\n", add_count, mult_count, mem_count);
+    fprintf(stderr, " %10ld adds/subs, %10ld mults, %10ld divs, %10ld read/writes\n", add_count, mult_count, div_count, mem_count);
     add_counts[id] = add_count;
     mult_counts[id] = mult_count;
     mem_counts[id] = mem_count;
+    div_counts[id] = div_count;
     return ret;
   #else
     fprintf(stderr, "IS_COUNTING is not defined");

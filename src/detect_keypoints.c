@@ -26,6 +26,8 @@ static inline int is_local_max(float pixel, int pos, int w, float *curData, floa
         pixel > lowData[pos + w - 1] &&
         pixel > lowData[pos + w] &&
         pixel > lowData[pos + w + 1];
+
+  inc_mem(26); // worst case
   return val;
 }
 
@@ -55,6 +57,8 @@ static inline int is_local_min(float pixel, int pos, int w, float *curData, floa
         pixel < lowData[pos + w - 1] &&
         pixel < lowData[pos + w] &&
         pixel < lowData[pos + w + 1];
+  
+  inc_mem(26); // worst case
   return val;
 }
 
@@ -79,6 +83,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
   float orientation_peak_ratio = ETHSIFT_ORI_PEAK_RATIO;
   
   float threshold = 0.8f * contr_thr;
+  
+  inc_mults(1);
   
   // Layers of DoG
   int layersDoG = gaussian_count - 1;
@@ -108,6 +114,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
     w = (int) differences[i * layersDoG].width;
     h = (int) differences[i * layersDoG].height;
 
+    inc_mem(2);
+
     // (h-10)(w-10)(11 + rle + coh)*layersDoG*
     for (int j = 1; j < layersDoG - 1; ++j) {
       layer_ind = i * layersDoG + j;
@@ -116,6 +124,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
       curData  = differences[layer_ind ].pixels; 
       lowData  = differences[layer_ind - 1].pixels; 
 
+      inc_mem(3);
+
       // (h-10)(w-10)(11 + rle + coh)
       // Iterate over all pixels in image, ignore border values
       for (int r = image_border; r < h - image_border; ++r) {
@@ -123,6 +133,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
           // Pixel position and value
           pos = r * w + c;
           pixel = curData[pos];
+
+          inc_mem(1);
 
           // Test if pixel value is an extrema:
           int isExtrema =
@@ -160,6 +172,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 float lhist = hist[left];
                 float rhist = hist[right];
 
+                inc_mem(3);
+
                 if (currHist > lhist && currHist > rhist &&
                   currHist > hist_threshold) {
                   // Refer to here:
@@ -167,6 +181,9 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   float accu_ii =
                     ii + 0.5f * (lhist - rhist) /
                     (lhist - 2.0f * currHist + rhist);  // 2 ADD + 2 SUBs + 2 MULs
+
+                  inc_adds(4);
+                  inc_mults(2);
 
                   // Since bin index means the starting point of a
                   // bin, so the real orientation should be bin
@@ -177,12 +194,23 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                                         : accu_ii >= nBins
                                           ? (accu_ii - nBins) // 1 SUB
                                           : accu_ii;
+
+                  #ifdef IS_COUNTING
+                  if (accu_ii < 0) {
+                    inc_adds(1);
+                  } else if (accu_ii >= nBins) {
+                    inc_adds(1);
+                  }
+                  #endif
                   // The magnitude should also calculate the max
                   // number based on fitting But since we didn't
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins; // 1 MUL + 1 DIV
+
+                  inc_mults(1);
+                  inc_div(1);
 
                   // Update keypoint counters
                   ++keypoints_current;
@@ -222,7 +250,11 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &temp, 
                 hist, &max_mag);
 
+              inc_mem(2); //?
+
               float hist_threshold = max_mag * orientation_peak_ratio; // 1 MUL
+
+              inc_mults(1);
 
               for (int ii = 0; ii < nBins; ++ii) {
                 int left = ii > 0 ? ii - 1 : nBins - 1;

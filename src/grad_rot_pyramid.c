@@ -27,6 +27,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         
         width = (int) gaussians[i * gaussian_count].width;
         height = (int) gaussians[i * gaussian_count].height;
+        inc_mem(2); // Still not sure?
 
         for(int j = 1; j <= layers; j++){
 
@@ -41,8 +42,12 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                     d_column = get_pixel_f(gaussians[idx].pixels, width, height, row, column+1) - 
                                get_pixel_f(gaussians[idx].pixels, width, height, row, column-1);
                     
+                    inc_adds(2); // 2 Subtractions
+                    inc_mem(4); // Maybe?
+                    
                     gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);  
                     rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column); 
+                    inc_mem(2); // At least two writes
                 }
             }
         }        

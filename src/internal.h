@@ -67,18 +67,31 @@ static inline float fast_atan2_f(float y, float x)
     float const c3 = 0.1821F;
     float const c1 = 0.9675F;
     float abs_y = fabsf(y) + EPSILON_F;
+    inc_adds(1);
 
     if (x >= 0) {
         r = (x - abs_y) / (x + abs_y);
         angle = M_PI_FRAC4;
+        inc_adds(2);
+        inc_div(1);
     }
     else {
         r = (x + abs_y) / (abs_y - x);
         angle = M_THREEPI_FRAC4;
+        inc_adds(2);
+        inc_div(1);
     }
     angle += (c3 * r * r - c1) * r;
+    inc_adds(2);
+    inc_mults(3);
 
-    return (y < 0) ? M_TWOPI - angle : angle;
+    if (y < 0) {
+        inc_adds(1);
+        return M_TWOPI - angle;
+    } else {
+        return angle;
+    }
+    // return (y < 0) ? M_TWOPI - angle : angle;
 }
 
 
