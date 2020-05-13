@@ -18,8 +18,8 @@ def main():
     print("Start Plotting Script")
     # modes are rdtsc, chrono and runtime
     reading_mode = 'rdtsc' 
-    nr_of_different_resoltuions = 6
-    measurements = read_logs(nr_of_different_resoltuions, reading_mode)
+    nr_of_different_resolutions = 6
+    measurements = read_logs(nr_of_different_resolutions, reading_mode)
 
     if reading_mode == 'runtime':
         make_runtime_plot(measurements=measurements)
@@ -59,7 +59,7 @@ def make_performance_plot(measurements, cycle_measurement_method, debug=False):
         p.plot_graph(function)
 
 def make_runtime_plot(measurements):
-     if debug:
+    if debug:
         for key1 in measurements:
             print(key1)
             print("======================================================\n")
