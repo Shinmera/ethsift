@@ -9,7 +9,7 @@ lib_markers = dict()
 lib_markers['eth'] = '*'
 lib_markers['ez'] = '^'
 lib_cols = dict()
-lib_cols['eth'] = '#4b6113'
+lib_cols['eth'] = '#2138ab'
 lib_cols['ez'] = '#f0944d'
 
 
@@ -42,16 +42,17 @@ def make_performance_plot(measurements, cycle_measurement_method, debug=False):
     for function in measurements:
         p = PerformancePlot()
         p.set_method_used(cycle_measurement_method)
-        p.plot_pi(linewidth=3)
+        p.plot_pi(linewidth=2)
         peak_perf = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
                           y=np.array(measurements[function][lib]['performance']),
+                          linewidth=1.5,
                           marker=lib_markers[lib],
                           point_label=lib,
                           color=lib_cols[lib],
-                          markersize=8,
-                          error=np.array(measurements[function][lib]['std']))
+                          markersize=8)
+                          #error=np.array(measurements[function][lib]['std']))
             if lib == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
@@ -79,7 +80,7 @@ def make_runtime_plot(measurements):
                 longest_runtime = max(temp, peak_perf)
 
     p = RuntimePlot(y_max=longest_runtime)
-    p.plot_pi(linewidth=3)
+    p.plot_pi(3)
 
     for function in measurements:
         for lib in measurements[function]:
