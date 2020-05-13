@@ -78,7 +78,7 @@ class PerformancePlot:
     def set_peak_performance(self, perf):
         self.max_performance =perf
 
-    def plot_graph(self, func_name):  
+    def plot_graph(self, func_name, x_ax):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
@@ -95,6 +95,8 @@ class PerformancePlot:
         plt.grid(color='w', linestyle='-', linewidth=0.5)
         self.axes.xaxis.grid() # only showing horizontal lines
         plt.xlabel(self.x_label, fontsize=15)
+        my_xticks = ['2160','480','1080','240', '720', '360', '4320']
+        plt.xticks(x_ax, my_xticks)
         plt.ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
         
         plt.show()
