@@ -1,7 +1,6 @@
 #ifndef FLOP_COUNTERS_H
 #define FLOP_COUNTERS_H
 
-/// Now part of the interface
 /// Methods and variables for counting flops
 #ifdef IS_COUNTING
   size_t add_count, mult_count, mem_count, div_count;
