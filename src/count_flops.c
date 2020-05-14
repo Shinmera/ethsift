@@ -1,7 +1,7 @@
 #include "count_flops.h"
 
 // Number of defined tests
-int test_count = 9;
+int test_count;
 
 // To save counts for the log file
 size_t add_counts[1024];
@@ -301,8 +301,8 @@ int test_compute_keypoints() {
 ////////////////////////////////////  End of tests  ///////////////////////////////////////
 
 int init_tests() {
-  // Precompute gaussian pyramid
-  init_gaussian();
+  // Specify number of tests
+  test_count = 9;
 
   tests = (test *)malloc(test_count * sizeof(test));
   // Add tests here
@@ -331,6 +331,9 @@ int main(int argc, const char* argv[]){
     return 0;
   }
   fprintf(stderr, "Image with %d x %d pixels\n", input_img.width, input_img.height);
+
+  // Precompute gaussian pyramid
+  init_gaussian();
 
   init_tests();
   for (int i = 0; i < test_count; ++i) {
