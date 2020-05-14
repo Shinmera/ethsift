@@ -1,7 +1,7 @@
 #include "count_flops.h"
 
 // Number of defined tests
-int test_count = 9;
+int test_count;
 
 // To save counts for the log file
 size_t add_counts[1024];
@@ -57,6 +57,9 @@ int test_convolution() {
   reset_counters();
   #endif
   ethsift_apply_kernel(input_img, kernel, kernel_size, kernel_rad, out);
+
+  free(kernel);
+
   return 1;
 }
 
@@ -75,6 +78,10 @@ int test_gaussian_pyramid() {
   reset_counters();
   #endif
   ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+  
+  ethsift_free_pyramid(eth_octaves);
+  ethsift_free_pyramid(eth_gaussians);
+  
   return 1;
 }
 
@@ -87,6 +94,9 @@ int test_dog() {
   reset_counters();
   #endif
   ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT);
+  
+  ethsift_free_pyramid(eth_differences);
+  
   return 1;
 }
 
@@ -101,6 +111,10 @@ int test_grad_rot() {
   reset_counters();
   #endif
   ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT);
+  
+  ethsift_free_pyramid(eth_rotations);
+  ethsift_free_pyramid(eth_gradients);
+  
   return 1;
 }
 
@@ -155,6 +169,11 @@ int test_histogram() {
   mem_count = (size_t) floor(mem_temp / lim);
   div_count = (size_t) floor(div_temp / lim);
   #endif
+
+  ethsift_free_pyramid(eth_differences);
+  ethsift_free_pyramid(eth_gradients);
+  ethsift_free_pyramid(eth_rotations);
+
   return 1;
 }
 
@@ -205,6 +224,11 @@ int test_refinement() {
   mem_count = (size_t) floor(mem_temp / lim);
   div_count = (size_t) floor(div_temp / lim);
   #endif
+  
+  ethsift_free_pyramid(eth_differences);
+  ethsift_free_pyramid(eth_gradients);
+  ethsift_free_pyramid(eth_rotations);
+  
   return 1;
 }
 
@@ -229,6 +253,11 @@ int test_keypoint_detection() {
   reset_counters();
   #endif
   ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
+  
+  ethsift_free_pyramid(eth_differences);
+  ethsift_free_pyramid(eth_gradients);
+  ethsift_free_pyramid(eth_rotations);
+  
   return 1;
 }
 
@@ -255,11 +284,15 @@ int test_extract_descriptor() {
   reset_counters();
   #endif
   ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, nKeypoints);
+  
+  ethsift_free_pyramid(eth_differences);
+  ethsift_free_pyramid(eth_gradients);
+  ethsift_free_pyramid(eth_rotations);
+
   return 1;
 }
 
-int test_compute_keypoints() {
-  // Allocate the pyramids!
+int test_compute_keypoints() {  
   uint32_t nKeypoints = 1000;
   struct ethsift_keypoint eth_kpt_list[1000];
   ethsift_compute_keypoints(input_img, eth_kpt_list, &nKeypoints);
@@ -268,8 +301,8 @@ int test_compute_keypoints() {
 ////////////////////////////////////  End of tests  ///////////////////////////////////////
 
 int init_tests() {
-  // Precompute gaussian pyramid
-  init_gaussian();
+  // Specify number of tests
+  test_count = 9;
 
   tests = (test *)malloc(test_count * sizeof(test));
   // Add tests here
@@ -299,12 +332,19 @@ int main(int argc, const char* argv[]){
   }
   fprintf(stderr, "Image with %d x %d pixels\n", input_img.width, input_img.height);
 
+  // Precompute gaussian pyramid
+  init_gaussian();
+
   init_tests();
   for (int i = 0; i < test_count; ++i) {
     if (tests[i].enabled) {
       run_test(i, tests[i]);
     }
   }
+  
+  // Free gaussian and octaves
+  ethsift_free_pyramid(eth_gaussians);
+  ethsift_free_pyramid(eth_octaves);
 
   write_log();
   return 0;
