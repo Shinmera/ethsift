@@ -76,9 +76,9 @@ class PerformancePlot:
             self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
 
     def set_peak_performance(self, perf):
-        self.max_performance =perf
+        self.max_performance = perf
 
-    def plot_graph(self, func_name, x_ax, show=True, autosave=False, format='svg'):  
+    def plot_graph(self, func_name, x_ax, x_labels, show=True, autosave=False, format='svg'):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
@@ -96,7 +96,7 @@ class PerformancePlot:
         self.axes.xaxis.grid() # only showing horizontal lines
         plt.xlabel(self.x_label, fontsize=15)
         my_xticks = ['240', '360', '480', '720', '1080', '2160', '4320']
-        plt.xticks(x_ax, my_xticks)
+        plt.xticks(x_labels, my_xticks)
         plt.ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
         
         if autosave:

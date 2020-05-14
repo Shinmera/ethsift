@@ -62,7 +62,7 @@ def make_performance_plot(measurements, cycle_measurement_method, show_plot=True
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
-        p.plot_graph(function, x_ax=np.array(measurements[function][lib]['resolutions']))
+        p.plot_graph(function, x_ax=np.array(measurements[function][lib]['resolutions']), x_labels=np.array(measurements[function]['eth']['resolutions']))
 
 def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
     if debug:
