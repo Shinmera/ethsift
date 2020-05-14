@@ -9,6 +9,8 @@ import math
 
 lib_markers = dict()
 lib_markers['eth'] = '*'
+lib_markers['eth-O0'] = 'x'
+lib_markers['eth-O3'] = 'v'
 lib_markers['ez'] = '^'
 lib_cols = dict()
 lib_cols['eth'] = '#2138ab'
@@ -22,7 +24,7 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = 'runtime' 
+    reading_mode = 'rdtsc' 
 
     # Instead of opening plot window, auto-save images to perf_plot folder 
     save_plots = True 
@@ -68,25 +70,33 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                 print("\n")
             print("\n")
 
+    
+
     for function in measurements:
         p = PerformancePlot()
         p.set_method_used(cycle_measurement_method)
         p.plot_pi(linewidth=2)
         peak_perf = 0
+        
+        nr_libs = len(measurements[function])
+        col_map = cm.get_cmap('jet', nr_libs)
+        colors = col_map(np.linspace(0, 1, nr_libs))
+        it = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
                           y=np.array(measurements[function][lib]['performance']),
                           linewidth=1.5,
                           marker=lib_markers[lib],
                           point_label=lib,
-                          color=lib_cols[lib],
+                          color=colors[it],
                           markersize=8,
                           error=np.array(measurements[function][lib]['std'])
                           )
-            if lib == 'eth':
+            if lib.split('-')[0] == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
+            it += 1
         p.plot_graph(function, autosave=autosave, img_format=img_format)
 
 def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='svg', debug=False):
@@ -179,10 +189,10 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
             
             error=np.array(measurements[function][lib]['std']) / np_runtimes[lib] 
             if prev[lib] is None:
-                plots[lib].plot_points(y=y_mod, std=error, func_name=function)
+                plots[lib].plot_points(y=y_mod, func_name=function)
                 prev[lib] = y_mod
             else:
-                plots[lib].plot_points(y=y_mod, std=error, func_name=function, bottom=prev[lib])
+                plots[lib].plot_points(y=y_mod, func_name=function, bottom=prev[lib])
                 prev[lib] = np.add(y_mod, prev[lib])
 
 

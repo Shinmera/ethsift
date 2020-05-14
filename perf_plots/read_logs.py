@@ -9,7 +9,7 @@ from os import listdir
 from os.path import isfile, join
 
 # Settings for reading the logs
-logs_folder = "../firstmeetinglogs/"
+logs_folder = "../baseline_logs/"
 flops_logs = "../flops_logs/"
 
 start_line = 1
@@ -84,7 +84,7 @@ def get_performance_measurements(log_files, mode, flops_util_version=2):
                         
             if func_name in measurements:
                 pass
-            elif func_name == "Octaves" or func_name == "GaussianKernelGeneration":
+            elif func_name == "Octaves" or func_name == "GaussianKernelGeneration" or func_name == "MeasureFull":
                 continue
             else:                
                 measurements[func_name] = dict()
@@ -108,7 +108,7 @@ def get_performance_measurements(log_files, mode, flops_util_version=2):
                 flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
             else:
                 print("Access  " + resolution + "  " + func_name + "  " + lib)
-                flops = flops_util2[lib][func_name][resolution]
+                flops = flops_util2[func_name][resolution]
 
 
             measurements[func_name][lib]['performance'].append(flops / cycles)
@@ -245,8 +245,5 @@ def init_flops_util2():
         print("Creation  " + resolution)
         for l in lines:
             vals = l.split(',')
-            flops_util2['eth'][vals[0]][resolution] = int(vals[1])
-            rw_util['eth'][vals[0]][resolution] = int(vals[2])
-
-            flops_util2['ez'][vals[0]][resolution] = int(vals[1])
-            rw_util['ez'][vals[0]][resolution] = int(vals[2])
+            flops_util2[vals[0]][resolution] = int(vals[1])
+            rw_util[vals[0]][resolution] = int(vals[2])
