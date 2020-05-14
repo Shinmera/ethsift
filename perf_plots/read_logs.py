@@ -52,7 +52,7 @@ resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolut
 def read_logs(mode='rdtsc'):    
     # modes are rdtsc, chrono and runtime    
     onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
-    #onlyfiles = np.sort(onlyfiles)
+    onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
     
     if mode is 'runtime':
