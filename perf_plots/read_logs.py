@@ -207,7 +207,7 @@ def get_resolutions_in_pixels():
         all_res.append(resolution_map[key]['tot_pixels'])
     return np.array(all_res)
 
-def get_resolutions_in_ticks():
+def get_resolutions_in_labels():
     all_res = []
     for key in resolution_map:
         all_res.append(key)

@@ -22,7 +22,7 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = 'stacked_runtime' 
+    reading_mode = 'rdtsc' 
 
     # Instead of opening plot window, auto-save images to perf_plot folder 
     save_plots = True 
@@ -181,7 +181,7 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
 
 
     for lib in plots:
-        plots[lib].plot_graph("All Functions " + lib, autosave=autosave, img_format=img_format)
+        plots[lib].plot_graph("Stacked Proportional Runtime " + lib, autosave=autosave, img_format=img_format)
 
         
 if __name__ == '__main__':

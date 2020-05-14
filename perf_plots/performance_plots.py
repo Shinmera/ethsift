@@ -2,7 +2,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from read_logs import get_resolutions_in_pixels, get_resolutions_in_ticks
+from read_logs import get_resolutions_in_pixels, get_resolutions_in_labels
 
 from architecture_config import config as arch_conf
 
@@ -22,7 +22,7 @@ class PerformancePlot:
     def init_plot(self):
         self.max_performance = 0
 
-        fig = plt.figure( figsize=arch_conf['figure_size'])
+        self.fig = plt.figure( figsize=arch_conf['figure_size'])
         x_offset_min = 30000
         x_offset_max = 1000*x_offset_min
         self.x_min = 427*240 - x_offset_min
@@ -30,7 +30,7 @@ class PerformancePlot:
         self.y_min = 0
         self.y_max = self.pi_simd + 0.5
         
-        self.axes= fig.add_axes([0.1,0.1,0.8,0.8])
+        self.axes= self.fig.add_axes([0.1,0.1,0.8,0.8])
 
         self.axes.set_xlim([self.x_min,self.x_max])
         self.axes.set_ylim([self.y_min,self.y_max]) 
@@ -86,19 +86,20 @@ class PerformancePlot:
         self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         if self.print_method:            
-            plt.suptitle(self.title + func_name, **self.title_font, fontsize=25)
+            self.fig.suptitle(self.title + func_name, **self.title_font, fontsize=25)
             title = "(Measured with " + self.method_used +"; Peak Performance ethSIFT: {:.2f} )".format(self.max_performance)
-            plt.title(title, **self.title_font, fontsize=20)
+            self.axes.set_title(title, **self.title_font, fontsize=20)
         else:
-            plt.suptitle(self.title, **self.title_font, fontsize=25)
+            self.fig.suptitle(self.title, **self.title_font, fontsize=25)
         
         plt.rcParams['axes.facecolor'] = 'xkcd:light grey'
-        plt.grid(color='w', linestyle='-', linewidth=0.5)
+        self.axes.grid(color='w', linestyle='-', linewidth=0.5)
         self.axes.xaxis.grid() # only showing horizontal lines
-        plt.xlabel(self.x_label, fontsize=15)
+        self.axes.set_xlabel(self.x_label, fontsize=15)
         
-        plt.xticks(get_resolutions_in_pixels(), get_resolutions_in_ticks())
-        plt.ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
+        self.axes.set_xticks(get_resolutions_in_pixels())
+        self.axes.set_xticklabels(get_resolutions_in_labels())
+        self.axes.set_ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
         
         if autosave:
             plt.savefig("perfplot_"+func_name.lower().replace(' ', '_') + '.' + img_format,
