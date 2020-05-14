@@ -306,6 +306,7 @@ int main(int argc, const char* argv[]){
       run_test(i, tests[i]);
     }
   }
-  
+
+  write_log();
   return 0;
 }

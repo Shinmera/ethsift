@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <float.h>
+#include <time.h>
 #include "internal.h"
 
 #define OCTAVE_COUNT 6
@@ -33,6 +34,9 @@ extern size_t add_counts[];
 extern size_t mult_counts[];
 extern size_t mem_counts[];
 extern size_t div_counts[];
+
+// Image name
+extern char * img;
 
 // Array containing all tests that get executed
 extern int test_count;
@@ -58,11 +62,6 @@ int run_test(int id, test test) {
     fprintf(stderr, "IS_COUNTING is not defined");
     return 0;
   #endif
-}
-
-int write_log(int n_tests) {
-  // TODO write log to csv file
-  return 0;
 }
 
 // Return an absolute path to a file within the project root's data/ directory.
@@ -130,6 +129,42 @@ int read_pgm(const char *filename, struct ethsift_image *output)
     }
   }
   return 1;
+}
+
+// Write data to log file
+int write_log() {
+  char img_cut[100];
+  strcpy(img_cut, img);
+  img_cut[strlen(img_cut) - 4] = '\0';  // Stip .pgm from image name
+
+  // Some identifier to prevent accidential over writing of older logs
+  char identifier[11];    
+  int timestamp = (int)time(NULL);
+  sprintf(identifier, "%d", timestamp);
+
+  char log[255];
+  strcpy(log, identifier);
+  strcat(log, "_counts_");
+  strcat(log, img_cut);
+  strcat(log, ".csv");
+
+  char path[255];
+  strcpy(path, ETHSIFT_LOGS);
+  strcat(path, "/");
+  strcat(path, log);
+
+  printf("Write log file to %s\n", path);
+
+  FILE * csv = fopen(path, "w+");
+  fprintf(csv, "Title,Flops,ReadWrites\n");
+
+  for (int i = 0; i < test_count; ++i) {
+    size_t flops = add_counts[i] + mult_counts[i] + div_counts[i];
+    fprintf(csv, "%s,%ld,%ld\n", tests[i].title, flops, mem_counts[i]);
+  } 
+
+  fclose(csv);
+  return 0;
 }
 
 #endif // PERF_COUNTERS_H
