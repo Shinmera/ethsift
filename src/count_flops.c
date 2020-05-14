@@ -291,11 +291,9 @@ int main(int argc, const char* argv[]){
     img = (char *)argv[1];
   }
   fprintf(stderr, "Count flops and memory accesses using %s\n", img);
-  char * path = data_file(img);
-  fprintf(stderr, "Load image from %s\n", path);
 
   // Load input img from pgm file
-  if (!read_pgm(path, &input_img)) {
+  if (!read_pgm(img, &input_img)) {
     return 0;
   }
   fprintf(stderr, "Image with %d x %d pixels\n", input_img.width, input_img.height);

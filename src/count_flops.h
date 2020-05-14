@@ -64,16 +64,6 @@ int run_test(int id, test test) {
   #endif
 }
 
-// Return an absolute path to a file within the project root's data/ directory.
-static char* data_file(char* file) {
-  const char* data = ETHSIFT_DATA;
-  char* path = (char*)calloc(sizeof(char), strlen(data) + strlen(file) + 1);
-  path = strcat(path, data);
-  path = strcat(path, "/");
-  path = strcat(path, file);
-  return path;
-}
-
 // Simple method to read pgm image and return an ethsift_image
 int read_pgm(const char *filename, struct ethsift_image *output)
 {
@@ -83,7 +73,15 @@ int read_pgm(const char *filename, struct ethsift_image *output)
   int i;
   int w, h;
 
-  in_file = fopen(filename, "rb");
+  // Generate data path
+  char path[255];
+  strcpy(path, ETHSIFT_DATA);
+  strcat(path, "/");
+  strcat(path, filename);
+  
+  fprintf(stderr, "Load image from %s\n", path);
+
+  in_file = fopen(path, "rb");
   if (!in_file) {
       fprintf(stderr, "ERROR(0): Fail to open file %s\n", filename);
       return -1;
