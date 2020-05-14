@@ -21,10 +21,17 @@ int ethsift_generate_gaussian_kernel(float *kernel,
         tmp = (float)((j - kernel_rad) / sigma); //Float conversion 2 FLOP?
         kernel[j] = expf(tmp * tmp * -0.5f) * (1 + j / 1000.0f); // 3 MULs + 1 ADDs + 1DIVs + 1EXPs = 
         accu += kernel[j];
+        inc_adds(2);
+        inc_mults(3);
+        inc_mem(2);
+        inc_div(1);
     }
     float mul = 1.0f / accu; // 1 DIV
+    inc_div(1);
     for (int j = 0; j < kernel_size; j++) {
         kernel[j] = kernel[j]*mul; // 1 MUL
+        inc_mults(1);
+        inc_mem(2);
     }
     return 1;
 }
@@ -51,14 +58,20 @@ int ethsift_generate_all_kernels(int layers_count,
     float sigma, sigma_pre;
     float sigma0 = ETHSIFT_SIGMA;
     float k = powf(2.0f, 1.0f / layers_count); //<==> root(2, 1/3) 1FLOP
+    inc_div(1); // Since div is something like a worst case
     float sigma_i;
 
     // Init first sigma
     sigma_pre = ETHSIFT_INIT_SIGMA;
     sigma_i = sqrtf(sigma0 * sigma0 - sigma_pre * sigma_pre); //1 FLOPf for sqrt 2 for MULs 1 for SUB = 4
+    inc_adds(1);
+    inc_mults(2);
+    inc_div(1);     // For the sqrtf
     kernel_rads[0] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) // 1MUL
                 ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1; //1 MUL and 1 CEIL
-    kernel_sizes[0] = kernel_rads[0] * 2 + 1; // 1MUL and 1ADD
+    kernel_sizes[0] = kernel_rads[0] * 2 + 1; // 1MUL and 1ADD  // These seem to be integer operations
+    inc_mults(2); // Worst case
+    inc_mem(3);
 
     // Create first kernel.
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
@@ -66,24 +79,29 @@ int ethsift_generate_all_kernels(int layers_count,
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
     kernel_ptrs[0] = (float*) calloc(kernel_sizes[0], sizeof(float));
     ethsift_generate_gaussian_kernel(kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], sigma_i); // ggk FLOPs
+    inc_mem(5); // 1 write, 4 reads
 
     //Calculate all other sigmas and create the according kernel
     for (int i = 1; i < gaussian_count; ++i) {
         // Calculate sigma_i
-        sigma_pre = powf(k, (float)(i - 1)) * sigma0;
+        sigma_pre = powf(k, (float)(i - 1)) * sigma0; // Wouldn't this be 1 extra MULT as well?
         sigma = sigma_pre * k; // 1MUL
         sigma_i = sqrtf(sigma * sigma - sigma_pre * sigma_pre); //1 FLOPf for sqrt 2 for MULs 1 for SUB = 4
+        inc_adds(1);
+        inc_mults(4);
 
         // Calculate radii and sizes needed for apply_kernel
         kernel_rads[i] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) // 1MUL
                 ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1; //1 MUL and 1 CEIL
         kernel_sizes[i] = kernel_rads[i] * 2 + 1;
+        inc_mem(3);
+        inc_mults(2);
 
         // Create kernel and store it in kernels for next step.
         // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
         kernel_ptrs[i] = (float*) calloc(kernel_sizes[i], sizeof(float)); 
         ethsift_generate_gaussian_kernel(kernel_ptrs[i], kernel_sizes[i], kernel_rads[i], sigma_i); // ggk FLOPs
-
+        inc_mem(5); // 1 write, 4 reads
     }
     return 1;
 }
@@ -98,6 +116,7 @@ int ethsift_free_kernels(float** kernel_ptrs, uint32_t gaussian_count){
     //free kernels!
     for (int i = 1; i < gaussian_count; ++i) {
         free(kernel_ptrs[i]);
+        inc_mem(1); // No idea if these need to be counted as well
     }
     return 1;
 }

@@ -35,10 +35,11 @@ add_library(ethsift STATIC
   "src/allocate.c"
   "src/compute_keypoints.c"
   "src/stub.c"
+  "src/flop_counters.h"
   )
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
-target_compile_options(ethsift PRIVATE -g -O0 -Wall -Wno-unused-variable -mfma -mavx2)
+
 
 ## Test Harness Build
 add_executable(tester
@@ -50,12 +51,64 @@ add_executable(tester
   )
 set_property(TARGET tester PROPERTY CXX_STANDARD 14)
 target_link_libraries(tester PRIVATE ezsift ethsift)
-target_compile_options(tester PRIVATE -g -O0 -Wall -Wno-unused-variable)
+target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
+
+## Executable to count flops and memory reads/writes
+add_executable(count_flops
+  "include/ethsift.h"
+  "src/internal.h"
+  "src/settings.h"
+  "src/gaussian_kernel.c"
+  "src/gaussian_pyramid.c"
+  "src/dog_pyramid.c"
+  "src/grad_rot_pyramid.c"
+  "src/octaves.c"
+  "src/downscale.c"
+  "src/apply_kernel.c"
+  "src/detect_keypoints.c"
+  "src/refine_local_extrema.c"
+  "src/histogram.c"
+  "src/extract_descriptor.c"
+  "src/allocate.c"
+  "src/compute_keypoints.c"
+  "src/stub.c"
+
+  "src/flop_counters.h"
+  "src/count_flops.h"
+  "src/count_flops.c"
+)
+target_link_libraries(count_flops PRIVATE m)
+
+set_property(TARGET count_flops PROPERTY C_STANDARD 99)
+target_compile_options(count_flops PRIVATE -DDEBUG -g -pg -O0)
+target_compile_definitions(count_flops PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
+target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
+target_compile_definitions(count_flops PRIVATE IS_COUNTING)
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  message("Adding debug flag...")
-  target_compile_definitions(ethsift PRIVATE -DDEBUG)
-  target_compile_definitions(tester PRIVATE -DDEBUG)
+  message("Adding debug flags...")
+  target_link_options(tester PRIVATE -pg)
+  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
+
+  add_custom_target(gprof
+    COMMAND ./tester lena.pgm eth_MeasureFull
+    COMMAND gprof tester > gprof.txt
+    COMMAND echo "Wrote gropf output to ${CMAKE_BINARY_DIR}/gropf.text"
+    DEPENDS tester)
+else()
+  message("Adding optimise flags...")
+  target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
+
+  add_custom_target(gprof
+    COMMAND echo "Cannot run gprof! Please set CMAKE_BUILD_TYPE to Debug!")
 endif()
+
+add_custom_target(flamegraph
+  COMMAND perf record -F MAX -g ./tester lena.pgm eth_MeasureFull
+  COMMAND perf script | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
+  COMMAND "${PROJECT_SOURCE_DIR}/perf/flamegraph.pl" out.perf-folded > flamegraph.svg
+  COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"
+  DEPENDS tester)

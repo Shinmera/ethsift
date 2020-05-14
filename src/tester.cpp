@@ -4,6 +4,7 @@ struct test{
   const char *title;
   const char *reason;
   int has_measurement_comp;
+  bool enabled = false;
   int (*func)();
 };
 
@@ -19,11 +20,13 @@ bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
 std::string* g_testImgName;
+int NR_RUNS = 30;
 
 int register_test(const char *title, int has_measurement_comp, int (*func)()){
   tests[test_count].title = title;
   tests[test_count].reason = 0;
   tests[test_count].has_measurement_comp = has_measurement_comp;
+  tests[test_count].enabled = true;
   tests[test_count].func = func;
   return test_count++;
 }
@@ -161,10 +164,11 @@ int run_tests(struct test *tests, uint32_t count){
 
   fprintf(stderr, "\033[1;33m --> \033[0;0mRunning %i tests\n", count);
   for(uint32_t i=0; i<count; ++i){
+    if(!tests[i].enabled) continue;
     if(run_test(tests[i])){
-      passes++;
-    }else{
-      failed[failures] = i;
+        passes++;
+      }else{
+        failed[failures] = i;
       failures++;
     }
   }
@@ -182,59 +186,43 @@ int run_tests(struct test *tests, uint32_t count){
   return (failures == 0);
 }
 
-
-void compute_keypoints(char *file, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
-  ezsift::Image<unsigned char> img;
-  if(img.read_pgm(file) != 0)
-    abort("Failed to read image!");
-
-  struct ethsift_image image = {0};
-  if(!convert_image(img, &image))
-    abort("Could not convert image");
-
-  if(!ethsift_compute_keypoints(image, keypoints, keypoint_count))
-    abort("Failed to compute keypoints");
-}
-
-void complete_run(char *file1, char *file2){
-  uint32_t keypoint_count = 128;
-  struct ethsift_keypoint keypoints[keypoint_count] = {0};
-  compute_keypoints(file1, keypoints, &keypoint_count);
-  fprintf(stdout, "Found %i keypoints in %s.\n", keypoint_count, file1);
-
-  if(file2){
-    uint32_t keypoint_count2 = 128;
-    struct ethsift_keypoint keypoints2[keypoint_count] = {0};
-    compute_keypoints(file2, keypoints2, &keypoint_count2);
-    fprintf(stdout, "Found %i keypoints in %s.\n", keypoint_count2, file2);
-
-    uint32_t match_count = 128;
-    struct ethsift_match matches[match_count] = {0};
-    if(!ethsift_match_keypoints(keypoints, keypoint_count, keypoints2, keypoint_count2, matches, &match_count))
-      abort("Failed to match up keypoints.");
-
-    // TODO: Show matches
-  }else{
-    // TODO: Show keypoints
-  }
-}
-
 int main(int argc, char *argv[]){
   if(!ethsift_init())
     abort("Failed to initialise ETHSIFT");
   srand(time(NULL));
-  if (argc <= 1) {
-      g_testImgName = new std::string("lena.pgm");
-      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
-      return (run_tests(tests, test_count) == 0) ? 1 : 0;
-  }else if (2 == argc) {
-      g_testImgName = new std::string(argv[1]);
-      std::cout << "SET g_testImgName TO: " << *g_testImgName << std::endl;
-      return (run_tests(tests, test_count) == 0) ? 1 : 0;
-  }else{
-    char *file1 = (1 < argc)? argv[1] : 0;
-    char *file2 = (2 < argc)? argv[2] : 0;
-    complete_run(file1, file2);
+  // Set defaults
+  g_testImgName = new std::string((1 < argc)? argv[1]
+                                  :getenv("IMAGE")? getenv("IMAGE")
+                                  :"lena.pgm");
+  NR_RUNS = getenv("RUNS")? atoi(getenv("RUNS"))
+    : 30;
+  fprintf(stderr, "Will use %i runs on %s for measurement.\n", NR_RUNS, g_testImgName->c_str());
+  if(2 < argc){
+    // Disable all tests
+    for(int i=0; i<test_count; ++i)
+      tests[i].enabled = false;
+    // Only enable the ones we specify
+    for(int i=2; i<argc; ++i){
+      for(int j=0; j<test_count; ++j){
+        if(strcmp(argv[i], tests[j].title) == 0)
+          tests[j].enabled = true;
+      }
+    }
   }
-  return 0;
+  if(getenv("TESTS")){
+    // Disable all tests
+    for(int i=0; i<test_count; ++i)
+      tests[i].enabled = false;
+    char *name;
+    name = strtok(getenv("TESTS"), " ");
+    while(name){
+      for(int j=0; j<test_count; ++j){
+        if(strcmp(name, tests[j].title) == 0)
+          tests[j].enabled = true;
+      }
+      name = strtok(0, " ");
+    }
+  }
+  // Run the tests
+  return (run_tests(tests, test_count) == 0) ? 1 : 0;
 }

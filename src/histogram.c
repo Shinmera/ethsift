@@ -25,10 +25,15 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     int kptc_i = (int)(kptc + 0.5f); // 1 ADD
     float d_kptr = kptr - kptr_i; // 1SUB
     float d_kptc = kptc - kptc_i; // 1SUB
+    
+    inc_adds(4);
 
     float sigma = ETHSIFT_ORI_SIG_FCTR * kpt_scale; // 1MUL
     int win_radius = (int)(ETHSIFT_ORI_RADIUS * kpt_scale); // 1MUL
     float exp_factor = -1.0f / (2.0f * sigma * sigma); // 2MUL + 1 DIV
+
+    inc_mults(4);
+    inc_div(1);
 
     float *gradient_pixels = gradient.pixels;
     float *rotation_pixels = rotation.pixels;
@@ -56,19 +61,32 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
 
             magnitude = gradient_pixels[r * w + c];
             angle = rotation_pixels[r * w + c];
+            
+            inc_mem(2);
 
             fbin = angle * bin_count / M_TWOPI; // 1 MUL and + 1 DIV
             weight = expf(
                 ((i - d_kptr) * (i - d_kptr) + (j - d_kptc) * (j - d_kptc)) *
                 exp_factor); // 4 SUBS + 3 MULs + 1 ADD + 1 EXP
 
+            inc_mults(4);
+            inc_adds(5);
+            inc_div(1);
+            // 1 EXP
+
             bin = (int)(fbin - 0.5f); // 1 SUB
             float d_fbin = fbin - 0.5f - bin; // 2 SUBs
+            
+            inc_adds(3);
 
             float mw = weight * magnitude; // 1 MUL
             float dmw = d_fbin * mw;// 1 MUL
             tmpHist[(bin + bin_count) % bin_count] += mw - dmw; // 1ADD + 1 SUB
             tmpHist[(bin + 1) % bin_count] += dmw; // 1ADD
+
+            inc_mults(2);
+            inc_adds(3);
+            inc_mem(4); // 2 reads / 2writes
         }
     }
 
@@ -78,34 +96,69 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     histogram[0] = (tmpHist[0] + tmpHist[2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
               (tmpHist[0] + tmpHist[1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
               tmpHist[0] * 6.0f / 16.0f;  //  1 MUL + 1 DIV
+
+    inc_mults(3);
+    inc_adds(4);
+    inc_div(3);
+    inc_mem(6) // 1 write / 5 reads
+
     histogram[1] = (tmpHist[0] + tmpHist[3]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
               (tmpHist[0] + tmpHist[2]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
               tmpHist[1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+
+    inc_mults(3);
+    inc_adds(4);
+    inc_div(3);
+    inc_mem(6) // 1 write / 5 reads
+    
     histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                       (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                       tmpHist[bin_count - 2] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+
+    inc_mults(3);
+    inc_adds(4);
+    inc_div(3);
+    inc_mem(6) // 1 write / 5 reads
+    
     histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                       (tmpHist[bin_count - 2] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                       tmpHist[bin_count - 1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+
+    inc_mults(3);
+    inc_adds(4);
+    inc_div(3);
+    inc_mem(6) // 1 write / 5 reads
 
     for (int i = 2; i < bin_count - 2; i++) {
         histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                   (tmpHist[i - 1] + tmpHist[i + 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
                   tmpHist[i] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+
+        inc_mults(3);
+        inc_adds(4);
+        inc_div(3);
+        inc_mem(6) // 1 write / 5 reads
     }
 
     // Find the maximum item of the histogram
     float temp = histogram[0];
+
+    inc_mem(1);
+
     int max_i = 0;
     for (int i = 0; i < bin_count; i++) {
         if (temp < histogram[i]) {
             temp = histogram[i];
             max_i = i;
         }
+        inc_mem(1); // 1 read
     }
     *max_histval = temp;
 
     keypoint->orientation = max_i * M_TWOPI / bin_count; // 1 MUL + 1 DIV
+
+    inc_mults(1);
+    inc_div(1);
 
     //free(tmpHist);
     //tmpHist = nullptr;
