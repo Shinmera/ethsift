@@ -200,3 +200,23 @@ def get_runtime_bars(log_files):
 def get_cycles_from_time_measurement(median):
     #calculate the approximate number of cycles the algorithm had according to the time measured
     return median * arch_conf['frequency']
+
+def get_resolutions_in_pixels():
+    all_res = []
+    for key in resolution_map:
+        all_res.append(resolution_map[key]['tot_pixels'])
+    return np.array(all_res)
+
+def get_resolutions_in_ticks():
+    all_res = []
+    for key in resolution_map:
+        all_res.append(key)
+    return np.array(all_res)
+
+def get_resolution_in_indices():    
+    all_res = []
+    it = 1
+    for key in resolution_map:
+        all_res.append(it)
+        it +=1
+    return np.array(all_res)

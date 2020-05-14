@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+from read_logs import get_resolutions_in_pixels, get_resolutions_in_ticks
 
 from architecture_config import config as arch_conf
 
@@ -41,7 +42,7 @@ class RuntimePlot:
             self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
         
 
-    def plot_graph(self, func_name, show=True, autosave=False, format='svg'):  
+    def plot_graph(self, func_name, autosave=False, img_format='svg'):  
         self.axes.legend()  
         self.axes.set_xscale('log', basex=2)
         # self.axes.set_yscale('log', basey=2)
@@ -50,17 +51,21 @@ class RuntimePlot:
        
         plt.suptitle(self.title, **self.title_font, fontsize=25)
         
-        
+        plt.rcParams['axes.facecolor'] = 'xkcd:light grey'
+        plt.grid(color='w', linestyle='-', linewidth=0.5)
+        self.axes.xaxis.grid() # only showing horizontal lines
         plt.xlabel(self.x_label, fontsize=15)
-        plt.ylabel(self.y_label, fontsize=15)
+        
+        plt.xticks(get_resolutions_in_pixels(), get_resolutions_in_ticks())
+        plt.ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
 
         if autosave:
-            plt.savefig("runtimeplot_"+func_name.lower().replace(' ', '_') + '.' + format,
+            plt.savefig("runtimeplot_"+func_name.lower().replace(' ', '_') + '.' + img_format,
                         dpi=None, facecolor='w', edgecolor='w',
-                        orientation='portrait', papertype=None, format=format,
+                        orientation='portrait', papertype=None, format=img_format,
                         transparent=False, bbox_inches=None, pad_inches=0.1,
                         frameon=None, metadata=None)
-        if show:
+        else:
             plt.show()
 
 

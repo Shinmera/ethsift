@@ -17,21 +17,40 @@ lib_cols['ez'] = '#f0944d'
 
 def main():
     print("Start Plotting Script")
-    # modes are rdtsc, chrono and runtime, stacked_runtime
-    reading_mode = 'rdtsc' 
-    show_plots = True
-    save_plots = True
+    # modes are:
+    #   - rdtsc (requires measurements in cycles)
+    #   - chrono (requires measurements to be in microseconds) 
+    #   - runtime (requires measurements to be in microseconds) 
+    #   - stacked_runtime (measurement independent)
+    reading_mode = 'stacked_runtime' 
+
+    # Instead of opening plot window, auto-save images to perf_plot folder 
+    save_plots = True 
+    
+    # Save files to following image format
+    img_format = 'png'
+
     measurements, tot_runtimes = read_logs(reading_mode)
 
     if reading_mode is 'runtime':
-        make_runtime_plot(measurements=measurements, show_plot=show_plots, autosave=save_plots)
+        make_runtime_plot(measurements=measurements, 
+                          autosave=save_plots, 
+                          img_format=img_format)
     elif reading_mode is 'stacked_runtime': 
-        make_stackedruntime_plot(measurements=measurements, tot_runtimes=tot_runtimes, show_plot=show_plots, autosave=save_plots)
+        make_stackedruntime_plot(measurements=measurements, 
+                                 tot_runtimes=tot_runtimes, 
+                                 autosave=save_plots, 
+                                 img_format=img_format)
     else:
-        make_performance_plot(measurements=measurements, cycle_measurement_method=reading_mode, show_plot=show_plots, autosave=save_plots)
+        make_performance_plot(measurements=measurements, 
+                              cycle_measurement_method=reading_mode, 
+                              autosave=save_plots, 
+                              img_format=img_format)
 
 
-def make_performance_plot(measurements, cycle_measurement_method, show_plot=True, autosave=True, debug=False):
+
+#===PLOTTING OF DIFFERENT MODES===#
+def make_performance_plot(measurements, cycle_measurement_method, autosave=True, img_format='svg', debug=False):
     if debug:
         for key1 in measurements:
             print(key1)
@@ -62,9 +81,9 @@ def make_performance_plot(measurements, cycle_measurement_method, show_plot=True
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
-        p.plot_graph(function, x_ax=np.array(measurements[function][lib]['resolutions']), x_labels=np.array(measurements[function]['eth']['resolutions']))
+        p.plot_graph(function, autosave=autosave, img_format=img_format)
 
-def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
+def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='svg', debug=False):
     if debug:
         for key1 in measurements:
             print(key1)
@@ -98,11 +117,12 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
                         point_label=lib + " " + function,
                         color=colors[it],
                         markersize=12,
-                        error=np.array(measurements[function][lib]['std']))
+                        #error=np.array(measurements[function][lib]['std'])
+                        )
             it += 1
-    p.plot_graph("All Functions", show=show_plot, autosave=autosave)
+    p.plot_graph("All Functions", autosave=autosave, img_format=img_format)
 
-def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosave=True, debug=True):
+def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_format='svg', debug=False):
     if debug:
         for key1 in measurements:
             print(key1)
@@ -161,7 +181,7 @@ def make_stackedruntime_plot(measurements, tot_runtimes, show_plot=True, autosav
 
 
     for lib in plots:
-        plots[lib].plot_graph("All Functions " + lib, show=show_plot, autosave=autosave)
+        plots[lib].plot_graph("All Functions " + lib, autosave=autosave, img_format=img_format)
 
         
 if __name__ == '__main__':
