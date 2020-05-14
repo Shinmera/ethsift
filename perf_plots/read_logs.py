@@ -8,7 +8,7 @@ from os import listdir
 from os.path import isfile, join
 
 # Settings for reading the logs
-logs_folder = "../logs/"
+logs_folder = "../firstmeetinglogs/"
 
 start_line = 1
 end_line = 21

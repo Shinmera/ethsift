@@ -11,14 +11,14 @@ lib_markers = dict()
 lib_markers['eth'] = '*'
 lib_markers['ez'] = '^'
 lib_cols = dict()
-lib_cols['eth'] = '#207020'
-lib_cols['ez'] = '#e0e070'
+lib_cols['eth'] = '#2138ab'
+lib_cols['ez'] = '#f0944d'
 
 
 def main():
     print("Start Plotting Script")
     # modes are rdtsc, chrono and runtime, stacked_runtime
-    reading_mode = 'stacked_runtime' 
+    reading_mode = 'rdtsc' 
     show_plots = True
     save_plots = True
     measurements, tot_runtimes = read_logs(reading_mode)
@@ -47,21 +47,22 @@ def make_performance_plot(measurements, cycle_measurement_method, show_plot=True
     for function in measurements:
         p = PerformancePlot()
         p.set_method_used(cycle_measurement_method)
-        p.plot_pi(linewidth=3)
+        p.plot_pi(linewidth=2)
         peak_perf = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
                           y=np.array(measurements[function][lib]['performance']),
+                          linewidth=1.5,
                           marker=lib_markers[lib],
                           point_label=lib,
                           color=lib_cols[lib],
-                          markersize=12,
-                          error=np.array(measurements[function][lib]['std']))
+                          markersize=8)
+                          #error=np.array(measurements[function][lib]['std']))
             if lib == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
-        p.plot_graph(function)
+        p.plot_graph(function, x_ax=np.array(measurements[function][lib]['resolutions']))
 
 def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
     if debug:
@@ -88,6 +89,7 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, debug=False):
     col_map =cm.get_cmap('jet', nr_lines)
     colors = col_map(np.linspace(0, 1, nr_lines))
     it = 0
+
     for function in measurements:
         for lib in measurements[function]:            
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
