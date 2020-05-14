@@ -30,7 +30,12 @@ def main():
     # Save files to following image format
     img_format = 'png'
 
-    measurements, tot_runtimes = read_logs(reading_mode)
+    # Choosing the flops util version for measuring flops-count. Options:
+    # - 1: Taking lambda functions from flops_util.py
+    # - 2: Taking results from code of Jan which explicitly counted the flops.
+    using_flops_util_version = 2 
+
+    measurements, tot_runtimes = read_logs(reading_mode, using_flops_util_version)
 
     if reading_mode is 'runtime':
         make_runtime_plot(measurements=measurements, 
@@ -75,8 +80,9 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                           marker=lib_markers[lib],
                           point_label=lib,
                           color=lib_cols[lib],
-                          markersize=8)
-                          #error=np.array(measurements[function][lib]['std']))
+                          markersize=8,
+                          error=np.array(measurements[function][lib]['std'])
+                          )
             if lib == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)

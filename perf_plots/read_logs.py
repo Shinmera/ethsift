@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+from flops_util2 import flops_util2, rw_util
 from flops_util import flops_util
 from architecture_config import config as arch_conf
 
@@ -9,6 +10,7 @@ from os.path import isfile, join
 
 # Settings for reading the logs
 logs_folder = "../firstmeetinglogs/"
+flops_logs = "../flops_logs/"
 
 start_line = 1
 end_line = 21
@@ -49,20 +51,21 @@ resolution_map['4320p']['width'] = 7680
 resolution_map['4320p']['height'] = 4320
 resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolution_map['4320p']['height'] 
 
-def read_logs(mode='rdtsc'):    
+def read_logs(mode='rdtsc', flops_util_version=2):    
     # modes are rdtsc, chrono and runtime    
     onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
     onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
-    
+    if flops_util_version:
+        init_flops_util2()
     if mode is 'runtime':
-        return get_runtime_measurements(onlyfiles)
+        return get_runtime_measurements(onlyfiles, flops_util_version= flops_util_version)
     elif mode is 'stacked_runtime':
         return get_runtime_bars(onlyfiles)
     else:
         return get_performance_measurements(onlyfiles, mode)
 
-def get_performance_measurements(log_files, mode):
+def get_performance_measurements(log_files, mode, flops_util_version=2):
     # modes are rdtsc, chrono and runtime
     measurements = dict()
 
@@ -81,6 +84,8 @@ def get_performance_measurements(log_files, mode):
                         
             if func_name in measurements:
                 pass
+            elif func_name == "Octaves" or func_name == "GaussianKernelGeneration":
+                continue
             else:                
                 measurements[func_name] = dict()
 
@@ -99,10 +104,15 @@ def get_performance_measurements(log_files, mode):
                 cycles = get_cycles_from_time_measurement(median)
                 std_dev = get_cycles_from_time_measurement(std_dev)
 
-            flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+            if flops_util_version is 1:
+                flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+            else:
+                print("Access  " + resolution + "  " + func_name + "  " + lib)
+                flops = flops_util2[lib][func_name][resolution]
 
-            measurements[func_name][lib]['performance'].append( flops / cycles)
-            measurements[func_name][lib]['std'].append(flops/ std_dev)
+
+            measurements[func_name][lib]['performance'].append(flops / cycles)
+            measurements[func_name][lib]['std'].append(flops / std_dev)
             measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
 
     return measurements, dict()
@@ -220,3 +230,23 @@ def get_resolution_in_indices():
         all_res.append(it)
         it +=1
     return np.array(all_res)
+
+
+def init_flops_util2():
+    onlyfiles = [f for f in listdir(flops_logs) if isfile(join(flops_logs, f))]    
+    onlyfiles = np.sort(onlyfiles)
+
+    
+    for f in onlyfiles:
+        stream = open(flops_logs + f,"r")
+        lines = stream.readlines()
+        lines.pop(0)
+        resolution = f.split('_')[2].split('-')[1].split('.')[0]
+        print("Creation  " + resolution)
+        for l in lines:
+            vals = l.split(',')
+            flops_util2['eth'][vals[0]][resolution] = int(vals[1])
+            rw_util['eth'][vals[0]][resolution] = int(vals[2])
+
+            flops_util2['ez'][vals[0]][resolution] = int(vals[1])
+            rw_util['ez'][vals[0]][resolution] = int(vals[2])
