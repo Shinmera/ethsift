@@ -250,10 +250,11 @@ int test_extract_descriptor() {
   uint32_t nKeypoints = 100;
   ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, &nKeypoints);
   
+  nKeypoints = (nKeypoints < 100) ? nKeypoints : 100;
   #ifdef IS_COUNTING
   reset_counters();
   #endif
-  ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, 100);
+  ethsift_extract_descriptor(eth_gradients, eth_rotations, OCTAVE_COUNT, GAUSSIAN_COUNT, eth_kpt_list, nKeypoints);
   return 1;
 }
 
