@@ -35,11 +35,11 @@ class RuntimePlot:
         self.title = title
 
 
-    def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8, error=None):
+    def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, capsize=10, markersize=8, error=None):
         if(error is None):
             self.axes.plot(x, y, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
         else:
-            self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
+            self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, capsize=capsize, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
         
 
     def plot_graph(self, func_name, autosave=False, img_format='svg'):  

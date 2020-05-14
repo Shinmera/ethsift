@@ -22,7 +22,7 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = 'rdtsc' 
+    reading_mode = 'runtime' 
 
     # Instead of opening plot window, auto-save images to perf_plot folder 
     save_plots = True 
@@ -123,7 +123,7 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='s
                         point_label=lib + " " + function,
                         color=colors[it],
                         markersize=12,
-                        #error=np.array(measurements[function][lib]['std'])
+                        error=np.array(measurements[function][lib]['std'])
                         )
             it += 1
     p.plot_graph("All Functions", autosave=autosave, img_format=img_format)

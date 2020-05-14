@@ -59,11 +59,11 @@ def read_logs(mode='rdtsc', flops_util_version=2):
     if flops_util_version:
         init_flops_util2()
     if mode is 'runtime':
-        return get_runtime_measurements(onlyfiles, flops_util_version= flops_util_version)
+        return get_runtime_measurements(onlyfiles)
     elif mode is 'stacked_runtime':
         return get_runtime_bars(onlyfiles)
     else:
-        return get_performance_measurements(onlyfiles, mode)
+        return get_performance_measurements(onlyfiles, mode, flops_util_version= flops_util_version)
 
 def get_performance_measurements(log_files, mode, flops_util_version=2):
     # modes are rdtsc, chrono and runtime
@@ -112,7 +112,7 @@ def get_performance_measurements(log_files, mode, flops_util_version=2):
 
 
             measurements[func_name][lib]['performance'].append(flops / cycles)
-            measurements[func_name][lib]['std'].append(flops / std_dev)
+            measurements[func_name][lib]['std'].append(flops / (std_dev+cycles) - flops / cycles )
             measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
 
     return measurements, dict()
