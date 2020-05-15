@@ -11,6 +11,19 @@ file(GLOB_RECURSE EZSIFT_SRC RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*
 
 include_directories(${EZSIFT_INCLUDE_DIR} include)
 
+## Fetch GIT version
+execute_process(
+    COMMAND "git" describe --tags
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    RESULT_VARIABLE res
+    OUTPUT_VARIABLE ETHSIFT_VERSION
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+set_property(GLOBAL APPEND
+    PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/.git/index")
+
 ## EZSift Build
 add_library(ezsift STATIC ${EZSIFT_SRC})
 target_include_directories(ezsift PUBLIC ${EZSIFT_SRC_DIR})
@@ -39,6 +52,7 @@ add_library(ethsift STATIC
   "src/flop_counters.h"
   )
 target_include_directories(ethsift PUBLIC src)
+target_compile_definitions(ethsift PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSION}")
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
 
 
