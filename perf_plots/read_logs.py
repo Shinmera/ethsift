@@ -19,7 +19,7 @@ scriptdir = dirname(realpath(__file__))
 ## Horrible hack to make the other horrible hacks work
 resolution_map = {}
 
-def read_logs(logs_folder, mode, version=''):
+def read_logs(logs_folder, mode, flops_util_version=2, version=''):
     match = 'chrono'
     if(mode == 'rdtsc'):
         match = 'rdtsc'
@@ -33,17 +33,21 @@ def read_logs(logs_folder, mode, version=''):
 
     resolution_map = {}
     for f in onlyfiles:
-        resolution_map[image_name(f)] = pgm_resolution(image_file(f))
+        if resolution_label(f) not in resolution_map:
+            resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
     
     if mode == 'runtime':
         return get_runtime_measurements(onlyfiles)
     elif mode == 'stacked_runtime':
         return get_runtime_bars(onlyfiles)
     else:
-        return get_performance_measurements(onlyfiles, mode)
+        return get_performance_measurements(onlyfiles, mode, flops_util_version)
+
+def resolution_label(f):
+    return basename(f).split('_')[2].split('-')[1]
 
 def image_name(f):
-    return basename(f).split(' ')[1]
+    return basename(f).split('_')[2]
 
 def image_file(f):
     return join(scriptdir, '../data/', image_name(f)+'.pgm')
@@ -57,9 +61,9 @@ def pgm_resolution(f):
         while line.startswith('#'):
             line = stream.readline()
         size = [ int(f) for f in line.rstrip('\n').split(' ') ]
-        return {'width': size[0], 'height': size[1], 'tot_pixels': size[0]*size[1]};
+        return {'width': size[0], 'height': size[1], 'tot_pixels': size[0]*size[1]}
 
-def get_performance_measurements(log_files, mode):
+def get_performance_measurements(log_files, mode, flops_util_version):
     # modes are rdtsc, chrono and runtime
     measurements = dict()
 
@@ -67,7 +71,7 @@ def get_performance_measurements(log_files, mode):
         stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = pgm_resolution(image_file(f))
+        resolution = resolution_label(f)
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -78,7 +82,7 @@ def get_performance_measurements(log_files, mode):
                         
             if func_name in measurements:
                 pass
-            elif func_name == "Octaves" or func_name == "GaussianKernelGeneration" or func_name == "MeasureFull":
+            elif func_name == "Octaves" or func_name == "GaussianKernelGeneration":
                 continue
             else:                
                 measurements[func_name] = dict()
@@ -119,7 +123,7 @@ def get_runtime_measurements(log_files):
         stream = open(logs_folder + f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = f.split('-')[1].split('_')[0]
+        resolution = resolution_label(f)
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -155,7 +159,7 @@ def get_runtime_bars(log_files):
         stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = pgm_resolution(image_file(f))
+        resolution = resolution_label(f)
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
