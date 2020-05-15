@@ -40,7 +40,7 @@ extern "C" {
 
   
   /// <summary> 
-  /// Possibly necessary initialisation of the library.
+  /// Initialize Gaussian Kernels globally.
   /// </summary>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   /// <remarks> 0 flops </remarks>

@@ -34,6 +34,7 @@ add_library(ethsift STATIC
   "src/extract_descriptor.c"
   "src/allocate.c"
   "src/compute_keypoints.c"
+  "src/init.c"
   "src/stub.c"
   )
 target_include_directories(ethsift PUBLIC src)
