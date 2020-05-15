@@ -302,7 +302,7 @@ int test_compute_keypoints() {
 
 int init_tests() {
   // Specify number of tests
-  test_count = 9;
+  test_count = 10;
 
   tests = (test *)malloc(test_count * sizeof(test));
   // Add tests here
@@ -315,7 +315,7 @@ int init_tests() {
   tests[6] = (test){"CountRefinement avg", 1, test_refinement};
   tests[7] = (test){"CountKeypointDetection", 1, test_keypoint_detection};
   tests[8] = (test){"CountExtractDescriptor", 1, test_extract_descriptor};
-  // tests[9] = (test){"CountSIFTComplete1000", 1, test_compute_keypoints};
+  tests[9] = (test){"CountSIFTComplete1000", 1, test_compute_keypoints};
 
   return 1;
 }
