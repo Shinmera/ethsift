@@ -116,7 +116,6 @@ int ethsift_free_kernels(float** kernel_ptrs, uint32_t gaussian_count){
     //free kernels!
     for (int i = 1; i < gaussian_count; ++i) {
         free(kernel_ptrs[i]);
-        inc_mem(1); // No idea if these need to be counted as well
     }
     return 1;
 }

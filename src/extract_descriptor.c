@@ -153,11 +153,9 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 inc_adds(1);
                 inc_mults(1);
 
-                #ifdef IS_COUNTING
                 if (angle < 0) {
                     inc_adds(1);
                 }
-                #endif
 
                 int x0, y0, z0;
                 int x1, y1;

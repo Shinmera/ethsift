@@ -27,7 +27,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         
         width = (int) gaussians[i * gaussian_count].width;
         height = (int) gaussians[i * gaussian_count].height;
-        inc_mem(2); // Still not sure?
+        inc_mem(2);
 
         for(int j = 1; j <= layers; j++){
 
