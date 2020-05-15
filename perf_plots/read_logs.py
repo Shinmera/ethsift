@@ -33,9 +33,13 @@ def read_logs(logs_folder, mode, flops_util_version=2, version=''):
 
     resolution_map = {}
     for f in onlyfiles:
-        if resolution_label(f) not in resolution_map:
+        if not resolution_label(f) in resolution_map:
             resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
+            print("Created keyword " + resolution_label(f))
     
+    
+    init_flops_util2()
+
     if mode == 'runtime':
         return get_runtime_measurements(onlyfiles)
     elif mode == 'stacked_runtime':
@@ -239,9 +243,14 @@ def init_flops_util2():
         stream = open(flops_logs + f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = f.split('_')[2].split('-')[1].split('.')[0]
+        resolution = resolution_label(f)
         print("Creation  " + resolution)
         for l in lines:
             vals = l.split(',')
+            if vals[0] not in flops_util2:
+                flops_util2[vals[0]] = dict()
+            if vals[0] not in rw_util:
+                rw_util[vals[0]] = dict()
+
             flops_util2[vals[0]][resolution] = int(vals[1])
             rw_util[vals[0]][resolution] = int(vals[2])
