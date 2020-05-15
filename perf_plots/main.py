@@ -3,7 +3,7 @@ from performance_plots import PerformancePlot
 from runtime_plots import RuntimePlot
 from stacked_bars_plot import StackedPlot
 from matplotlib import cm
-
+import os
 import numpy as np
 import math
 
@@ -22,7 +22,7 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = 'rdtsc' 
+    reading_mode = os.getenv('PLOT_MODE', 'rdtsc')
 
     # Instead of opening plot window, auto-save images to perf_plot folder 
     save_plots = True 
