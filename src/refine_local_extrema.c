@@ -97,7 +97,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     lowData  = differences[layer_ind - 1].pixels;
     highData = differences[layer_ind + 1].pixels;
 
-    inc_mem(3); // still unsure about those ... will mention this as many times as i can
+    inc_mem(3);
 
     dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
     dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
@@ -219,12 +219,10 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   inc_mults(3);
   inc_div(1);
 
-  #ifdef IS_COUNTING
   if (detH > 0) {
     inc_div(1);
     inc_mults(1);
   }
-  #endif
   
   if (detH <= 0 || (trH * trH / detH) >= response) // 1 MUL + 1 DIV
     return 0;

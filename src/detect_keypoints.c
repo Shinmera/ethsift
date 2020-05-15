@@ -195,13 +195,12 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                                           ? (accu_ii - nBins) // 1 SUB
                                           : accu_ii;
 
-                  #ifdef IS_COUNTING
                   if (accu_ii < 0) {
                     inc_adds(1);
                   } else if (accu_ii >= nBins) {
                     inc_adds(1);
                   }
-                  #endif
+                  
                   // The magnitude should also calculate the max
                   // number based on fitting But since we didn't
                   // actually use it in image matching, we just

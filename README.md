@@ -7,11 +7,11 @@ In order to build ethsift you need a recent version of GCC and Cmake.
 ```
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=Release -DMEASUREMENT_MODE=chrono
 make
 ```
 
-When debugging, change `Release` to `Debug`. This will compile the static library version of ethsift and create a tester application, creatively called `tester`.
+When debugging, change `Release` to `Debug`. This will compile the static library version of ethsift and create a tester application, creatively called `tester`. To minimise noise in measurements, the tester can only measure either cycles or runtime. Which to measure must be configured with the above cmake flag `MEASUREMENT_MODE`, which can be either `chrono` (runtime) or `rdtsc` (cycles).
 
 The tester can be run as follows:
 
@@ -52,3 +52,11 @@ make gperf
 This requires the `gperf` utility, and requires the project to be built in `Debug` mode. It will output to a `gperf.txt` file.
 
 Both utilities by default only consider the `eth_MeasureFull` test that should give an overview of a standard execution of the SIFT algorithm. If you would like to measure different tests, you can do so with the `TESTS` environment variable.
+
+To generate performance plots:
+
+```
+make plots
+```
+
+This requires a python3 installation with matplotlib and numpy. The plotter can be configured to select log files from a different directory using the `LOGS` environment variable, and to limit the files in the directory to ones containing a specified string in their name using `VERSION`. By default it will generate all plots. You can set it to only generate a certain kind of plot by setting `PLOT_MODE`.

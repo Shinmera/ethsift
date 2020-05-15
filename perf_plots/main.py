@@ -1,9 +1,10 @@
+#!/usr/bin/python3
 from read_logs import read_logs
 from performance_plots import PerformancePlot
 from runtime_plots import RuntimePlot
 from stacked_bars_plot import StackedPlot
 from matplotlib import cm
-
+import os
 import numpy as np
 import math
 
@@ -15,7 +16,7 @@ lib_markers['ez'] = '^'
 lib_cols = dict()
 lib_cols['eth'] = '#2138ab'
 lib_cols['ez'] = '#f0944d'
-
+scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
     print("Start Plotting Script")
@@ -24,7 +25,6 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = 'rdtsc' 
 
     # Instead of opening plot window, auto-save images to perf_plot folder 
     save_plots = True 
@@ -35,15 +35,25 @@ def main():
     # Choosing the flops util version for measuring flops-count. Options:
     # - 1: Taking lambda functions from flops_util.py
     # - 2: Taking results from code of Jan which explicitly counted the flops.
-    using_flops_util_version = 2 
+    using_flops_util_version = 2
+    
+    version = os.getenv('VERSION','')
+    directory = os.getenv('LOGS', os.path.join(scriptdir,'../logs/'))
+    if os.getenv('PLOT_MODE') == None:
+        for mode in ['rdtsc', 'runtime', 'stacked_runtime']:
+            make_plots_for(directory, mode, version)
+    else:
+        make_plots_for(directory, os.getenv('PLOT_MODE'), version)
 
-    measurements, tot_runtimes = read_logs(reading_mode, using_flops_util_version)
 
-    if reading_mode is 'runtime':
+def make_plots_for(logs_folder, reading_mode, version="", save_plots=True, img_format='png'):
+    measurements, tot_runtimes = read_logs(logs_folder, reading_mode, version=version)
+
+    if reading_mode == 'runtime':
         make_runtime_plot(measurements=measurements, 
                           autosave=save_plots, 
                           img_format=img_format)
-    elif reading_mode is 'stacked_runtime': 
+    elif reading_mode == 'stacked_runtime':
         make_stackedruntime_plot(measurements=measurements, 
                                  tot_runtimes=tot_runtimes, 
                                  autosave=save_plots, 
@@ -53,9 +63,7 @@ def main():
                               cycle_measurement_method=reading_mode, 
                               autosave=save_plots, 
                               img_format=img_format)
-
-
-
+                              
 #===PLOTTING OF DIFFERENT MODES===#
 def make_performance_plot(measurements, cycle_measurement_method, autosave=True, img_format='svg', debug=False):
     if debug:
@@ -69,8 +77,6 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                     print(measurements[key1][key2][key3])
                 print("\n")
             print("\n")
-
-    
 
     for function in measurements:
         p = PerformancePlot()

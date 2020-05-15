@@ -38,9 +38,14 @@ extern "C" {
   // All API functions return a result indicator that should be
   // 0 on failure and greater than zero on success.
 
+  /// <summary>
+  /// Return the version string the library was built at.
+  /// </summary>
+  /// <returns>The version identifier as a string.</returns>
+  char *ethsift_version();
   
   /// <summary> 
-  /// Possibly necessary initialisation of the library.
+  /// Initialize Gaussian Kernels globally.
   /// </summary>
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   /// <remarks> 0 flops </remarks>

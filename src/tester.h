@@ -2,14 +2,9 @@
 #ifndef ETHSIFT_DATA
 #error "ETHSIFT_DATA must be defined."
 #endif
-
 #ifndef ETHSIFT_LOGS
 #error "ETHSIFT_LOGS must be defined."
 #endif
-
-// Specify if using rdtsc or chrono for runtime measurements
-#define USE_RDTSC 0
-
 #include "ethsift.h"
 #include "ezsift.h"
 #include <string>
@@ -27,8 +22,12 @@
 #include "settings.h"
 #include "test_utils.h"
 
+// Specify if using rdtsc or chrono for runtime measurements
+#ifndef USE_RDTSC
+#define USE_RDTSC 0
+#endif
 // Specify which measurements you would like to run.
-#define RUN_ETHSIFT_MEASUREMENTS 0
+#define RUN_ETHSIFT_MEASUREMENTS 1
 #define RUN_EZSIFT_MEASUREMENTS 1
 
 // Specify how many measurement runs it should do per function
