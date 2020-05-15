@@ -122,8 +122,11 @@ else()
 endif()
 
 add_custom_target(flamegraph
-  COMMAND perf record -F MAX -g ./tester lena.pgm eth_MeasureFull
+  COMMAND perf record -F MAX -g "${CMAKE_BINARY_DIR}/tester" lena.pgm eth_MeasureFull
   COMMAND perf script | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
   COMMAND "${PROJECT_SOURCE_DIR}/perf/flamegraph.pl" out.perf-folded > flamegraph.svg
   COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"
   DEPENDS tester)
+
+add_custom_target(plots
+  COMMAND python "${PROJECT_SOURCE_DIR}/perf_plots/main.py")
