@@ -22,7 +22,7 @@ int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
     // octaves as first input argument.
 
     int layers_count = gaussian_count - 3;
-
+    
     // Calculate the gaussian pyramids!
     for (int i = 0; i < octave_count; ++i) {
         for (int j = 0; j < gaussian_count; ++j) {
@@ -40,10 +40,7 @@ int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
                                     g_kernel_rads[j], gaussians[i * gaussian_count + j]);
             }
         }
-    }
-    // TODO: Release octaves memory? EZSift did free memory here.
-
-    
+    }    
 
     return 1;
 }
