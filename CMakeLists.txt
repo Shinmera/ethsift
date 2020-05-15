@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.1)
 project(ethsift)
 
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+endif()
+
+option(MEASUREMENT_MODE "Which mode to use for measurement")
+if(NOT MEASUREMENT_MODE)
+  set(MEASUREMENT_MODE "chrono" CACHE STRING "Choose the type of measurement (rdtsc or chrono)" FORCE)
+endif()
 
 set(EZSIFT_INCLUDE_DIR ezsift/include)
 set(EZSIFT_SRC_DIR ezsift/src)
@@ -70,6 +75,13 @@ target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-vari
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 
+if(MEASUREMENT_MODE STREQUAL "rdtsc")
+  message("Building for rdtsc measurement")
+  target_compile_definitions(tester PRIVATE USE_RDTSC=1)
+else()
+  message("Building for chrono measurement")
+  target_compile_definitions(tester PRIVATE USE_RDTSC=0)
+endif()
 
 ## Executable to count flops and memory reads/writes
 add_executable(count_flops
@@ -104,7 +116,7 @@ target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DI
 target_compile_definitions(count_flops PRIVATE IS_COUNTING)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  message("Adding debug flags...")
+  message("Adding debug flags")
   target_link_options(tester PRIVATE -pg)
   target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
 
@@ -114,7 +126,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     COMMAND echo "Wrote gropf output to ${CMAKE_BINARY_DIR}/gropf.text"
     DEPENDS tester)
 else()
-  message("Adding optimise flags...")
+  message("Adding optimise flags")
   target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2)
 
   add_custom_target(gprof
@@ -129,4 +141,4 @@ add_custom_target(flamegraph
   DEPENDS tester)
 
 add_custom_target(plots
-  COMMAND python "${PROJECT_SOURCE_DIR}/perf_plots/main.py")
+  COMMAND python3 "${PROJECT_SOURCE_DIR}/perf_plots/main.py")
