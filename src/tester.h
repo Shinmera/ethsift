@@ -28,7 +28,7 @@
 #include "test_utils.h"
 
 // Specify which measurements you would like to run.
-#define RUN_ETHSIFT_MEASUREMENTS 0
+#define RUN_ETHSIFT_MEASUREMENTS 1
 #define RUN_EZSIFT_MEASUREMENTS 1
 
 // Specify how many measurement runs it should do per function
