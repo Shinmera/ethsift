@@ -77,24 +77,7 @@ void map(std::vector<U> &in, std::vector<V> &out, Func func){
     out[i] = func(in[i]);
 }
 
-void write_logfile() {
-    time_t curr_time;
-    tm* curr_tm;
-    char date_string[100];
-    char time_string[100];
-
-    time(&curr_time);
-    curr_tm = localtime(&curr_time);
-    strftime(date_string, 50, "_%B_%d_%Y", curr_tm);
-    strftime(time_string, 50, "_%X", curr_tm);
-
-    char filename[200] = ETHSIFT_LOGS;
-    strcat(filename, "/");
-    strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
-    strcat(filename, date_string);
-    strcat(filename, time_string);
-    strcat(filename, ".csv");
-
+void write_logfile(char *filename){
     std::ofstream myfile;
     myfile.open(filename);
     myfile << "MethodName, Median, Std" << std::endl;
@@ -172,7 +155,6 @@ int run_tests(struct test *tests, uint32_t count){
       failures++;
     }
   }
-  write_logfile();
 
   fprintf(stderr, "\nPassed: %3i", passes);
   fprintf(stderr, "\nFailed: %3i\n", failures);
@@ -187,16 +169,12 @@ int run_tests(struct test *tests, uint32_t count){
 }
 
 int main(int argc, char *argv[]){
-  if(!ethsift_init())
-    abort("Failed to initialise ETHSIFT");
-  srand(time(NULL));
-  // Set defaults
+  // Parse arguments
   g_testImgName = new std::string((1 < argc)? argv[1]
                                   :getenv("IMAGE")? getenv("IMAGE")
                                   :"lena.pgm");
   NR_RUNS = getenv("RUNS")? atoi(getenv("RUNS"))
     : 30;
-  fprintf(stderr, "Will use %i runs on %s for measurement.\n", NR_RUNS, g_testImgName->c_str());
   if(2 < argc){
     // Disable all tests
     for(int i=0; i<test_count; ++i)
@@ -223,6 +201,22 @@ int main(int argc, char *argv[]){
       name = strtok(0, " ");
     }
   }
+  // Init
+  if(!ethsift_init())
+    abort("Failed to initialise ETHSIFT");
+  srand(time(NULL));
   // Run the tests
-  return (run_tests(tests, test_count) == 0) ? 1 : 0;
+  fprintf(stderr, "This is ETHSIFT %s\n", ethsift_version());
+  fprintf(stderr, "Will use %i runs on %s for measurement.\n", NR_RUNS, g_testImgName->c_str());
+  int result = run_tests(tests, test_count);
+  // Write logs
+  char filename[200] = ETHSIFT_LOGS;
+  strcat(filename, "/");
+  strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
+  strcat(filename, " ");
+  strcat(filename, ethsift_version());
+  strcat(filename, ".csv");
+  write_logfile(filename);
+  // Return
+  return !result;
 }
