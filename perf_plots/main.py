@@ -14,7 +14,7 @@ lib_markers['ez'] = '^'
 lib_cols = dict()
 lib_cols['eth'] = '#2138ab'
 lib_cols['ez'] = '#f0944d'
-
+scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
     print("Start Plotting Script")
@@ -24,15 +24,16 @@ def main():
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
     version = os.getenv('VERSION','')
+    directory = os.getenv('LOGS', os.path.join(scriptdir,'../logs/'))
     if os.getenv('PLOT_MODE') == None:
         for mode in ['rdtsc', 'runtime', 'stacked_runtime']:
-            make_plots_for(mode, version)
+            make_plots_for(directory, mode, version)
     else:
-        make_plots_for(os.getenv('PLOT_MODE'), version)
+        make_plots_for(directory, os.getenv('PLOT_MODE'), version)
 
 
-def make_plots_for(reading_mode, version="", save_plots=True, img_format='png'):
-    measurements, tot_runtimes = read_logs(reading_mode, version=version)
+def make_plots_for(logs_folder, reading_mode, version="", save_plots=True, img_format='png'):
+    measurements, tot_runtimes = read_logs(logs_folder, reading_mode, version=version)
 
     if reading_mode == 'runtime':
         make_runtime_plot(measurements=measurements, 

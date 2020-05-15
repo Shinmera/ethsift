@@ -15,7 +15,7 @@ scriptdir = dirname(realpath(__file__))
 ## Horrible hack to make the other horrible hacks work
 resolution_map = {}
 
-def read_logs(mode='chrono', logs_folder=join(scriptdir,'../logs/'), version=''):
+def read_logs(logs_folder, mode, version=''):
     match = 'chrono'
     if(mode == 'rdtsc'):
         match = 'rdtsc'
