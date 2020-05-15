@@ -1,4 +1,5 @@
 #include "tester.h"
+#include <time.h>
 
 struct test{
   const char *title;
@@ -210,14 +211,36 @@ int main(int argc, char *argv[]){
   fprintf(stderr, "Will use %i runs on %s for measurement.\n", NR_RUNS, g_testImgName->c_str());
   int result = run_tests(tests, test_count);
   // Write logs
+
+  // Some identifier to prevent accidential over writing of older logs
+  char identifier[11];    
+  int timestamp = (int)time(NULL);
+  sprintf(identifier, "%d", timestamp);
+  
   char filename[200] = ETHSIFT_LOGS;
   strcat(filename, "/");
-  strcat(filename, (USE_RDTSC)? "rdtsc " : "chrono ");
+  strcat(filename, identifier);
+  strcat(filename, "_");
+  strcat(filename, (USE_RDTSC)? "rdtsc_" : "chrono_");
   strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
-  strcat(filename, " ");
+  strcat(filename, "_");
   strcat(filename, ethsift_version());
   strcat(filename, ".csv");
   write_logfile(filename);
+  
+  /*
+  
+  char log[255];
+  strcpy(log, ETHSIFT_LOGS);
+  strcat(log, "/");
+  strcpy(log, identifier);
+  strcat(log, "_tests_");
+  strcat(log, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
+  strcat(log, ".csv");
+
+  write_logfile(log);
+  */
+
   // Return
   return !result;
 }
