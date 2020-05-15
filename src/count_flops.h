@@ -139,7 +139,18 @@ int write_log() {
   char identifier[11];    
   int timestamp = (int)time(NULL);
   sprintf(identifier, "%d", timestamp);
+  
+  char filename[200] = ETHSIFT_LOGS;
+  strcat(filename, "/");
+  strcat(filename, identifier);
+  strcat(filename, "_counts_");
+  strcat(filename, img_cut);
+  strcat(filename, "_");
+  strcat(filename, ethsift_version());
+  strcat(filename, ".csv");
+  //write_logfile(filename);
 
+  /*
   char log[255];
   strcpy(log, identifier);
   strcat(log, "_counts_");
@@ -150,10 +161,11 @@ int write_log() {
   strcpy(path, ETHSIFT_LOGS);
   strcat(path, "/");
   strcat(path, log);
+  */
 
-  printf("Write log file to %s\n", path);
+  printf("Write log file to %s\n", filename);
 
-  FILE * csv = fopen(path, "w+");
+  FILE * csv = fopen(filename, "w+");
   fprintf(csv, "Title,Flops,ReadWrites\n");
 
   for (int i = 0; i < test_count; ++i) {
