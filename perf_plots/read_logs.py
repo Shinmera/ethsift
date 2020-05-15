@@ -5,60 +5,31 @@ from flops_util import flops_util
 from architecture_config import config as arch_conf
 
 from os import listdir
-from os.path import isfile, join, dirname, realpath
+from os.path import isfile, join, dirname, realpath, basename
 
 # Settings for reading the logs
 start_line = 1
 end_line = 21
+scriptdir = dirname(realpath(__file__))
 
-resolution_map = dict()
-resolution_map['240p']= dict()
-resolution_map['240p']['width'] = 427
-resolution_map['240p']['height'] = 240
-resolution_map['240p']['tot_pixels'] = resolution_map['240p']['width']*resolution_map['240p']['height'] 
+## Horrible hack to make the other horrible hacks work
+resolution_map = {}
 
-resolution_map['360p']= dict()
-resolution_map['360p']['width'] = 640
-resolution_map['360p']['height'] = 360
-resolution_map['360p']['tot_pixels'] = resolution_map['360p']['width']*resolution_map['360p']['height'] 
-
-resolution_map['480p']= dict()
-resolution_map['480p']['width'] = 853 
-resolution_map['480p']['height'] = 480
-resolution_map['480p']['tot_pixels'] = resolution_map['480p']['width']*resolution_map['480p']['height'] 
-
-resolution_map['720p']= dict()
-resolution_map['720p']['width'] = 1280
-resolution_map['720p']['height'] = 720
-resolution_map['720p']['tot_pixels'] = resolution_map['720p']['width']*resolution_map['720p']['height'] 
-
-resolution_map['1080p']= dict()
-resolution_map['1080p']['width'] = 1920
-resolution_map['1080p']['height'] = 1080
-resolution_map['1080p']['tot_pixels'] = resolution_map['1080p']['width']*resolution_map['1080p']['height'] 
-
-resolution_map['2160p']= dict()
-resolution_map['2160p']['width'] = 3840
-resolution_map['2160p']['height'] = 2160
-resolution_map['2160p']['tot_pixels'] = resolution_map['2160p']['width']*resolution_map['2160p']['height'] 
-
-resolution_map['4320p']= dict()
-resolution_map['4320p']['width'] = 7680
-resolution_map['4320p']['height'] = 4320
-resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolution_map['4320p']['height'] 
-
-def read_logs(mode='chrono', logs_folder=join(dirname(realpath(__file__)),'../logs/'), version=''):
+def read_logs(mode='chrono', logs_folder=join(scriptdir,'../logs/'), version=''):
     match = 'chrono'
     if(mode == 'rdtsc'):
         match = 'rdtsc'
     
-    # modes are rdtsc, chrono and runtime    
     onlyfiles = [join(logs_folder,f) for f in listdir(logs_folder)
                  if isfile(join(logs_folder, f))
                  and match in f
                  and version in f]
     onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
+
+    resolution_map = {}
+    for f in onlyfiles:
+        resolution_map[image_name(f)] = pgm_resolution(image_file(f))
     
     if mode == 'runtime':
         return get_runtime_measurements(onlyfiles)
@@ -66,6 +37,23 @@ def read_logs(mode='chrono', logs_folder=join(dirname(realpath(__file__)),'../lo
         return get_runtime_bars(onlyfiles)
     else:
         return get_performance_measurements(onlyfiles, mode)
+
+def image_name(f):
+    return basename(f).split(' ')[1]
+
+def image_file(f):
+    return join(scriptdir, '../data/', image_name(f)+'.pgm')
+
+def pgm_resolution(f):
+    with open(f,"r",encoding="latin-1") as stream:
+        line = stream.readline()
+        if line != 'P5\n':
+            raise Exception(f, 'is not a PGM file!')
+        line = stream.readline()
+        while line.startswith('#'):
+            line = stream.readline()
+        size = [ int(f) for f in line.rstrip('\n').split(' ') ]
+        return {'width': size[0], 'height': size[1], 'tot_pixels': size[0]*size[1]};
 
 def get_performance_measurements(log_files, mode):
     # modes are rdtsc, chrono and runtime
@@ -75,7 +63,7 @@ def get_performance_measurements(log_files, mode):
         stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = f.split('-')[1].split('_')[0]
+        resolution = pgm_resolution(image_file(f))
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -104,11 +92,11 @@ def get_performance_measurements(log_files, mode):
                 cycles = get_cycles_from_time_measurement(median)
                 std_dev = get_cycles_from_time_measurement(std_dev)
 
-            flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+            flops = flops_util[lib][func_name](resolution['width'], resolution['height'])
 
             measurements[func_name][lib]['performance'].append( flops / cycles)
             measurements[func_name][lib]['std'].append(flops/ std_dev)
-            measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
+            measurements[func_name][lib]['resolutions'].append(resolution['tot_pixels'])
 
     return measurements, dict()
 
@@ -117,10 +105,10 @@ def get_runtime_measurements(log_files):
     measurements = dict()
 
     for f in log_files:                
-        stream = open(logs_folder + f,"r")
+        stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = f.split('-')[1].split('_')[0]
+        resolution = pgm_resolution(image_file(f))
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -144,7 +132,7 @@ def get_runtime_measurements(log_files):
 
             measurements[func_name][lib]['runtime'].append(median)
             measurements[func_name][lib]['std'].append(std_dev)
-            measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
+            measurements[func_name][lib]['resolutions'].append(resolution['tot_pixels'])
 
     return measurements, dict()
 
@@ -153,10 +141,10 @@ def get_runtime_bars(log_files):
     measurements = dict()
 
     for f in log_files:                
-        stream = open(logs_folder + f,"r")
+        stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
-        resolution = f.split('-')[1].split('_')[0]
+        resolution = pgm_resolution(image_file(f))
         for l in lines:
             vals = l.split(',')
             method_name_split = vals[0].split('_')
@@ -180,7 +168,7 @@ def get_runtime_bars(log_files):
 
             measurements[func_name][lib]['runtime'].append(median)
             measurements[func_name][lib]['std'].append(std_dev)
-            measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
+            measurements[func_name][lib]['resolutions'].append(resolution['tot_pixels'])
 
     tot_runtimes = dict()
     
@@ -199,8 +187,6 @@ def get_runtime_bars(log_files):
                     it += 1
             
     return measurements, tot_runtimes
-
-
 
 def get_cycles_from_time_measurement(median):
     #calculate the approximate number of cycles the algorithm had according to the time measured
