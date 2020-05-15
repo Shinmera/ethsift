@@ -22,13 +22,6 @@ int ethsift_init(){
   g_kernel_sizes = (int*) malloc(sizeof(int) * gaussian_count);
 
   ethsift_generate_all_kernels(layers_count, gaussian_count, g_kernel_ptrs, g_kernel_rads, g_kernel_sizes);
-  for(int i = 0; i < gaussian_count; ++i){
-      printf("Pointer %d: %X ; Radius: %d ; Size: %d \n", i, (unsigned int) g_kernel_ptrs[i], g_kernel_rads[i], g_kernel_sizes[i]);
-      for (size_t j = 0; j < g_kernel_sizes[i]; j++)
-      {
-          printf("%f, ", g_kernel_ptrs[i][j]);
-      }
-      printf("\n");
-  }
+  
   return 1;
 }
