@@ -9,7 +9,7 @@ from os import listdir
 from os.path import isfile, join, dirname, realpath, basename
 
 # Settings for reading the logs
-logs_folder = "../baseline_logs/"
+#logs_folder = "../baseline_logs/"
 flops_logs = "../flops_logs/"
 
 start_line = 1
@@ -31,7 +31,6 @@ def read_logs(logs_folder, mode, flops_util_version=2, version=''):
     onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
 
-    resolution_map = {}
     for f in onlyfiles:
         if not resolution_label(f) in resolution_map:
             resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
@@ -40,7 +39,7 @@ def read_logs(logs_folder, mode, flops_util_version=2, version=''):
     
     init_flops_util2()
 
-    if mode == 'runtime':
+    if mode == 'runtime' and match == 'chrono':
         return get_runtime_measurements(onlyfiles)
     elif mode == 'stacked_runtime':
         return get_runtime_bars(onlyfiles)
@@ -124,7 +123,7 @@ def get_runtime_measurements(log_files):
     measurements = dict()
 
     for f in log_files:                
-        stream = open(logs_folder + f,"r")
+        stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
         resolution = resolution_label(f)
@@ -173,7 +172,9 @@ def get_runtime_bars(log_files):
             std_dev = float(vals[2])
                         
             if func_name in measurements:
-                pass
+                pass            
+            elif func_name == "MeasureFull":
+                continue
             else:                
                 measurements[func_name] = dict()
 
@@ -237,7 +238,6 @@ def get_resolution_in_indices():
 def init_flops_util2():
     onlyfiles = [f for f in listdir(flops_logs) if isfile(join(flops_logs, f))]    
     onlyfiles = np.sort(onlyfiles)
-
     
     for f in onlyfiles:
         stream = open(flops_logs + f,"r")
