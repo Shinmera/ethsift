@@ -333,6 +333,7 @@ int main(int argc, const char* argv[]){
   fprintf(stderr, "Image with %d x %d pixels\n", input_img.width, input_img.height);
 
   // Precompute gaussian pyramid
+  ethsift_init();
   init_gaussian();
 
   init_tests();
