@@ -114,6 +114,7 @@ target_compile_options(count_flops PRIVATE -DDEBUG -g -pg -O0)
 target_compile_definitions(count_flops PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 target_compile_definitions(count_flops PRIVATE IS_COUNTING)
+target_compile_definitions(count_flops PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSION}")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags")
