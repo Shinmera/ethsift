@@ -212,6 +212,7 @@ int main(int argc, char *argv[]){
   // Write logs
   char filename[200] = ETHSIFT_LOGS;
   strcat(filename, "/");
+  strcat(filename, (USE_RDTSC)? "rdtsc " : "chrono ");
   strcat(filename, g_testImgName->substr(0, g_testImgName->size()-4).c_str());
   strcat(filename, " ");
   strcat(filename, ethsift_version());
