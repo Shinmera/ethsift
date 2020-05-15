@@ -38,7 +38,7 @@ int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoin
 
 
   //Create Octaves for ethSift    
-  ethsift_generate_octaves(image, eth_octaves, octave_count);
+  ethsift_generate_octaves(image, eth_octaves, octave_count);  
 
   //Create Gaussians for ethSift    
   ethsift_generate_gaussian_pyramid(eth_octaves, octave_count, eth_gaussians, gaussian_count);
