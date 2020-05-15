@@ -102,11 +102,11 @@ add_executable(count_flops
   "src/allocate.c"
   "src/compute_keypoints.c"
   "src/stub.c"
-
+  "src/init.c"
   "src/flop_counters.h"
   "src/count_flops.h"
   "src/count_flops.c"
-)
+  )
 target_link_libraries(count_flops PRIVATE m)
 
 set_property(TARGET count_flops PROPERTY C_STANDARD 99)
