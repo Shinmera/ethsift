@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from read_logs import read_logs
 from performance_plots import PerformancePlot
 from runtime_plots import RuntimePlot
@@ -22,21 +23,22 @@ def main():
     #   - chrono (requires measurements to be in microseconds) 
     #   - runtime (requires measurements to be in microseconds) 
     #   - stacked_runtime (measurement independent)
-    reading_mode = os.getenv('PLOT_MODE', 'rdtsc')
+    version = os.getenv('VERSION','')
+    if os.getenv('PLOT_MODE') == None:
+        for mode in ['rdtsc', 'runtime', 'stacked_runtime']:
+            make_plots_for(mode, version)
+    else:
+        make_plots_for(os.getenv('PLOT_MODE'), version)
 
-    # Instead of opening plot window, auto-save images to perf_plot folder 
-    save_plots = True 
-    
-    # Save files to following image format
-    img_format = 'png'
 
-    measurements, tot_runtimes = read_logs(reading_mode)
+def make_plots_for(reading_mode, version="", save_plots=True, img_format='png'):
+    measurements, tot_runtimes = read_logs(reading_mode, version=version)
 
-    if reading_mode is 'runtime':
+    if reading_mode == 'runtime':
         make_runtime_plot(measurements=measurements, 
                           autosave=save_plots, 
                           img_format=img_format)
-    elif reading_mode is 'stacked_runtime': 
+    elif reading_mode == 'stacked_runtime':
         make_stackedruntime_plot(measurements=measurements, 
                                  tot_runtimes=tot_runtimes, 
                                  autosave=save_plots, 
@@ -46,8 +48,6 @@ def main():
                               cycle_measurement_method=reading_mode, 
                               autosave=save_plots, 
                               img_format=img_format)
-
-
 
 #===PLOTTING OF DIFFERENT MODES===#
 def make_performance_plot(measurements, cycle_measurement_method, autosave=True, img_format='svg', debug=False):

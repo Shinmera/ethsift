@@ -5,11 +5,9 @@ from flops_util import flops_util
 from architecture_config import config as arch_conf
 
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, dirname, realpath
 
 # Settings for reading the logs
-logs_folder = "../firstmeetinglogs/"
-
 start_line = 1
 end_line = 21
 
@@ -49,15 +47,22 @@ resolution_map['4320p']['width'] = 7680
 resolution_map['4320p']['height'] = 4320
 resolution_map['4320p']['tot_pixels'] = resolution_map['4320p']['width']*resolution_map['4320p']['height'] 
 
-def read_logs(mode='rdtsc'):    
+def read_logs(mode='chrono', logs_folder=join(dirname(realpath(__file__)),'../logs/'), version=''):
+    match = 'chrono'
+    if(mode == 'rdtsc'):
+        match = 'rdtsc'
+    
     # modes are rdtsc, chrono and runtime    
-    onlyfiles = [f for f in listdir(logs_folder) if isfile(join(logs_folder, f))]    
+    onlyfiles = [join(logs_folder,f) for f in listdir(logs_folder)
+                 if isfile(join(logs_folder, f))
+                 and match in f
+                 and version in f]
     onlyfiles = np.sort(onlyfiles)
     print(onlyfiles)
     
-    if mode is 'runtime':
+    if mode == 'runtime':
         return get_runtime_measurements(onlyfiles)
-    elif mode is 'stacked_runtime':
+    elif mode == 'stacked_runtime':
         return get_runtime_bars(onlyfiles)
     else:
         return get_performance_measurements(onlyfiles, mode)
@@ -67,7 +72,7 @@ def get_performance_measurements(log_files, mode):
     measurements = dict()
 
     for f in log_files:                
-        stream = open(logs_folder + f,"r")
+        stream = open(f,"r")
         lines = stream.readlines()
         lines.pop(0)
         resolution = f.split('-')[1].split('_')[0]
