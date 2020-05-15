@@ -30,14 +30,17 @@ int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
             if (i == 0 && j == 0) {
                 ethsift_apply_kernel(octaves[0], g_kernel_ptrs[0], g_kernel_sizes[0], g_kernel_rads[0], 
                                     gaussians[0]);
+                inc_mem(5); // 5 reads
             }
             else if (i > 0 && j == 0) {
                 ethsift_downscale_half(gaussians[(i - 1) * gaussian_count + layers_count],
                                          gaussians[i * gaussian_count]);
+                inc_mem(2); // 2 reads
             }
             else {
-                ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], g_kernel_ptrs[j], g_kernel_sizes[j], 
-                                    g_kernel_rads[j], gaussians[i * gaussian_count + j]);
+                ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], kernel_ptrs[j], kernel_sizes[j], 
+                                    kernel_rads[j], gaussians[i * gaussian_count + j]);
+                inc_mem(5); // 5 reads
             }
         }
     }    

@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ethsift.h"
-#include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "settings.h"
 #include <float.h>
+#include "settings.h"
+#include "ethsift.h"
+#include "flop_counters.h"
 
 extern float** g_kernel_ptrs;
 extern int* g_kernel_rads;
@@ -49,9 +49,6 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
     return val;
 }
 
-
-
-
 // MATH
 #define M_TWOPI 6.283185307179586f
 #define M_PI_FRAC4 0.785398163397448f
@@ -74,18 +71,31 @@ static inline float fast_atan2_f(float y, float x)
     float const c3 = 0.1821F;
     float const c1 = 0.9675F;
     float abs_y = fabsf(y) + EPSILON_F;
+    inc_adds(1);
 
     if (x >= 0) {
         r = (x - abs_y) / (x + abs_y);
         angle = M_PI_FRAC4;
+        inc_adds(2);
+        inc_div(1);
     }
     else {
         r = (x + abs_y) / (abs_y - x);
         angle = M_THREEPI_FRAC4;
+        inc_adds(2);
+        inc_div(1);
     }
     angle += (c3 * r * r - c1) * r;
+    inc_adds(2);
+    inc_mults(3);
 
-    return (y < 0) ? M_TWOPI - angle : angle;
+    if (y < 0) {
+        inc_adds(1);
+        return M_TWOPI - angle;
+    } else {
+        return angle;
+    }
+    // return (y < 0) ? M_TWOPI - angle : angle;
 }
 
 

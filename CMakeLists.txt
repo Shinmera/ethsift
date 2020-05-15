@@ -36,9 +36,11 @@ add_library(ethsift STATIC
   "src/compute_keypoints.c"
   "src/init.c"
   "src/stub.c"
+  "src/flop_counters.h"
   )
 target_include_directories(ethsift PUBLIC src)
 set_property(TARGET ethsift PROPERTY C_STANDARD 99)
+
 
 ## Test Harness Build
 add_executable(tester
@@ -53,6 +55,39 @@ target_link_libraries(tester PRIVATE ezsift ethsift)
 target_compile_options(tester PRIVATE -DDEBUG  -g -pg -O0 -Wall -Wno-unused-variable)
 target_compile_definitions(tester PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(tester PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
+
+
+## Executable to count flops and memory reads/writes
+add_executable(count_flops
+  "include/ethsift.h"
+  "src/internal.h"
+  "src/settings.h"
+  "src/gaussian_kernel.c"
+  "src/gaussian_pyramid.c"
+  "src/dog_pyramid.c"
+  "src/grad_rot_pyramid.c"
+  "src/octaves.c"
+  "src/downscale.c"
+  "src/apply_kernel.c"
+  "src/detect_keypoints.c"
+  "src/refine_local_extrema.c"
+  "src/histogram.c"
+  "src/extract_descriptor.c"
+  "src/allocate.c"
+  "src/compute_keypoints.c"
+  "src/stub.c"
+
+  "src/flop_counters.h"
+  "src/count_flops.h"
+  "src/count_flops.c"
+)
+target_link_libraries(count_flops PRIVATE m)
+
+set_property(TARGET count_flops PROPERTY C_STANDARD 99)
+target_compile_options(count_flops PRIVATE -DDEBUG -g -pg -O0)
+target_compile_definitions(count_flops PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
+target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
+target_compile_definitions(count_flops PRIVATE IS_COUNTING)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags...")
