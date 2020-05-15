@@ -59,4 +59,4 @@ To generate performance plots:
 make plots
 ```
 
-This requires a python3 installation with matplotlib and numpy.
+This requires a python3 installation with matplotlib and numpy. The plotter can be configured to select log files from a different directory using the `LOGS` environment variable, and to limit the files in the directory to ones containing a specified string in their name using `VERSION`. By default it will generate all plots. You can set it to only generate a certain kind of plot by setting `PLOT_MODE`.
