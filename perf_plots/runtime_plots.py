@@ -8,10 +8,14 @@ from read_logs import get_resolutions_in_pixels, get_resolutions_in_labels
 from architecture_config import config as arch_conf
 
 class RuntimePlot:
-    def __init__(self, y_max):
+    def __init__(self, y_max, meas_method):
         self.title = "Runtime "
         self.x_label ="Image Resolution [pixels]"
-        self.y_label = "Runtime [\u03BCs]"
+        if meas_method == 'rdtsc':
+            self.y_label = "Runtime [cycles]"
+        else:
+            self.y_label = "Runtime [\u03BCs]"
+
         self.title_font = {'fontname':'Calibri'}
         self.init_plot(y_max)
 
