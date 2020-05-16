@@ -1,7 +1,5 @@
 #include "internal.h"
 
-
-
 /// <summary> 
 /// Apply Gaussian row filter to image and then transpose the image.
 /// </summary>
@@ -18,15 +16,12 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
   
   // ==========================================================================
   // TODO Work in progress
-  //      - Remove any memory allocations
   //      - Rewrite to make it in place
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
   int dst_ind = 0;
   int row_ind = 0;
-
-  float *row_buf = malloc((w + kernel_rad * 2) * elemSize);
 
   float partialSum = 0.0f;
   float firstData, lastData;
@@ -65,9 +60,6 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
 
     row_ind += w;
   }
-
-  free(row_buf);
-
   return 1;
 }
 
@@ -83,13 +75,8 @@ int row_filter_transpose(float *pixels, float *output, int w, int h, float *kern
 int ethsift_apply_kernel(struct ethsift_image image, float *kernel, uint32_t kernel_size, uint32_t kernel_rad, struct ethsift_image output) {
   uint32_t w = image.width;
   uint32_t h = image.height;
-
-  float* temp = (float*)malloc(w * h * sizeof(float));
   
-  row_filter_transpose(image.pixels, temp, w, h, kernel, kernel_size, kernel_rad);
-  row_filter_transpose(temp, output.pixels, h, w, kernel, kernel_size, kernel_rad);
-  
-  free(temp);
-
+  row_filter_transpose(image.pixels, img_buf, w, h, kernel, kernel_size, kernel_rad);
+  row_filter_transpose(img_buf, output.pixels, h, w, kernel, kernel_size, kernel_rad);
   return 1;
 }

@@ -61,3 +61,5 @@
 
 // The keypoint refinement smaller than this threshold will be discarded.
 #define ETHSIFT_KEYPOINT_SUBPiXEL_THR 0.6f;
+
+#define ETHSIFT_MEMALIGN (128*1024)/8 // 1024KB data cache, 8-way.

@@ -10,6 +10,8 @@
 extern float** g_kernel_ptrs;
 extern int* g_kernel_rads;
 extern int* g_kernel_sizes;
+extern float *row_buf;
+extern float *img_buf;
 
 // Wrap image pixel access. Note this does not handle border conditions!
 static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){

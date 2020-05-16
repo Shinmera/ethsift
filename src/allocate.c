@@ -29,8 +29,7 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width,
   total_size *= image_per_layer_count;
 
   float *pixels = 0;
-  int cache_align = (128*1024)/8; // 1024KB data cache, 8-way.
-  if(posix_memalign(&pixels, cache_align, total_size*sizeof(float)))
+  if(posix_memalign(&pixels, ETHSIFT_MEMALIGN, total_size*sizeof(float)))
     return 0;
 
   uint32_t width = ref_width;
