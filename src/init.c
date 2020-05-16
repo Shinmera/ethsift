@@ -23,12 +23,13 @@ int ethsift_init(){
   g_kernel_rads = (int*) malloc(sizeof(int) * gaussian_count);
   g_kernel_sizes = (int*) malloc(sizeof(int) * gaussian_count);
 
-  ethsift_generate_all_kernels(layers_count, gaussian_count, g_kernel_ptrs, g_kernel_rads, g_kernel_sizes);
 
   // Make sure we fit up to 4K size images, with max kernel size 64.
-  if(posix_memalign(&row_buf, ETHSIFT_MEMALIGN, (7680+64)*sizeof(float))
-     || posix_memalign(&img_buf, ETHSIFT_MEMALIGN, 7680*4320*sizeof(float)))
+  if(posix_memalign((void*)&row_buf, ETHSIFT_MEMALIGN, (7680+64)*sizeof(float))
+     || posix_memalign((void*)&img_buf, ETHSIFT_MEMALIGN, 7680*4320*sizeof(float)))
     return 0;
+  
+  ethsift_generate_all_kernels(layers_count, gaussian_count, g_kernel_ptrs, g_kernel_rads, g_kernel_sizes);
   
   return 1;
 }

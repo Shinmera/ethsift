@@ -29,7 +29,7 @@ int ethsift_allocate_pyramid(struct ethsift_image pyramid[], uint32_t ref_width,
   total_size *= image_per_layer_count;
 
   float *pixels = 0;
-  if(posix_memalign(&pixels, ETHSIFT_MEMALIGN, total_size*sizeof(float)))
+  if(posix_memalign((void*)&pixels, ETHSIFT_MEMALIGN, total_size*sizeof(float)))
     return 0;
 
   uint32_t width = ref_width;
