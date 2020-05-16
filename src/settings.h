@@ -4,7 +4,9 @@
 
 
 // default number of sampled intervals per octave
-#define ETHSIFT_INTVLS 3;
+#define ETHSIFT_INTVLS 3
+
+#define ETHSIFT_INVERSE_INTVLS 1.0f / ETHSIFT_INTVLS;
 
 // default sigma for initial gaussian smoothing
 #define ETHSIFT_SIGMA 1.6f

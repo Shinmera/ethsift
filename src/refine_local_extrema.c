@@ -47,6 +47,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   
   // Settings
   int intvls = ETHSIFT_INTVLS;
+  float inverse_intvls = ETHSIFT_INVERSE_INTVLS;
   int max_interp_steps = ETHSIFT_MAX_INTERP_STEPS;
   float kpt_subpixel_thr = ETHSIFT_KEYPOINT_SUBPiXEL_THR;
   float contr_thr = ETHSIFT_CONTR_THR;
@@ -229,7 +230,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   
   keypoint->layer_pos.y = tmp_r;
   keypoint->layer_pos.x = tmp_c;
-  keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer / intvls); // 1 ADD + 1 DIV + 1 POW
+  keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
 
   inc_adds(1);
   inc_div(1);
