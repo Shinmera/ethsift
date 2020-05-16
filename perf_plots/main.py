@@ -108,7 +108,7 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
         peak_perf = 0
         
         nr_libs = len(measurements[function])
-        col_map = cm.get_cmap('jet', nr_libs)
+        col_map = cm.get_cmap('Dark2', nr_libs)
         colors = col_map(np.linspace(0, 1, nr_libs))
         it = 0
         for lib in measurements[function]:
@@ -150,7 +150,7 @@ def make_runtime_plot(measurements, cycle_measurement_method, show_plot=True, au
             longest_runtime = max(temp_max, longest_runtime)
 
     p = RuntimePlot(y_max=longest_runtime, meas_method=cycle_measurement_method)
-    col_map =cm.get_cmap('jet', nr_lines)
+    col_map =cm.get_cmap('tab20b', nr_lines)
     colors = col_map(np.linspace(0, 1, nr_lines))
     it = 0
 
