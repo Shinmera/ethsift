@@ -12,7 +12,7 @@
 /// <param name="kernel_rad"> IN: Radius of the kernel. </param>
 /// <returns> 1 IF generation was successful, ELSE 0. </returns>
  /// <remarks> (h * w * (2* kernel_size)) flops </remarks>
-int row_filter_transpose(float *pixels, float *output, int w, int h, float *kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+int row_filter_transpose(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
   // TODO Work in progress
