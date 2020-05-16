@@ -24,6 +24,9 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
     int nSubregion = ETHSIFT_DESCR_WIDTH;
     int nHalfSubregion = nSubregion >> 1;
 
+    // Center is 1.5
+    float precise_nHalfSubregion = nHalfSubregion - 0.5f;
+
     // Number of histogram bins for each descriptor subregion.
     int nBinsPerSubregion = ETHSIFT_DESCR_HIST_BINS;
     float nBinsPerSubregionPerDegree = (float)nBinsPerSubregion / M_TWOPI;
@@ -130,8 +133,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
                 // Since for a bin array with 4x4 bins, the center is actually
                 // at (1.5, 1.5)
-                rbin = rrotate + nHalfSubregion - 0.5f;
-                cbin = crotate + nHalfSubregion - 0.5f;
+                rbin = rrotate + precise_nHalfSubregion;
+                cbin = crotate + precise_nHalfSubregion;
 
                 inc_adds(4);
 
