@@ -27,7 +27,9 @@
 #define ETHSIFT_ORI_RADIUS (3.0f * ETHSIFT_ORI_SIG_FCTR) // Can affect the orientation computation.
 
 // default width of descriptor histogram array
-#define ETHSIFT_DESCR_WIDTH 4;
+#define ETHSIFT_DESCR_WIDTH 4
+
+#define ETHSIFT_DESCR_EXP_SCALE -2.0f / (ETHSIFT_DESCR_WIDTH * ETHSIFT_DESCR_WIDTH);
 
 // default number of bins per histogram in descriptor array
 #define ETHSIFT_DESCR_HIST_BINS 8;

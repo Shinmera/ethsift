@@ -46,7 +46,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
     int nRowStep = (nBinsPerSubregion + 2);
     float histBin[nHistBins];
 
-    float exp_scale = -2.0f / (nSubregion * nSubregion);
+    float exp_scale = ETHSIFT_DESCR_EXP_SCALE;
 
     inc_div(1);
     inc_mults(1); // maybe
