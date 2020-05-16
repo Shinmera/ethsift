@@ -114,10 +114,11 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         for (int i = top; i <= bottom; i++) // rows
         {
+            // Accurate position relative to kptr
+            rr = i + d_kptr;
             for (int j = left; j <= right; j++) // columns
             {
-                // Accurate position relative to (kptr, kptc)
-                rr = i + d_kptr;
+                // Accurate position relative to kptc
                 cc = j + d_kptc;
 
                 // Rotate the coordinate of (i, j)
