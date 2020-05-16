@@ -50,25 +50,38 @@ def main():
     #   - stacked_runtime
     if os.getenv('PLOT_MODE') == None:
         for mode in ['performance', 'runtime', 'stacked_runtime']:
-            make_plots_for(directory, mode, meas_method, version, save_plots=save_plots, img_format=img_format, flops_util_version=using_flops_util_version)
+            make_plots_for(directory, mode, meas_method, version, 
+                           save_plots=save_plots, 
+                           img_format=img_format, 
+                           flops_util_version=using_flops_util_version)
     else:
-        make_plots_for(directory, os.getenv('PLOT_MODE'), meas_method, version, save_plots=save_plots, img_format=img_format, flops_util_version=using_flops_util_version)
+        make_plots_for(directory, os.getenv('PLOT_MODE'), meas_method, version, 
+                       save_plots=save_plots, 
+                       img_format=img_format, 
+                       flops_util_version=using_flops_util_version)
 
 
 def make_plots_for(logs_folder, plot_mode, meas_method, version="", save_plots=True, img_format='png', flops_util_version=2):
-    measurements, tot_runtimes = read_logs(logs_folder, measurement_method=meas_method, mode=plot_mode, version=version, flops_util_version=flops_util_version)
+    measurements, tot_runtimes = read_logs(logs_folder, 
+                                        measurement_method=meas_method, 
+                                        mode=plot_mode, 
+                                        version=version, 
+                                        flops_util_version=flops_util_version)
 
     if plot_mode == 'runtime':
+        print("\nCreate Runtime Plot\n")
         make_runtime_plot(measurements=measurements, 
                           cycle_measurement_method=meas_method, 
                           autosave=save_plots, 
                           img_format=img_format)
     elif plot_mode == 'stacked_runtime':
+        print("\nCreate StackedBar Plot\n")
         make_stackedruntime_plot(measurements=measurements, 
                                  tot_runtimes=tot_runtimes, 
                                  autosave=save_plots, 
                                  img_format=img_format)
     else:
+        print("\nCreate Performance Plots\n")
         make_performance_plot(measurements=measurements, 
                               cycle_measurement_method=meas_method, 
                               autosave=save_plots, 
@@ -138,7 +151,6 @@ def make_runtime_plot(measurements, cycle_measurement_method, show_plot=True, au
 
     p = RuntimePlot(y_max=longest_runtime, meas_method=cycle_measurement_method)
     col_map =cm.get_cmap('jet', nr_lines)
-    print("NR LINES {}".format(nr_lines))
     colors = col_map(np.linspace(0, 1, nr_lines))
     it = 0
 

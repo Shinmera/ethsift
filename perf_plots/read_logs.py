@@ -25,7 +25,6 @@ def read_logs(logs_folder, measurement_method, mode='performance', flops_util_ve
     
     libs = [lib_name for lib_name in listdir(logs_folder) if isdir(join(logs_folder,lib_name))]
     libs = np.sort(libs)
-    print(libs)
 
     onlyfiles = []
     for lib in libs:
@@ -36,12 +35,10 @@ def read_logs(logs_folder, measurement_method, mode='performance', flops_util_ve
                  and version in f]
 
     onlyfiles = np.sort(onlyfiles)
-    print(onlyfiles)
 
     for f in onlyfiles:
-        if not resolution_label(f) in resolution_map:
+        if resolution_label(f) not in resolution_map:
             resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
-            print("Created keyword " + resolution_label(f))
     
     
     init_flops_util2()
@@ -93,7 +90,6 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
             vals = l.split(',')
             method_name_split = vals[0].split('_')
             lib = get_lib_name(f, libs)
-            print("Processing " + lib)
             func_name = method_name_split[1]
             median = int(vals[1])
             std_dev = float(vals[2])
@@ -124,7 +120,6 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
             if flops_util_version is 1:
                 flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
             else:
-                print("Access  " + resolution + "  " + func_name + "  " + lib)
                 flops = flops_util2[func_name][resolution]
 
 
@@ -260,7 +255,6 @@ def init_flops_util2():
         lines = stream.readlines()
         lines.pop(0)
         resolution = resolution_label(f)
-        print("Creation  " + resolution)
         for l in lines:
             vals = l.split(',')
             if vals[0] not in flops_util2:
