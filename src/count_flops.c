@@ -306,16 +306,16 @@ int init_tests() {
 
   tests = (test *)malloc(test_count * sizeof(test));
   // Add tests here
-  tests[0] = (test){"CountDownscale", 1, test_downscale};
-  tests[1] = (test){"CountConvolution", 1, test_convolution};
-  tests[2] = (test){"CountGaussianPyramid", 1, test_gaussian_pyramid};
-  tests[3] = (test){"CountDoG", 1, test_dog};
-  tests[4] = (test){"CountGradRot", 1, test_grad_rot};
-  tests[5] = (test){"CountHistogram avg", 1, test_histogram};
-  tests[6] = (test){"CountRefinement avg", 1, test_refinement};
-  tests[7] = (test){"CountKeypointDetection", 1, test_keypoint_detection};
-  tests[8] = (test){"CountExtractDescriptor", 1, test_extract_descriptor};
-  tests[9] = (test){"CountSIFTComplete1000", 1, test_compute_keypoints};
+  tests[0] = (test){"Downscale", 1, test_downscale};
+  tests[1] = (test){"Convolution", 1, test_convolution};
+  tests[2] = (test){"GaussianPyramid", 1, test_gaussian_pyramid};
+  tests[3] = (test){"DOGPyramid", 1, test_dog};
+  tests[4] = (test){"GradientAndRotationPyramids", 1, test_grad_rot};
+  tests[5] = (test){"Histogram", 1, test_histogram};
+  tests[6] = (test){"ExtremaRefinement", 1, test_refinement};
+  tests[7] = (test){"KeypointDetection", 1, test_keypoint_detection};
+  tests[8] = (test){"ExtractDescriptor", 1, test_extract_descriptor};
+  tests[9] = (test){"MeasureFull", 1, test_compute_keypoints};
 
   return 1;
 }

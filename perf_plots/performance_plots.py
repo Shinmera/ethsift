@@ -70,11 +70,11 @@ class PerformancePlot:
             self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
             self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='#7b0323', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
 
-    def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, markersize=8, error=None):
+    def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, capsize=10, markersize=8, error=None):
         if(error is None):
             self.axes.plot(x, y, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
         else:
-            self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
+            self.axes.errorbar(x, y, yerr=error, color=color, marker=marker, capsize=capsize, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
 
     def set_peak_performance(self, perf):
         self.max_performance = perf

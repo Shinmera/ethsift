@@ -9,8 +9,10 @@ import numpy as np
 import math
 
 lib_markers = dict()
-lib_markers['eth'] = '*'
-lib_markers['ez'] = '^'
+lib_markers['ethSIFT -O0'] = '*'
+lib_markers['ethSIFT -O3'] = 'x'
+lib_markers['ezSIFT -O3'] = '^'
+lib_markers['eth-O3'] = 'v'
 lib_cols = dict()
 lib_cols['eth'] = '#2138ab'
 lib_cols['ez'] = '#f0944d'
@@ -18,38 +20,73 @@ scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
     print("Start Plotting Script")
-    # modes are:
-    #   - rdtsc (requires measurements in cycles)
-    #   - chrono (requires measurements to be in microseconds) 
-    #   - runtime (requires measurements to be in microseconds) 
-    #   - stacked_runtime (measurement independent)
+    
+
+    # Instead of opening plot window, auto-save images to perf_plot folder 
+    save_plots = True 
+    
+    # Save files to following image format
+    img_format = 'png'
+
+    # Choosing the flops util version for measuring flops-count. Options:
+    # - 1: Taking lambda functions from flops_util.py
+    # - 2: Taking results from code of Jan which explicitly counted the flops.
+    using_flops_util_version = 2
+    
     version = os.getenv('VERSION','')
     directory = os.getenv('LOGS', os.path.join(scriptdir,'../logs/'))
-    if os.getenv('PLOT_MODE') == None:
-        for mode in ['rdtsc', 'runtime', 'stacked_runtime']:
-            make_plots_for(directory, mode, version)
+
+    # Measurement methods are
+    #   - rdtsc (requires measurements in cycles)
+    #   - chrono (requires measurements to be in microseconds)
+    if os.getenv('MEAS_METHOD') == None:
+        meas_method = 'rdtsc'
     else:
-        make_plots_for(directory, os.getenv('PLOT_MODE'), version)
+        meas_method = os.getenv('MEAS_METHOD')
+
+    # modes are:
+    #   - performance
+    #   - runtime
+    #   - stacked_runtime
+    if os.getenv('PLOT_MODE') == None:
+        for mode in ['performance', 'runtime', 'stacked_runtime']:
+            make_plots_for(directory, mode, meas_method, version, 
+                           save_plots=save_plots, 
+                           img_format=img_format, 
+                           flops_util_version=using_flops_util_version)
+    else:
+        make_plots_for(directory, os.getenv('PLOT_MODE'), meas_method, version, 
+                       save_plots=save_plots, 
+                       img_format=img_format, 
+                       flops_util_version=using_flops_util_version)
 
 
-def make_plots_for(logs_folder, reading_mode, version="", save_plots=True, img_format='png'):
-    measurements, tot_runtimes = read_logs(logs_folder, reading_mode, version=version)
+def make_plots_for(logs_folder, plot_mode, meas_method, version="", save_plots=True, img_format='png', flops_util_version=2):
+    measurements, tot_runtimes = read_logs(logs_folder, 
+                                        measurement_method=meas_method, 
+                                        mode=plot_mode, 
+                                        version=version, 
+                                        flops_util_version=flops_util_version)
 
-    if reading_mode == 'runtime':
+    if plot_mode == 'runtime':
+        print("\nCreate Runtime Plot\n")
         make_runtime_plot(measurements=measurements, 
+                          cycle_measurement_method=meas_method, 
                           autosave=save_plots, 
                           img_format=img_format)
-    elif reading_mode == 'stacked_runtime':
+    elif plot_mode == 'stacked_runtime':
+        print("\nCreate StackedBar Plot\n")
         make_stackedruntime_plot(measurements=measurements, 
                                  tot_runtimes=tot_runtimes, 
                                  autosave=save_plots, 
                                  img_format=img_format)
     else:
+        print("\nCreate Performance Plots\n")
         make_performance_plot(measurements=measurements, 
-                              cycle_measurement_method=reading_mode, 
+                              cycle_measurement_method=meas_method, 
                               autosave=save_plots, 
                               img_format=img_format)
-
+                              
 #===PLOTTING OF DIFFERENT MODES===#
 def make_performance_plot(measurements, cycle_measurement_method, autosave=True, img_format='svg', debug=False):
     if debug:
@@ -69,22 +106,29 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
         p.set_method_used(cycle_measurement_method)
         p.plot_pi(linewidth=2)
         peak_perf = 0
+        
+        nr_libs = len(measurements[function])
+        col_map = cm.get_cmap('jet', nr_libs)
+        colors = col_map(np.linspace(0, 1, nr_libs))
+        it = 0
         for lib in measurements[function]:
             p.plot_points(x=np.array(measurements[function][lib]['resolutions']),
                           y=np.array(measurements[function][lib]['performance']),
                           linewidth=1.5,
                           marker=lib_markers[lib],
                           point_label=lib,
-                          color=lib_cols[lib],
-                          markersize=8)
-                          #error=np.array(measurements[function][lib]['std']))
-            if lib == 'eth':
+                          color=colors[it],
+                          markersize=8,
+                          error=np.array(measurements[function][lib]['std'])
+                          )
+            if lib.split('-')[0] == 'eth':
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
+            it += 1
         p.plot_graph(function, autosave=autosave, img_format=img_format)
 
-def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='svg', debug=False):
+def make_runtime_plot(measurements, cycle_measurement_method, show_plot=True, autosave=True, img_format='svg', debug=False):
     if debug:
         for key1 in measurements:
             print(key1)
@@ -105,7 +149,7 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='s
             temp_max = np.amax(measurements[function][lib]['runtime'])
             longest_runtime = max(temp_max, longest_runtime)
 
-    p = RuntimePlot(y_max=longest_runtime)
+    p = RuntimePlot(y_max=longest_runtime, meas_method=cycle_measurement_method)
     col_map =cm.get_cmap('jet', nr_lines)
     colors = col_map(np.linspace(0, 1, nr_lines))
     it = 0
@@ -118,7 +162,7 @@ def make_runtime_plot(measurements, show_plot=True, autosave=True, img_format='s
                         point_label=lib + " " + function,
                         color=colors[it],
                         markersize=12,
-                        #error=np.array(measurements[function][lib]['std'])
+                        error=np.array(measurements[function][lib]['std'])
                         )
             it += 1
     p.plot_graph("All Functions", autosave=autosave, img_format=img_format)
@@ -174,10 +218,10 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
             
             error=np.array(measurements[function][lib]['std']) / np_runtimes[lib] 
             if prev[lib] is None:
-                plots[lib].plot_points(y=y_mod, std=error, func_name=function)
+                plots[lib].plot_points(y=y_mod, func_name=function)
                 prev[lib] = y_mod
             else:
-                plots[lib].plot_points(y=y_mod, std=error, func_name=function, bottom=prev[lib])
+                plots[lib].plot_points(y=y_mod, func_name=function, bottom=prev[lib])
                 prev[lib] = np.add(y_mod, prev[lib])
 
 

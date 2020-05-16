@@ -51,7 +51,7 @@ class StackedPlot:
         self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
         self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
        
-        self.fig.suptitle(self.graph_name, **self.title_font, fontsize=25)
+        self.fig.suptitle(graph_name, **self.title_font, fontsize=25)
         
         
         self.axes.xaxis.grid() # only showing horizontal lines
