@@ -196,14 +196,15 @@ define_test(ez_ExtractDescriptor, 1, {
   })
 
 define_test(ez_MeasureFull, 1, {
-  ezsift::Image<unsigned char> ez_img;
-  if(ez_img.read_pgm(get_testimg_path()) != 0)
-    fail("Failed to read image");
+    ezsift::Image<unsigned char> ez_img;
+    if(ez_img.read_pgm(get_testimg_path()) != 0)
+      fail("Failed to read image");
 
-  std::list<ezsift::SiftKeypoint> kpt_list;
-  with_repeating({
-      ezsift::sift_cpu(ez_img, kpt_list, true);
-      kpt_list.clear();
-    })
+    std::list<ezsift::SiftKeypoint> kpt_list;
+    with_repeating({
+        ezsift::sift_cpu(ez_img, kpt_list, true);
+        kpt_list.clear();
+      })
   })
+
 #endif
