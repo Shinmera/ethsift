@@ -24,26 +24,24 @@ int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[],
     int layers_count = gaussian_count - 3;
     
     // Calculate the gaussian pyramids!
-    for (int i = 0; i < octave_count; ++i) {
-        for (int j = 0; j < gaussian_count; ++j) {
-            // OPT TODO: Optimize these checks, expensive and optimization potential is there !  
-            if (i == 0 && j == 0) {
-                ethsift_apply_kernel(octaves[0], g_kernel_ptrs[0], g_kernel_sizes[0], g_kernel_rads[0], 
-                                    gaussians[0]);
-                inc_mem(5); // 5 reads
-            }
-            else if (i > 0 && j == 0) {
-                ethsift_downscale_half(gaussians[(i - 1) * gaussian_count + layers_count],
-                                         gaussians[i * gaussian_count]);
-                inc_mem(2); // 2 reads
-            }
-            else {
-                ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], g_kernel_ptrs[j], g_kernel_sizes[j], 
-                                    g_kernel_rads[j], gaussians[i * gaussian_count + j]);
-                inc_mem(5); // 5 reads
-            }
-        }
-    }    
+    ethsift_apply_kernel(octaves[0], g_kernel_ptrs[0], g_kernel_sizes[0], g_kernel_rads[0], 
+                         gaussians[0]);
+    inc_mem(5); // 5 reads
+    for(int j = 1; j < gaussian_count; ++j){
+      ethsift_apply_kernel(gaussians[j - 1], g_kernel_ptrs[j], g_kernel_sizes[j], 
+                           g_kernel_rads[j], gaussians[j]);
+      inc_mem(5); // 5 reads
+    }
+    for (int i = 1; i < octave_count; ++i) {
+      ethsift_downscale_half(gaussians[(i - 1) * gaussian_count + layers_count],
+                             gaussians[i * gaussian_count]);
+      inc_mem(2); // 2 reads
+      for (int j = 1; j < gaussian_count; ++j) {
+        ethsift_apply_kernel(gaussians[i * gaussian_count + j - 1], g_kernel_ptrs[j], g_kernel_sizes[j], 
+                             g_kernel_rads[j], gaussians[i * gaussian_count + j]);
+        inc_mem(5); // 5 reads
+      }
+    }
 
     return 1;
 }
