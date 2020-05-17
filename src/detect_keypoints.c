@@ -107,6 +107,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
   // Histogram
   int nBins = ETHSIFT_ORI_HIST_BINS;
+  float invBins = 1.0/nBins;
   float hist[nBins];
   float max_mag;
 
@@ -206,10 +207,9 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
                   keypoints[keypoints_current].magnitude = currHist;
-                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins; // 1 MUL + 1 DIV
+                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI * invBins; // 2 MUL
 
-                  inc_mults(1);
-                  inc_div(1);
+                  inc_mults(2);
 
                   // Update keypoint counters
                   ++keypoints_current;
