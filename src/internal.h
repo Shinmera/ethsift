@@ -11,6 +11,10 @@ extern float** g_kernel_ptrs;
 extern int* g_kernel_rads;
 extern int* g_kernel_sizes;
 
+
+#define internal_max(a,b) (((a) > (b)) ? (a) : (b))
+#define internal_min(a,b) (((a) < (b)) ? (a) : (b))
+
 // Wrap image pixel access. Note this does not handle border conditions!
 static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){
   return image.pixels[image.width*y+x];
@@ -28,25 +32,11 @@ static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){
 static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 {
     float val;
-    if (c >= 0 && c < w && r >= 0 && r < h) {
-        val = imageData[r * w + c];
-    }
-    else if (c < 0) {
-        val = imageData[r * w];
-    }
-    else if (c >= w) {
-        val = imageData[r * w + w - 1];
-    }
-    else if (r < 0) {
-        val = imageData[c];
-    }
-    else if (r >= h) {
-        val = imageData[(h - 1) * w + c];
-    }
-    else {
-        val = 0.0f;
-    }
-    return val;
+    int c_mod = internal_min(c, w - 1);
+    int r_mod = internal_min(r, h - 1);
+    c_mod = internal_max(0, c_mod);
+    r_mod = internal_max(0, r_mod);
+    return val = imageData[r_mod * w + c_mod];
 }
 
 // MATH
