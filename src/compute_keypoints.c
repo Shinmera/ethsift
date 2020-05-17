@@ -21,9 +21,6 @@ int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoin
 
 
   // Allocate the pyramids!
-  struct ethsift_image eth_octaves[octave_count];
-  ethsift_allocate_pyramid(eth_octaves, image.width, image.height, octave_count, 1);
-
   struct ethsift_image eth_gaussians[octave_count * gaussian_count];
   ethsift_allocate_pyramid(eth_gaussians, image.width, image.height, octave_count, gaussian_count);
 
@@ -36,12 +33,8 @@ int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoin
   struct ethsift_image eth_differences[octave_count*dog_count];
   ethsift_allocate_pyramid(eth_differences, image.width, image.height, octave_count, dog_count);
 
-
-  //Create Octaves for ethSift    
-  ethsift_generate_octaves(image, eth_octaves, octave_count);  
-
   //Create Gaussians for ethSift    
-  ethsift_generate_gaussian_pyramid(eth_octaves, octave_count, eth_gaussians, gaussian_count);
+  ethsift_generate_gaussian_pyramid(image, octave_count, eth_gaussians, gaussian_count);
 
   // Caculate Difference of Gaussians
   ethsift_generate_difference_pyramid(eth_gaussians, gaussian_count, eth_differences, dog_count, octave_count);
@@ -54,7 +47,6 @@ int ethsift_compute_keypoints(struct ethsift_image image, struct ethsift_keypoin
   ethsift_extract_descriptor(eth_gradients, eth_rotations, octave_count, gaussian_count, keypoints, *keypoint_count);
 
   // Free up memory allocated for all the pyramids 
-  ethsift_free_pyramid(eth_octaves);
   ethsift_free_pyramid(eth_gaussians);
   ethsift_free_pyramid(eth_gradients);
   ethsift_free_pyramid(eth_rotations);

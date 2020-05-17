@@ -107,6 +107,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
   // Histogram
   int nBins = ETHSIFT_ORI_HIST_BINS;
+  float invBins = 1.0/nBins;
   float hist[nBins];
   float max_mag;
 
@@ -138,8 +139,54 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
           // Test if pixel value is an extrema:
           int isExtrema =
-            (pixel >= threshold  && is_local_max(pixel, pos, w, curData, lowData, highData)) ||
-            (pixel <= -threshold && is_local_min(pixel, pos, w, curData, lowData, highData));
+            (pixel >= threshold  && pixel > highData[pos - w - 1] &&
+                                    pixel > highData[pos - w] &&
+                                    pixel > highData[pos - w + 1] &&
+                                    pixel > highData[pos - 1] && pixel > highData[pos] &&
+                                    pixel > highData[pos + 1] &&
+                                    pixel > highData[pos + w - 1] &&
+                                    pixel > highData[pos + w] &&
+                                    pixel > highData[pos + w + 1] &&
+                                    pixel > curData[pos - w - 1] &&
+                                    pixel > curData[pos - w] &&
+                                    pixel > curData[pos - w + 1] &&
+                                    pixel > curData[pos - 1] &&
+                                    pixel > curData[pos + 1] &&
+                                    pixel > curData[pos + w - 1] &&
+                                    pixel > curData[pos + w] &&
+                                    pixel > curData[pos + w + 1] &&
+                                    pixel > lowData[pos - w - 1] &&
+                                    pixel > lowData[pos - w] &&
+                                    pixel > lowData[pos - w + 1] &&
+                                    pixel > lowData[pos - 1] && pixel > lowData[pos] &&
+                                    pixel > lowData[pos + 1] &&
+                                    pixel > lowData[pos + w - 1] &&
+                                    pixel > lowData[pos + w] &&
+                                    pixel > lowData[pos + w + 1]) ||
+            (pixel <= -threshold && pixel < highData[pos - w - 1] &&
+                                    pixel < highData[pos - w] &&
+                                    pixel < highData[pos - w + 1] &&
+                                    pixel < highData[pos - 1] && pixel < highData[pos] &&
+                                    pixel < highData[pos + 1] &&
+                                    pixel < highData[pos + w - 1] &&
+                                    pixel < highData[pos + w] &&
+                                    pixel < highData[pos + w + 1] &&
+                                    pixel < curData[pos - w - 1] &&
+                                    pixel < curData[pos - w] &&
+                                    pixel < curData[pos - w + 1] &&
+                                    pixel < curData[pos - 1] &&
+                                    pixel < curData[pos + 1] &&
+                                    pixel < curData[pos + w - 1] &&
+                                    pixel < curData[pos + w] &&
+                                    pixel < curData[pos + w + 1] &&
+                                    pixel < lowData[pos - w - 1] &&
+                                    pixel < lowData[pos - w] &&
+                                    pixel < lowData[pos - w + 1] &&
+                                    pixel < lowData[pos - 1] && pixel < lowData[pos] &&
+                                    pixel < lowData[pos + 1] &&
+                                    pixel < lowData[pos + w - 1] &&
+                                    pixel < lowData[pos + w] &&
+                                    pixel < lowData[pos + w + 1]);
 
           // 11 + rle + coh
           if (isExtrema) {
@@ -206,10 +253,9 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // actually use it in image matching, we just
                   // lazily use the histogram value.
                   keypoints[keypoints_current].magnitude = currHist;
-                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins; // 1 MUL + 1 DIV
+                  keypoints[keypoints_current].orientation = accu_ii * M_TWOPI * invBins; // 2 MUL
 
-                  inc_mults(1);
-                  inc_div(1);
+                  inc_mults(2);
 
                   // Update keypoint counters
                   ++keypoints_current;

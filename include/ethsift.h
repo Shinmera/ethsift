@@ -138,14 +138,14 @@ extern "C" {
   /// <summary> 
   /// Creates a pyramid of images containing blurred versions of the input image.
   /// </summary>
-  /// <param name="octaves"> IN: The octaves of the input image. </param>
+  /// <param name="image"> IN: The input image. </param>
   /// <param name="octave_count"> IN: Number of octaves. </param>
   /// <param name="gaussians"> IN/OUT: Struct of gaussians to compute. 
   /// NOTE: Size = octave_count * gaussian_count. </param>
   /// <param name="gaussian_count"> IN: Number of gaussian blurred images per layer. </param> 
   /// <returns> 1 IF generation was successful, ELSE 0. </returns>
   /// <remarks> ggk + ((gaussian_count-1)*octave_count + 1) * ak </remarks>
-  int ethsift_generate_gaussian_pyramid(struct ethsift_image octaves[], uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
+  int ethsift_generate_gaussian_pyramid(struct ethsift_image image, uint32_t octave_count, struct ethsift_image gaussians[], uint32_t gaussian_count);
 
   /// <summary> 
   /// Build the Difference of Gaussian pyramids

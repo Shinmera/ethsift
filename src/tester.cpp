@@ -1,6 +1,12 @@
 #include "tester.h"
 #include <time.h>
 
+struct measurement{
+  const char *title;
+  size_t median;
+  double mad;
+};
+
 struct test{
   const char *title;
   const char *reason;
@@ -16,7 +22,7 @@ struct test{
 #endif
 
 std::vector<size_t> durations;
-std::vector<LogTuple> test_logs;
+std::vector<struct measurement> test_logs;
 bool measurement_pending = false;
 int test_count = 0;
 struct test tests[1024] = {0};
@@ -83,18 +89,43 @@ void write_logfile(char *filename){
     myfile.open(filename);
     myfile << "MethodName, Median, Std" << std::endl;
     for (auto t : test_logs) {
-        myfile << std::get<0>(t) << ", " << std::get<1>(t)
-            << ", " << std::get<2>(t) << std::endl;
+        myfile << t.title << ", " << t.median << ", " << t.mad << std::endl;
     }
     myfile.close();
+}
+
+struct measurement compute_statistics(struct test test){
+  size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
+  std::sort(durations.begin(), durations.end());
+  size_t median = durations[durations.size()/2];
+  std::vector<size_t> deviations(durations.size());
+  map(durations, deviations, [&](auto d){return std::abs((int64_t)d - (int64_t)median);});
+  std::sort(deviations.begin(), deviations.end());
+  double mad = K_FACTOR * deviations[deviations.size()/2];
+  return { test.title, median, mad};
 }
 
 //// Empty test to measure base noise. Seems we incur 14-20 (median 15)
 //// cycles per measurement no matter what.
 // define_test(foo, 0, {with_repeating()})
 
+int register_measurement(){
+  // clear line
+  struct measurement t = compute_statistics({0});
+  
+  // Show
+  fprintf(stderr, "\033[u");
+#if USE_RDTSC
+  fprintf(stderr, " %20li cycles ±%10.2f", t.median, t.mad);
+#else
+  fprintf(stderr, " %10liµs ±%10.2f", t.median, t.mad);
+#endif
+  fflush(stderr);
+}
+
 int run_test(struct test test){
   fprintf(stderr, "Running %-36s \033[0;90m...\033[0;0m ", test.title);
+  fprintf(stderr, "\033[s");
   durations.clear();
 
   // Start measurement without the pending check to allow user override
@@ -116,25 +147,10 @@ int run_test(struct test test){
   end_measurement();
 
   // Compute statistics for ethsift
-  size_t cumulative = reduce(durations, [](auto a,auto b){return a+b;});
-  std::sort(durations.begin(), durations.end());
-  size_t median = durations[durations.size()/2];
-  std::vector<size_t> deviations(durations.size());
-  map(durations, deviations, [&](auto d){return std::abs((int64_t)d - (int64_t)median);});
-  std::sort(deviations.begin(), deviations.end());
-  double mad = K_FACTOR * deviations[deviations.size()/2];
-
+  struct measurement t = compute_statistics(test);
   if (test.has_measurement_comp) {
-    LogTuple t = { test.title, median, mad };
     test_logs.push_back(t);
   }
-  
-  // Show
-  #if USE_RDTSC
-    fprintf(stderr, " %20li cycles ±%10.2f", median, mad);
-  #else
-    fprintf(stderr, " %10liµs ±%10.2f", median, mad);
-  #endif
 
   fprintf(stderr, (ret==0)?" \033[1;31m[FAIL]":" \033[0;32m[OK  ]");
   fprintf(stderr, "\033[0;0m\n");
