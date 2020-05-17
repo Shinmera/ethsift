@@ -15,7 +15,7 @@
 int row_filter_transpose(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
-  // Outer and inner loop are unrolled. With -O0 optimization level needs about 85 Mio cycles to convolve lena.pgm (AMD Zen).
+  // Outer and inner loop are unrolled. With -O0 optimization level needs about 88 Mio cycles, -O3 -fno-tree-vectorize about 27Mio to convolve lena.pgm (AMD Zen).
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
@@ -124,45 +124,78 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         ker3 = kernel[i + 2];
         ker4 = kernel[i + 3];
         
-        t11 += ker1 * val1;
-        t21 += ker2 * val2;
-        t31 += ker3 * val3;
-        t41 += ker4 * val4;
+        t11 = ker1 * val1;
+        t21 = ker2 * val2;
+        t31 = ker3 * val3;
+        t41 = ker4 * val4;
         
-        t12 += ker1 * val2;
-        t22 += ker2 * val3;
-        t32 += ker3 * val4;
-        t42 += ker4 * val5;
+        t12 = ker1 * val2;
+        t22 = ker2 * val3;
+        t32 = ker3 * val4;
+        t42 = ker4 * val5;
         
-        t13 += ker1 * val3;
-        t23 += ker2 * val4;
-        t33 += ker3 * val5;
-        t43 += ker4 * val6;
+        t13 = ker1 * val3;
+        t23 = ker2 * val4;
+        t33 = ker3 * val5;
+        t43 = ker4 * val6;
 
-        t14 += ker1 * val4;
-        t24 += ker2 * val5;
-        t34 += ker3 * val6;
-        t44 += ker4 * val7;
+        t14 = ker1 * val4;
+        t24 = ker2 * val5;
+        t34 = ker3 * val6;
+        t44 = ker4 * val7;
         
-        t15 += ker1 * val5;
-        t25 += ker2 * val6;
-        t35 += ker3 * val7;
-        t45 += ker4 * val8;
+        t15 = ker1 * val5;
+        t25 = ker2 * val6;
+        t35 = ker3 * val7;
+        t45 = ker4 * val8;
         
-        t16 += ker1 * val6;
-        t26 += ker2 * val7;
-        t36 += ker3 * val8;
-        t46 += ker4 * val9;
+        t16 = ker1 * val6;
+        t26 = ker2 * val7;
+        t36 = ker3 * val8;
+        t46 = ker4 * val9;
         
-        t17 += ker1 * val7;
-        t27 += ker2 * val8;
-        t37 += ker3 * val9;
-        t47 += ker4 * val10;
+        t17 = ker1 * val7;
+        t27 = ker2 * val8;
+        t37 = ker3 * val9;
+        t47 = ker4 * val10;
         
-        t18 += ker1 * val8;
-        t28 += ker2 * val9;
-        t38 += ker3 * val10;
-        t48 += ker4 * val11;
+        t18 = ker1 * val8;
+        t28 = ker2 * val9;
+        t38 = ker3 * val10;
+        t48 = ker4 * val11;
+
+        t11 += t21;
+        t31 += t41;
+
+        t12 += t22;
+        t32 += t42;
+
+        t13 += t23;
+        t33 += t43;
+
+        t14 += t24;
+        t34 += t44;
+        
+        t15 += t25;
+        t35 += t45;
+        
+        t16 += t26;
+        t36 += t46;
+        
+        t17 += t27;
+        t37 += t47;
+        
+        t18 += t28;
+        t38 += t48;
+        
+        partialSum += t11 + t31;
+        partialSum1 += t12 + t32;
+        partialSum2 += t13 + t33;
+        partialSum3 += t14 + t34;
+        partialSum4 += t15 + t35;
+        partialSum5 += t16 + t36;
+        partialSum6 += t17 + t37;
+        partialSum7 += t18 + t38;
 
         inc_adds(32);
         inc_mults(32);
@@ -174,56 +207,20 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       for (; i < kernel_size; ++i) {
         ker1 = kernel[i];
 
-        t11 += ker1 * row_buf[buf_ind];
-        t12 += ker1 * row_buf[buf_ind + 1];
-        t13 += ker1 * row_buf[buf_ind + 2];
-        t14 += ker1 * row_buf[buf_ind + 3];
-        t15 += ker1 * row_buf[buf_ind + 4];
-        t16 += ker1 * row_buf[buf_ind + 5];
-        t17 += ker1 * row_buf[buf_ind + 6];
-        t18 += ker1 * row_buf[buf_ind + 7];
+        partialSum += ker1 * row_buf[buf_ind];
+        partialSum1 += ker1 * row_buf[buf_ind + 1];
+        partialSum2 += ker1 * row_buf[buf_ind + 2];
+        partialSum3 += ker1 * row_buf[buf_ind + 3];
+        partialSum4 += ker1 * row_buf[buf_ind + 4];
+        partialSum5 += ker1 * row_buf[buf_ind + 5];
+        partialSum6 += ker1 * row_buf[buf_ind + 6];
+        partialSum7 += ker1 * row_buf[buf_ind + 7];
         ++buf_ind;
 
         inc_adds(8);
         inc_mults(8);
         inc_mem(9);
       }
-
-      
-      t11 += t21;
-      t31 += t41;
-
-      t12 += t22;
-      t32 += t42;
-
-      t13 += t23;
-      t33 += t43;
-
-      t14 += t24;
-      t34 += t44;
-      
-      t15 += t25;
-      t35 += t45;
-      
-      t16 += t26;
-      t36 += t46;
-      
-      t17 += t27;
-      t37 += t47;
-      
-      t18 += t28;
-      t38 += t48;
-      
-      partialSum += t11 + t31;
-      partialSum1 += t12 + t32;
-      partialSum2 += t13 + t33;
-      partialSum3 += t14 + t34;
-      partialSum4 += t15 + t35;
-      partialSum5 += t16 + t36;
-      partialSum6 += t17 + t37;
-      partialSum7 += t18 + t38;
-
-      inc_adds(32);
       
       buf_ind -= 2 * kernel_rad - 7;
 
