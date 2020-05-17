@@ -149,6 +149,8 @@ else()
     target_compile_options(ethsift PRIVATE -O1)
   elseif(OPT_FLAGS MATCHES O0)
     target_compile_options(ethsift PRIVATE -O0)
+  elseif(OPT_FLAGS MATCHES std-c)
+    target_compile_options(ethsift PRIVATE -O3 -fno-tree-vectorize)
   endif()
 
   add_custom_target(gprof

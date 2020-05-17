@@ -15,7 +15,7 @@
 int row_filter_transpose(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
-  // Outer and inner loop are unrolled. With -O0 optimization level needs about 88 Mio cycles, -O3 -fno-tree-vectorize about 27Mio to convolve lena.pgm (AMD Zen).
+  // Outer and inner loop are unrolled. With -O0 optimization level needs about 90 Mio cycles, -O3 -fno-tree-vectorize about 22Mio to convolve lena.pgm (AMD Zen).
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
@@ -26,10 +26,6 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
   float partialSum1 = 0.0f;
   float partialSum2 = 0.0f;
   float partialSum3 = 0.0f;
-  float partialSum4 = 0.0f;
-  float partialSum5 = 0.0f;
-  float partialSum6 = 0.0f;
-  float partialSum7 = 0.0f;
   float firstData, lastData;
   
   for (int r = 0; r < h; r++) {
@@ -48,17 +44,13 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
     dst_ind = r;
     buf_ind = 0;
 
-    int lim = w - 7;
+    int lim = w - 3;
     int c;
-    for (c = 0; c < lim; c += 8) {
+    for (c = 0; c < lim; c += 4) {
       partialSum = 0;
       partialSum1 = 0;
       partialSum2 = 0;
       partialSum3 = 0;
-      partialSum4 = 0;
-      partialSum5 = 0;
-      partialSum6 = 0;
-      partialSum7 = 0;
 
       float t11 = 0;
       float t21 = 0; 
@@ -79,28 +71,8 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       float t24 = 0; 
       float t34 = 0;
       float t44 = 0;
-      
-      float t15 = 0;
-      float t25 = 0; 
-      float t35 = 0;
-      float t45 = 0;
-      
-      float t16 = 0;
-      float t26 = 0; 
-      float t36 = 0;
-      float t46 = 0;
-      
-      float t17 = 0;
-      float t27 = 0; 
-      float t37 = 0;
-      float t47 = 0;
-      
-      float t18 = 0;
-      float t28 = 0; 
-      float t38 = 0;
-      float t48 = 0;
 
-      float val1, val2, val3, val4, val5, val6, val7, val8, val9, val10, val11;
+      float val1, val2, val3, val4, val5, val6, val7;
       float ker1, ker2, ker3, ker4;
 
       int kernel_lim = kernel_size - 4;
@@ -114,10 +86,6 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         val5 = row_buf[buf_ind + 4];
         val6 = row_buf[buf_ind + 5];
         val7 = row_buf[buf_ind + 6];
-        val8 = row_buf[buf_ind + 7];
-        val9 = row_buf[buf_ind + 8];
-        val10 = row_buf[buf_ind + 9];
-        val11 = row_buf[buf_ind + 10];
 
         ker1 = kernel[i];
         ker2 = kernel[i + 1];
@@ -143,26 +111,6 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         t24 = ker2 * val5;
         t34 = ker3 * val6;
         t44 = ker4 * val7;
-        
-        t15 = ker1 * val5;
-        t25 = ker2 * val6;
-        t35 = ker3 * val7;
-        t45 = ker4 * val8;
-        
-        t16 = ker1 * val6;
-        t26 = ker2 * val7;
-        t36 = ker3 * val8;
-        t46 = ker4 * val9;
-        
-        t17 = ker1 * val7;
-        t27 = ker2 * val8;
-        t37 = ker3 * val9;
-        t47 = ker4 * val10;
-        
-        t18 = ker1 * val8;
-        t28 = ker2 * val9;
-        t38 = ker3 * val10;
-        t48 = ker4 * val11;
 
         t11 += t21;
         t31 += t41;
@@ -176,26 +124,10 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         t14 += t24;
         t34 += t44;
         
-        t15 += t25;
-        t35 += t45;
-        
-        t16 += t26;
-        t36 += t46;
-        
-        t17 += t27;
-        t37 += t47;
-        
-        t18 += t28;
-        t38 += t48;
-        
         partialSum += t11 + t31;
         partialSum1 += t12 + t32;
         partialSum2 += t13 + t33;
         partialSum3 += t14 + t34;
-        partialSum4 += t15 + t35;
-        partialSum5 += t16 + t36;
-        partialSum6 += t17 + t37;
-        partialSum7 += t18 + t38;
 
         inc_adds(32);
         inc_mults(32);
@@ -211,10 +143,6 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         partialSum1 += ker1 * row_buf[buf_ind + 1];
         partialSum2 += ker1 * row_buf[buf_ind + 2];
         partialSum3 += ker1 * row_buf[buf_ind + 3];
-        partialSum4 += ker1 * row_buf[buf_ind + 4];
-        partialSum5 += ker1 * row_buf[buf_ind + 5];
-        partialSum6 += ker1 * row_buf[buf_ind + 6];
-        partialSum7 += ker1 * row_buf[buf_ind + 7];
         ++buf_ind;
 
         inc_adds(8);
@@ -222,7 +150,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         inc_mem(9);
       }
       
-      buf_ind -= 2 * kernel_rad - 7;
+      buf_ind -= 2 * kernel_rad - 3;
 
       output[dst_ind] = partialSum;
       dst_ind += h;
@@ -231,14 +159,6 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       output[dst_ind] = partialSum2;
       dst_ind += h;
       output[dst_ind] = partialSum3;
-      dst_ind += h;
-      output[dst_ind] = partialSum4;
-      dst_ind += h;
-      output[dst_ind] = partialSum5;
-      dst_ind += h;
-      output[dst_ind] = partialSum6;
-      dst_ind += h;
-      output[dst_ind] = partialSum7;
       dst_ind += h;
 
       inc_mem(8);
