@@ -57,53 +57,53 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       // }
 
 
-      // // This could give a potential speed-up when using an Intel CPU (AMD avg. 125'978'544 cycles)
-      // float t1 = 0;
-      // float t2 = 0; 
-      // float t3 = 0;
-      // float t4 = 0; 
-      // float t5 = 0;
-      // float t6 = 0;
-      // float t7 = 0;
-      // float t8 = 0;
-      // int j;
-      // for (j = 0; j < kernel_size; j+=8) {
-      //   if (kernel_size - j < 8) {
-      //     break;
-      //   } 
-      //   t1 += kernel[j] * row_buf[buf_ind];
-      //   t2 += kernel[j + 1] * row_buf[buf_ind + 1];
-      //   t3 += kernel[j + 2] * row_buf[buf_ind + 2];
-      //   t4 += kernel[j + 3] * row_buf[buf_ind + 3];
-      //   t5 += kernel[j + 4] * row_buf[buf_ind + 4];
-      //   t6 += kernel[j + 5] * row_buf[buf_ind + 5];
-      //   t7 += kernel[j + 6] * row_buf[buf_ind + 6];
-      //   t8 += kernel[j + 7] * row_buf[buf_ind + 7];
-      //   buf_ind += 8;
+      // This could give a potential speed-up when using an Intel CPU (AMD avg. 125'978'544 cycles)
+      float t1 = 0;
+      float t2 = 0; 
+      float t3 = 0;
+      float t4 = 0; 
+      float t5 = 0;
+      float t6 = 0;
+      float t7 = 0;
+      float t8 = 0;
+      int j;
+      for (j = 0; j < kernel_size; j+=8) {
+        if (kernel_size - j < 8) {
+          break;
+        } 
+        t1 += kernel[j] * row_buf[buf_ind];
+        t2 += kernel[j + 1] * row_buf[buf_ind + 1];
+        t3 += kernel[j + 2] * row_buf[buf_ind + 2];
+        t4 += kernel[j + 3] * row_buf[buf_ind + 3];
+        t5 += kernel[j + 4] * row_buf[buf_ind + 4];
+        t6 += kernel[j + 5] * row_buf[buf_ind + 5];
+        t7 += kernel[j + 6] * row_buf[buf_ind + 6];
+        t8 += kernel[j + 7] * row_buf[buf_ind + 7];
+        buf_ind += 8;
     
-      //   inc_adds(8);
-      //   inc_mults(8);
-      //   inc_mem(16);
-      // }
+        inc_adds(8);
+        inc_mults(8);
+        inc_mem(16);
+      }
 
-      // for (; j < kernel_size; ++j) {
-      //   t1 += kernel[j] * row_buf[buf_ind];
-      //   ++buf_ind;
+      for (; j < kernel_size; ++j) {
+        t1 += kernel[j] * row_buf[buf_ind];
+        ++buf_ind;
 
-      //   inc_adds(1);
-      //   inc_mults(1);
-      //   inc_mem(2);
-      // }
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);
+      }
 
-      // t1 += t2;
-      // t3 += t4;
-      // t5 += t6;
-      // t7 += t8;
-      // t1 += t5;
-      // t3 += t7;
-      // partialSum += t1 + t3;
+      t1 += t2;
+      t3 += t4;
+      t5 += t6;
+      t7 += t8;
+      t1 += t5;
+      t3 += t7;
+      partialSum += t1 + t3;
 
-      // inc_adds(8);
+      inc_adds(8);
 
 
       // // This version completed in avg. 112'452'012 cycles on AMD (atm best version on AMD)
@@ -143,40 +143,40 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       // inc_adds(4);
 
 
-      // This version completed in avg. 113'821'596 cycles on AMD 
-      float t1 = 0;
-      float t2 = 0; 
-      float t3 = 0;
-      float t4 = 0;
-      int j;
-      for (j = 0; j < kernel_size; j+=4) {
-        if (kernel_size - j < 4) {
-          break;
-        } 
-        t1 = kernel[j] * row_buf[buf_ind];
-        t2 = kernel[j + 1] * row_buf[buf_ind + 1];
-        t3 = kernel[j + 2] * row_buf[buf_ind + 2];
-        t4 = kernel[j + 3] * row_buf[buf_ind + 3];
+      // // This version completed in avg. 113'821'596 cycles on AMD 
+      // float t1 = 0;
+      // float t2 = 0; 
+      // float t3 = 0;
+      // float t4 = 0;
+      // int j;
+      // for (j = 0; j < kernel_size; j+=4) {
+      //   if (kernel_size - j < 4) {
+      //     break;
+      //   } 
+      //   t1 = kernel[j] * row_buf[buf_ind];
+      //   t2 = kernel[j + 1] * row_buf[buf_ind + 1];
+      //   t3 = kernel[j + 2] * row_buf[buf_ind + 2];
+      //   t4 = kernel[j + 3] * row_buf[buf_ind + 3];
 
-        t1 += t2;
-        t3 += t4;
-        partialSum += t1 + t3;
+      //   t1 += t2;
+      //   t3 += t4;
+      //   partialSum += t1 + t3;
 
-        buf_ind += 4;
+      //   buf_ind += 4;
     
-        inc_adds(4);
-        inc_mults(4);
-        inc_mem(8);
-      }
+      //   inc_adds(4);
+      //   inc_mults(4);
+      //   inc_mem(8);
+      // }
 
-      for (; j < kernel_size; ++j) {
-        partialSum += kernel[j] * row_buf[buf_ind];
-        ++buf_ind;
+      // for (; j < kernel_size; ++j) {
+      //   partialSum += kernel[j] * row_buf[buf_ind];
+      //   ++buf_ind;
 
-        inc_adds(1);
-        inc_mults(1);
-        inc_mem(2);
-      }
+      //   inc_adds(1);
+      //   inc_mults(1);
+      //   inc_mem(2);
+      // }
 
 
       // // This could give a potential speed-up when using an Intel CPU (AMD avg. 117'139'356 cycles)
