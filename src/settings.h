@@ -31,6 +31,10 @@
 // default width of descriptor histogram array
 #define ETHSIFT_DESCR_WIDTH 4
 
+#define ETHSIFT_DESCR_WIDTH_HALF (ETHSIFT_DESCR_WIDTH >> 1)
+
+#define ETHSIFT_DESCR_WIDTH_PRECISE_HALF (ETHSIFT_DESCR_WIDTH_HALF - 0.5f)
+
 #define ETHSIFT_DESCR_EXP_SCALE -2.0f / (ETHSIFT_DESCR_WIDTH * ETHSIFT_DESCR_WIDTH);
 
 // default number of bins per histogram in descriptor array

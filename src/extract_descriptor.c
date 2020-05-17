@@ -22,16 +22,14 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
     // The width of subregion is determined by the scale of the keypoint.
     // Or, in Lowe's SIFT paper[2004], width of subregion is 16x16.
     int nSubregion = ETHSIFT_DESCR_WIDTH;
-    int nHalfSubregion = nSubregion >> 1;
+    int nHalfSubregion = ETHSIFT_DESCR_WIDTH_HALF;
 
     // Center is 1.5
-    float precise_nHalfSubregion = nHalfSubregion - 0.5f;
+    float precise_nHalfSubregion = ETHSIFT_DESCR_WIDTH_PRECISE_HALF;
 
     // Number of histogram bins for each descriptor subregion.
     int nBinsPerSubregion = ETHSIFT_DESCR_HIST_BINS;
     float nBinsPerSubregionPerDegree = ETHSIFT_DESCR_HIST_BINS_DEGREE;
-
-    inc_div(1);
 
     // 3-D structure for histogram bins (rbin, cbin, obin);
     // (rbin, cbin, obin) means (row of hist bin, column of hist bin,
@@ -47,9 +45,6 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
     float histBin[nHistBins];
 
     float exp_scale = ETHSIFT_DESCR_EXP_SCALE;
-
-    inc_div(1);
-    inc_mults(1); // maybe
 
     struct ethsift_keypoint* kpt;
     for (int k = 0; k < keypoint_count; ++k) {
@@ -69,7 +64,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float d_kptr = kptr_i - kptr;
         float d_kptc = kptc_i - kptc;
 
-        inc_adds(2);
+        inc_adds(4);
 
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
@@ -86,6 +81,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             (int)(M_SQRT2 * subregion_width * (nSubregion + 1) * 0.5f + 0.5f);
 
         inc_mults(4);
+        inc_adds(1);
 
         // Normalized cos() and sin() value.
         float sin_t = sinf(kpt_ori) / (float)subregion_width;
@@ -119,11 +115,12 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         {
             // Accurate position relative to kptr
             rr = i + d_kptr;
+            inc_adds(1);
             for (int j = left; j <= right; j++) // columns
             {
                 // Accurate position relative to kptc
                 cc = j + d_kptc;
-
+                inc_adds(1);
                 // Rotate the coordinate of (i, j)
                 rrotate = (cos_t * cc + sin_t * rr);
                 crotate = (-sin_t * cc + cos_t * rr);
@@ -136,7 +133,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 rbin = rrotate + precise_nHalfSubregion;
                 cbin = crotate + precise_nHalfSubregion;
 
-                inc_adds(4);
+                inc_adds(2);
 
                 // rbin, cbin range is (-1, d); if outside this range, then the
                 // pixel is counted.
@@ -286,7 +283,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             inc_mults(1);
         }
 
-        float thr = fast_sqrt_f(sum_square) * ETHSIFT_DESCR_MAG_THR;
+        float thr = sqrt(sum_square) * ETHSIFT_DESCR_MAG_THR;
 
         inc_mults(1);
 
@@ -307,7 +304,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // The numbers are usually too small to store, so we use
         // a constant factor to scale up the numbers.
         float conv_f_to_char = ETHSIFT_INT_DESCR_FCTR;
-        float norm_factor = conv_f_to_char / fast_sqrt_f(sum_square);
+        float norm_factor = conv_f_to_char / sqrt(sum_square);
 
         inc_div(1);
 
