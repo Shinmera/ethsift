@@ -629,10 +629,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   return 0;
   }
 
+
 loop_end:
 
   // We MIGHT be able to remove the following two checking conditions.
- 
+
   // Condition 2.
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0; 
 
@@ -673,7 +674,7 @@ loop_end:
   inc_adds(1);
   inc_div(1);
 
-  float norm =(float)(2 << octave); // 1 POW
+  float norm = (float)(1 << octave); // 1 POW
 
   // Coordinates in the normalized format (compared to the original image).
   keypoint->global_pos.y = tmp_r * norm; // 1 MUL
