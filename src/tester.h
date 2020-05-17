@@ -28,7 +28,7 @@
 #endif
 // Specify which measurements you would like to run.
 #define RUN_ETHSIFT_MEASUREMENTS 1
-#define RUN_EZSIFT_MEASUREMENTS 1
+#define RUN_EZSIFT_MEASUREMENTS 0
 
 // Specify how many measurement runs it should do per function
 extern int NR_RUNS;

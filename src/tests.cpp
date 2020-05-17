@@ -743,22 +743,3 @@ define_test(TestComputeKeypoints, 0, {
 
   if(keypoints_tracked != LENA_KEYPOINTS) fail("Keypoints tracked mismatched: %d != %d", keypoints_tracked, ETHSIFT_MAX_TRACKABLE_KEYPOINTS);
   })
-
-define_test(BenchmarkEZSIFT, 0, {
-  char const *file = data_file("lena.pgm");
-  //init files 
-  ezsift::Image<unsigned char> ez_img;
-
-  //convert image so it has same overhead as TestComputeKeypoints
-  struct ethsift_image eth_img = {0};
-  if (ez_img.read_pgm(file) != 0)
-    fail("Failed to read image");
-  if (!convert_image(ez_img, &eth_img))
-    fail("Failed to convert image");
-
-
-  std::list<ezsift::SiftKeypoint> ez_kpt_list;
-  sift_cpu(ez_img, ez_kpt_list, true);
-
-  if ((int) ez_kpt_list.size() != LENA_KEYPOINTS) fail("Keypoints tracked mismatched: %d != %d", (int) ez_kpt_list.size(), ETHSIFT_MAX_TRACKABLE_KEYPOINTS);
-  })
