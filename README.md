@@ -7,11 +7,11 @@ In order to build ethsift you need a recent version of GCC and Cmake.
 ```
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DMEASUREMENT_MODE=chrono
+cmake .. -DCMAKE_BUILD_TYPE=Release -DMEASUREMENT_MODE=chrono -DOPT_FLAGS=full
 make
 ```
 
-When debugging, change `Release` to `Debug`. This will compile the static library version of ethsift and create a tester application, creatively called `tester`. To minimise noise in measurements, the tester can only measure either cycles or runtime. Which to measure must be configured with the above cmake flag `MEASUREMENT_MODE`, which can be either `chrono` (runtime) or `rdtsc` (cycles).
+When debugging, change `Release` to `Debug`. This will compile the static library version of ethsift and create a tester application, creatively called `tester`. To minimise noise in measurements, the tester can only measure either cycles or runtime. Which to measure must be configured with the above cmake flag `MEASUREMENT_MODE`, which can be either `chrono` (runtime) or `rdtsc` (cycles). Finally, when running in `Release`, you can choose the set of optimisation flags passed to the compiler with `OPT_FLAGS`, which may be one of `full`, `avx`, `fastmath`, `O3`, `O2`, `O1`, and `O0`.
 
 The tester can be run as follows:
 
