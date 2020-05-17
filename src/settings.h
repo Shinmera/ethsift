@@ -34,7 +34,9 @@
 #define ETHSIFT_DESCR_EXP_SCALE -2.0f / (ETHSIFT_DESCR_WIDTH * ETHSIFT_DESCR_WIDTH);
 
 // default number of bins per histogram in descriptor array
-#define ETHSIFT_DESCR_HIST_BINS 8;
+#define ETHSIFT_DESCR_HIST_BINS 8
+
+#define ETHSIFT_DESCR_HIST_BINS_DEGREE ((float) ETHSIFT_DESCR_HIST_BINS / M_TWOPI);
 
 // determines the size of a single descriptor orientation histogram
 #define ETHSIFT_DESCR_SCL_FCTR 3.f;

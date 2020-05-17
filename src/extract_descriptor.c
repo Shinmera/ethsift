@@ -29,7 +29,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
     // Number of histogram bins for each descriptor subregion.
     int nBinsPerSubregion = ETHSIFT_DESCR_HIST_BINS;
-    float nBinsPerSubregionPerDegree = (float)nBinsPerSubregion / M_TWOPI;
+    float nBinsPerSubregionPerDegree = ETHSIFT_DESCR_HIST_BINS_DEGREE;
 
     inc_div(1);
 
