@@ -1,7 +1,7 @@
 #include "internal.h"
 
 // 3 * (2 ADDs + 3 MULs) = 15 FLOPs
-int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
+static inline void mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
   p[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
   p[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
   p[2] = m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2];
@@ -9,11 +9,9 @@ int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
   inc_adds(6);
   inc_mults(9);
   inc_mem(21); 
-
-  return 1;
 }
 // 9 * (3MULs + 1 SUB) = 36 FLOPs
-int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
+static inline void scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
   a[0][0] = (s) * (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
   a[1][0] = (s) * (m[1][2] * m[2][0] - m[1][0] * m[2][2]);
   a[2][0] = (s) * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
@@ -29,8 +27,6 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
   inc_adds(9);
   inc_mults(27);
   inc_mem(45);
-
-  return 1;
 }
 
 
@@ -669,6 +665,7 @@ loop_end:
   
   keypoint->layer_pos.y = tmp_r;
   keypoint->layer_pos.x = tmp_c;
+  // NOT OPTIMIZABLE
   keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
 
   inc_adds(1);
