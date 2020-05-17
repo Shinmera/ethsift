@@ -1,4 +1,4 @@
-#define EPS 0.001
+#define EPS 0.0012
 #define OCTAVE_COUNT 6
 #define GAUSSIAN_COUNT 6
 #define DOG_COUNT 5
