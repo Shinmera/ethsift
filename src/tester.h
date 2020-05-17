@@ -44,15 +44,12 @@ extern int NR_RUNS;
 #endif
 
 extern std::vector<size_t> durations;
-typedef std::tuple<std::string, size_t, double> LogTuple;
-extern std::vector<LogTuple> test_logs;
 extern bool measurement_pending;
-
-
 extern std::string* g_testImgName;
 
 int register_failure(int test, const char *reason);
 int register_test(const char *title, int has_measurement_comp, int (*func)());
+int register_measurement();
 
 // Macro to define new test cases.
 // Note that the test title must be a valid C token, so it may only contain
@@ -116,12 +113,14 @@ static inline void end_measurement(){
     if(measurement_pending){
       durations.push_back((size_t) runtime);
       measurement_pending = false;
+      register_measurement();
     }
   #else
     auto end = std::chrono::high_resolution_clock::now();
     if(measurement_pending){
       durations.push_back(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
       measurement_pending = false;
+      register_measurement();
     }
   #endif
 }
