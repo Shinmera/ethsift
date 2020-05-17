@@ -44,7 +44,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
                     
-                gradients[idx].pixels[row * width + column] = fast_sqrt_f(d_row * d_row + d_column * d_column);
+                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
                 rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column); 
                 inc_mem(2); // At least two writes
             }
@@ -64,7 +64,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
 
-                gradients[idx].pixels[row * width + column] = fast_sqrt_f(d_row * d_row + d_column * d_column);
+                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
                 rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
                 inc_mem(2); // At least two writes
             }
@@ -84,7 +84,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
 
-                gradients[idx].pixels[row * width + column] = fast_sqrt_f(d_row * d_row + d_column * d_column);
+                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
                 rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
                 inc_mem(2); // At least two writes
             }

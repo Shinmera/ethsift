@@ -105,13 +105,14 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     float dD[3] = {-dx, -dy, -ds}; 
 
-    float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+    float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 MUL
 
     dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
     dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
     dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
     
-    inc_adds(7);
+    inc_adds(6);
+    inc_mults(1);
 
     dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
       get_pixel_f(curData, w, h, r + 1, c - 1) -
@@ -145,7 +146,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
     det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
     
-    inc_adds(6);
+    inc_adds(5);
     inc_mults(9);
     inc_mem(15);
 
@@ -213,13 +214,14 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   float dD[3] = { -dx, -dy, -ds };
 
-  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 MUL
 
   dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
   dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
   dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
 
-  inc_adds(7);
+  inc_adds(6);
+  inc_mults(1);
 
   dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
       get_pixel_f(curData, w, h, r + 1, c - 1) -
@@ -253,7 +255,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
   det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
 
-  inc_adds(6);
+  inc_adds(5);
   inc_mults(9);
   inc_mem(15);
 
@@ -328,7 +330,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
   dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
 
-  inc_adds(7);
+  inc_adds(6);
+  inc_mults(1);
 
   dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
       get_pixel_f(curData, w, h, r + 1, c - 1) -
@@ -362,7 +365,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
   det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
 
-  inc_adds(6);
+  inc_adds(5);
   inc_mults(9);
   inc_mem(15);
 
@@ -437,7 +440,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
   dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
 
-  inc_adds(7);
+  inc_adds(6);
+  inc_mults(1);
 
   dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
       get_pixel_f(curData, w, h, r + 1, c - 1) -
@@ -471,7 +475,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
   det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
 
-  inc_adds(6);
+  inc_adds(5);
   inc_mults(9);
   inc_mem(15);
 
@@ -546,7 +550,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
   dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
 
-  inc_adds(7);
+  inc_adds(6);
+  inc_mults(1);
 
   dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
       get_pixel_f(curData, w, h, r + 1, c - 1) -
@@ -580,7 +585,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
   det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
 
-  inc_adds(6);
+  inc_adds(5);
   inc_mults(9);
   inc_mem(15);
 
@@ -651,7 +656,7 @@ loop_end:
   float detH = dxx * dyy - dxy * dxy; // 2 MUL
   float response = (curv_thr + 1) * (curv_thr + 1) / (curv_thr); // 2 ADDs + 1 MUL + 1 DIV
 
-  inc_adds(3);
+  inc_adds(4);
   inc_mults(3);
   inc_div(1);
 
@@ -669,7 +674,7 @@ loop_end:
   keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
 
   inc_adds(1);
-  inc_div(1);
+  inc_mults(2);
 
   float norm = (float)(1 << octave); // 1 POW
 
