@@ -106,44 +106,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       // inc_adds(8);
 
 
-      // This version completed in avg. 112'452'012 cycles on AMD (atm best version on AMD)
-      float t1 = 0;
-      float t2 = 0; 
-      float t3 = 0;
-      float t4 = 0;
-      int j;
-      for (j = 0; j < kernel_size; j+=4) {
-        if (kernel_size - j < 4) {
-          break;
-        } 
-        t1 += kernel[j] * row_buf[buf_ind];
-        t2 += kernel[j + 1] * row_buf[buf_ind + 1];
-        t3 += kernel[j + 2] * row_buf[buf_ind + 2];
-        t4 += kernel[j + 3] * row_buf[buf_ind + 3];
-        buf_ind += 4;
-    
-        inc_adds(4);
-        inc_mults(4);
-        inc_mem(8);
-      }
-
-      for (; j < kernel_size; ++j) {
-        t1 += kernel[j] * row_buf[buf_ind];
-        ++buf_ind;
-
-        inc_adds(1);
-        inc_mults(1);
-        inc_mem(2);
-      }
-
-      t1 += t2;
-      t3 += t4;
-      partialSum += t1 + t3;
-
-      inc_adds(4);
-
-
-      // // This version completed in avg. 113'821'596 cycles on AMD 
+      // // This version completed in avg. 112'452'012 cycles on AMD (atm best version on AMD)
       // float t1 = 0;
       // float t2 = 0; 
       // float t3 = 0;
@@ -153,15 +116,10 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       //   if (kernel_size - j < 4) {
       //     break;
       //   } 
-      //   t1 = kernel[j] * row_buf[buf_ind];
-      //   t2 = kernel[j + 1] * row_buf[buf_ind + 1];
-      //   t3 = kernel[j + 2] * row_buf[buf_ind + 2];
-      //   t4 = kernel[j + 3] * row_buf[buf_ind + 3];
-
-      //   t1 += t2;
-      //   t3 += t4;
-      //   partialSum += t1 + t3;
-
+      //   t1 += kernel[j] * row_buf[buf_ind];
+      //   t2 += kernel[j + 1] * row_buf[buf_ind + 1];
+      //   t3 += kernel[j + 2] * row_buf[buf_ind + 2];
+      //   t4 += kernel[j + 3] * row_buf[buf_ind + 3];
       //   buf_ind += 4;
     
       //   inc_adds(4);
@@ -170,13 +128,55 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       // }
 
       // for (; j < kernel_size; ++j) {
-      //   partialSum += kernel[j] * row_buf[buf_ind];
+      //   t1 += kernel[j] * row_buf[buf_ind];
       //   ++buf_ind;
 
       //   inc_adds(1);
       //   inc_mults(1);
       //   inc_mem(2);
       // }
+
+      // t1 += t2;
+      // t3 += t4;
+      // partialSum += t1 + t3;
+
+      // inc_adds(4);
+
+
+      // This version completed in avg. 113'821'596 cycles on AMD 
+      float t1 = 0;
+      float t2 = 0; 
+      float t3 = 0;
+      float t4 = 0;
+      int j;
+      for (j = 0; j < kernel_size; j+=4) {
+        if (kernel_size - j < 4) {
+          break;
+        } 
+        t1 = kernel[j] * row_buf[buf_ind];
+        t2 = kernel[j + 1] * row_buf[buf_ind + 1];
+        t3 = kernel[j + 2] * row_buf[buf_ind + 2];
+        t4 = kernel[j + 3] * row_buf[buf_ind + 3];
+
+        t1 += t2;
+        t3 += t4;
+        partialSum += t1 + t3;
+
+        buf_ind += 4;
+    
+        inc_adds(4);
+        inc_mults(4);
+        inc_mem(8);
+      }
+
+      for (; j < kernel_size; ++j) {
+        partialSum += kernel[j] * row_buf[buf_ind];
+        ++buf_ind;
+
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);
+      }
 
 
       // // This could give a potential speed-up when using an Intel CPU (AMD avg. 117'139'356 cycles)
