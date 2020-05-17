@@ -48,7 +48,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   // Settings
   int intvls = ETHSIFT_INTVLS;
   float inverse_intvls = ETHSIFT_INVERSE_INTVLS;
-  int max_interp_steps = ETHSIFT_MAX_INTERP_STEPS;
   float kpt_subpixel_thr = ETHSIFT_KEYPOINT_SUBPiXEL_THR;
   float contr_thr = ETHSIFT_CONTR_THR;
   float curv_thr = ETHSIFT_CURV_THR;
@@ -86,7 +85,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   // location of keypoints.
   // 5 * 91 = 455 FLOPs
   int i = 0;
-  for (; i < max_interp_steps; ++i) {
+  //For Loop Iteration 0
+  {
     c += xc_i;
     r += xr_i;
 
@@ -154,7 +154,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_mem(15);
 
     if (fabsf(det) < FLT_MIN)
-      break;
+        goto loop_end;
 
     float Hinvert[3][3];
 
@@ -189,12 +189,450 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
            ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
 
     if (xc_i == 0 && xr_i == 0 && xs_i == 0)
-      break;
+        goto loop_end;
+
+    ++i;
+  }
+  //For Loop Iteration 1
+  {
+  c += xc_i;
+  r += xr_i;
+
+  layer_ind = octave * nDoGLayers + layer;
+  w = differences[layer_ind].width;
+  h = differences[layer_ind].height;
+
+  curData = differences[layer_ind].pixels;
+  lowData = differences[layer_ind - 1].pixels;
+  highData = differences[layer_ind + 1].pixels;
+
+  inc_mem(3);
+
+  dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
+  dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
+  ds = 0.5f * (get_pixel_f(highData, w, h, r, c) - get_pixel_f(lowData, w, h, r, c)); //1 MUL + 1 SUB
+
+  inc_adds(3);
+  inc_mults(3);
+
+  float dD[3] = { -dx, -dy, -ds };
+
+  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+
+  dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
+  dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
+  dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
+
+  inc_adds(7);
+
+  dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
+      get_pixel_f(curData, w, h, r + 1, c - 1) -
+      get_pixel_f(curData, w, h, r - 1, c + 1) +
+      get_pixel_f(curData, w, h, r - 1, c - 1)); // 1MUL + 2SUBs + 1ADD 17
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dxs = 0.25f * (get_pixel_f(highData, w, h, r, c + 1) -
+      get_pixel_f(highData, w, h, r, c - 1) -
+      get_pixel_f(lowData, w, h, r, c + 1) +
+      get_pixel_f(lowData, w, h, r, c - 1)); // 1MUL + 2SUBs + 1ADD 
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dys = 0.25f * (get_pixel_f(highData, w, h, r + 1, c) -
+      get_pixel_f(highData, w, h, r - 1, c) -
+      get_pixel_f(lowData, w, h, r + 1, c) +
+      get_pixel_f(lowData, w, h, r - 1, c)); // 1MUL + 2SUBs + 1ADD 25
+
+  inc_adds(3);
+  inc_mults(1);
+
+  // The scale in two sides of the equation should cancel each other.
+  float H[3][3] = { {dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss} };
+
+  float det;
+  det = H[0][0] * (H[1][1] * H[2][2] - H[1][2] * H[2][1]); // 3 MUL + 1 SUB
+  det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
+  det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
+
+  inc_adds(6);
+  inc_mults(9);
+  inc_mem(15);
+
+  if (fabsf(det) < FLT_MIN)
+      goto loop_end;
+
+  float Hinvert[3][3];
+
+  float s = 1.0f / det; // 1 DIV
+
+  inc_div(1);
+
+  // SCALE_ADJOINT_3X3
+  scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+
+  // MAT_DOT_VEC_3X3
+  mat_dot_vec_3x3(x_hat, Hinvert, dD); // 15 FLOPs
+
+  xs = x_hat[2];
+  xr = x_hat[1];
+  xc = x_hat[0];
+
+  inc_mem(3);
+
+  // Update tmp data for keypoint update.
+  tmp_r = r + xr;
+  tmp_c = c + xc;
+  tmp_layer = layer + xs;
+
+  inc_adds(3);
+
+  // Make sure there is room to move for next iteration.
+  xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
+      ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
+
+  xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
+      ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
+
+  if (xc_i == 0 && xr_i == 0 && xs_i == 0)
+      goto loop_end;
+
+  ++i;
   }
 
+  //For Loop Iteration 2
+  {
+  c += xc_i;
+  r += xr_i;
+
+  layer_ind = octave * nDoGLayers + layer;
+  w = differences[layer_ind].width;
+  h = differences[layer_ind].height;
+
+  curData = differences[layer_ind].pixels;
+  lowData = differences[layer_ind - 1].pixels;
+  highData = differences[layer_ind + 1].pixels;
+
+  inc_mem(3);
+
+  dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
+  dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
+  ds = 0.5f * (get_pixel_f(highData, w, h, r, c) - get_pixel_f(lowData, w, h, r, c)); //1 MUL + 1 SUB
+
+  inc_adds(3);
+  inc_mults(3);
+
+  float dD[3] = { -dx, -dy, -ds };
+
+  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+
+  dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
+  dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
+  dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
+
+  inc_adds(7);
+
+  dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
+      get_pixel_f(curData, w, h, r + 1, c - 1) -
+      get_pixel_f(curData, w, h, r - 1, c + 1) +
+      get_pixel_f(curData, w, h, r - 1, c - 1)); // 1MUL + 2SUBs + 1ADD 17
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dxs = 0.25f * (get_pixel_f(highData, w, h, r, c + 1) -
+      get_pixel_f(highData, w, h, r, c - 1) -
+      get_pixel_f(lowData, w, h, r, c + 1) +
+      get_pixel_f(lowData, w, h, r, c - 1)); // 1MUL + 2SUBs + 1ADD 
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dys = 0.25f * (get_pixel_f(highData, w, h, r + 1, c) -
+      get_pixel_f(highData, w, h, r - 1, c) -
+      get_pixel_f(lowData, w, h, r + 1, c) +
+      get_pixel_f(lowData, w, h, r - 1, c)); // 1MUL + 2SUBs + 1ADD 25
+
+  inc_adds(3);
+  inc_mults(1);
+
+  // The scale in two sides of the equation should cancel each other.
+  float H[3][3] = { {dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss} };
+
+  float det;
+  det = H[0][0] * (H[1][1] * H[2][2] - H[1][2] * H[2][1]); // 3 MUL + 1 SUB
+  det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
+  det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
+
+  inc_adds(6);
+  inc_mults(9);
+  inc_mem(15);
+
+  if (fabsf(det) < FLT_MIN)
+      goto loop_end;
+
+  float Hinvert[3][3];
+
+  float s = 1.0f / det; // 1 DIV
+
+  inc_div(1);
+
+  // SCALE_ADJOINT_3X3
+  scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+
+  // MAT_DOT_VEC_3X3
+  mat_dot_vec_3x3(x_hat, Hinvert, dD); // 15 FLOPs
+
+  xs = x_hat[2];
+  xr = x_hat[1];
+  xc = x_hat[0];
+
+  inc_mem(3);
+
+  // Update tmp data for keypoint update.
+  tmp_r = r + xr;
+  tmp_c = c + xc;
+  tmp_layer = layer + xs;
+
+  inc_adds(3);
+
+  // Make sure there is room to move for next iteration.
+  xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
+      ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
+
+  xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
+      ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
+
+  if (xc_i == 0 && xr_i == 0 && xs_i == 0)
+      goto loop_end;
+
+  ++i;
+  }
+
+  //For Loop Iteration 3
+  {
+  c += xc_i;
+  r += xr_i;
+
+  layer_ind = octave * nDoGLayers + layer;
+  w = differences[layer_ind].width;
+  h = differences[layer_ind].height;
+
+  curData = differences[layer_ind].pixels;
+  lowData = differences[layer_ind - 1].pixels;
+  highData = differences[layer_ind + 1].pixels;
+
+  inc_mem(3);
+
+  dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
+  dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
+  ds = 0.5f * (get_pixel_f(highData, w, h, r, c) - get_pixel_f(lowData, w, h, r, c)); //1 MUL + 1 SUB
+
+  inc_adds(3);
+  inc_mults(3);
+
+  float dD[3] = { -dx, -dy, -ds };
+
+  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+
+  dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
+  dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
+  dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
+
+  inc_adds(7);
+
+  dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
+      get_pixel_f(curData, w, h, r + 1, c - 1) -
+      get_pixel_f(curData, w, h, r - 1, c + 1) +
+      get_pixel_f(curData, w, h, r - 1, c - 1)); // 1MUL + 2SUBs + 1ADD 17
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dxs = 0.25f * (get_pixel_f(highData, w, h, r, c + 1) -
+      get_pixel_f(highData, w, h, r, c - 1) -
+      get_pixel_f(lowData, w, h, r, c + 1) +
+      get_pixel_f(lowData, w, h, r, c - 1)); // 1MUL + 2SUBs + 1ADD 
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dys = 0.25f * (get_pixel_f(highData, w, h, r + 1, c) -
+      get_pixel_f(highData, w, h, r - 1, c) -
+      get_pixel_f(lowData, w, h, r + 1, c) +
+      get_pixel_f(lowData, w, h, r - 1, c)); // 1MUL + 2SUBs + 1ADD 25
+
+  inc_adds(3);
+  inc_mults(1);
+
+  // The scale in two sides of the equation should cancel each other.
+  float H[3][3] = { {dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss} };
+
+  float det;
+  det = H[0][0] * (H[1][1] * H[2][2] - H[1][2] * H[2][1]); // 3 MUL + 1 SUB
+  det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
+  det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
+
+  inc_adds(6);
+  inc_mults(9);
+  inc_mem(15);
+
+  if (fabsf(det) < FLT_MIN)
+      goto loop_end;
+
+  float Hinvert[3][3];
+
+  float s = 1.0f / det; // 1 DIV
+
+  inc_div(1);
+
+  // SCALE_ADJOINT_3X3
+  scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+
+  // MAT_DOT_VEC_3X3
+  mat_dot_vec_3x3(x_hat, Hinvert, dD); // 15 FLOPs
+
+  xs = x_hat[2];
+  xr = x_hat[1];
+  xc = x_hat[0];
+
+  inc_mem(3);
+
+  // Update tmp data for keypoint update.
+  tmp_r = r + xr;
+  tmp_c = c + xc;
+  tmp_layer = layer + xs;
+
+  inc_adds(3);
+
+  // Make sure there is room to move for next iteration.
+  xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
+      ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
+
+  xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
+      ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
+
+  if (xc_i == 0 && xr_i == 0 && xs_i == 0)
+      goto loop_end;
+
+  ++i;
+  }
+
+  //For Loop Iteration 4
+  {
+  c += xc_i;
+  r += xr_i;
+
+  layer_ind = octave * nDoGLayers + layer;
+  w = differences[layer_ind].width;
+  h = differences[layer_ind].height;
+
+  curData = differences[layer_ind].pixels;
+  lowData = differences[layer_ind - 1].pixels;
+  highData = differences[layer_ind + 1].pixels;
+
+  inc_mem(3);
+
+  dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
+  dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
+  ds = 0.5f * (get_pixel_f(highData, w, h, r, c) - get_pixel_f(lowData, w, h, r, c)); //1 MUL + 1 SUB
+
+  inc_adds(3);
+  inc_mults(3);
+
+  float dD[3] = { -dx, -dy, -ds };
+
+  float v2 = 2.0f * get_pixel_f(curData, w, h, r, c); //1 ADD
+
+  dxx = get_pixel_f(curData, w, h, r, c + 1) + get_pixel_f(curData, w, h, r, c - 1) - v2; //1 ADD + 1 SUB
+  dyy = get_pixel_f(curData, w, h, r + 1, c) + get_pixel_f(curData, w, h, r - 1, c) - v2; //1 ADD + 1 SUB
+  dss = get_pixel_f(highData, w, h, r, c) + get_pixel_f(lowData, w, h, r, c) - v2; //1 ADD + 1 SUB
+
+  inc_adds(7);
+
+  dxy = 0.25f * (get_pixel_f(curData, w, h, r + 1, c + 1) -
+      get_pixel_f(curData, w, h, r + 1, c - 1) -
+      get_pixel_f(curData, w, h, r - 1, c + 1) +
+      get_pixel_f(curData, w, h, r - 1, c - 1)); // 1MUL + 2SUBs + 1ADD 17
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dxs = 0.25f * (get_pixel_f(highData, w, h, r, c + 1) -
+      get_pixel_f(highData, w, h, r, c - 1) -
+      get_pixel_f(lowData, w, h, r, c + 1) +
+      get_pixel_f(lowData, w, h, r, c - 1)); // 1MUL + 2SUBs + 1ADD 
+
+  inc_adds(3);
+  inc_mults(1);
+
+  dys = 0.25f * (get_pixel_f(highData, w, h, r + 1, c) -
+      get_pixel_f(highData, w, h, r - 1, c) -
+      get_pixel_f(lowData, w, h, r + 1, c) +
+      get_pixel_f(lowData, w, h, r - 1, c)); // 1MUL + 2SUBs + 1ADD 25
+
+  inc_adds(3);
+  inc_mults(1);
+
+  // The scale in two sides of the equation should cancel each other.
+  float H[3][3] = { {dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss} };
+
+  float det;
+  det = H[0][0] * (H[1][1] * H[2][2] - H[1][2] * H[2][1]); // 3 MUL + 1 SUB
+  det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
+  det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
+
+  inc_adds(6);
+  inc_mults(9);
+  inc_mem(15);
+
+  if (fabsf(det) < FLT_MIN)
+      goto loop_end;
+
+  float Hinvert[3][3];
+
+  float s = 1.0f / det; // 1 DIV
+
+  inc_div(1);
+
+  // SCALE_ADJOINT_3X3
+  scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+
+  // MAT_DOT_VEC_3X3
+  mat_dot_vec_3x3(x_hat, Hinvert, dD); // 15 FLOPs
+
+  xs = x_hat[2];
+  xr = x_hat[1];
+  xc = x_hat[0];
+
+  inc_mem(3);
+
+  // Update tmp data for keypoint update.
+  tmp_r = r + xr;
+  tmp_c = c + xc;
+  tmp_layer = layer + xs;
+
+  inc_adds(3);
+
+  // Make sure there is room to move for next iteration.
+  xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
+      ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
+
+  xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
+      ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
+
+  if (xc_i == 0 && xr_i == 0 && xs_i == 0)
+      goto loop_end;
+
+  return 0;
+  }
+
+loop_end:
+
   // We MIGHT be able to remove the following two checking conditions.
-  // Condition 1
-  if (i >= max_interp_steps) return 0;
+ 
   // Condition 2.
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0; 
 
@@ -235,7 +673,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   inc_adds(1);
   inc_div(1);
 
-  float norm = powf(2.0f, (float)(octave)); // 1 POW
+  float norm =(float)(2 << octave); // 1 POW
 
   // Coordinates in the normalized format (compared to the original image).
   keypoint->global_pos.y = tmp_r * norm; // 1 MUL
