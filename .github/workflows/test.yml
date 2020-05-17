@@ -42,6 +42,7 @@ jobs:
       continue-on-error: true
       run: |
         cp build/flamegraph.svg build/output.log logs
+        echo "::set-env name=OUTPUT::$(cat build/output.log)"
     - name: Create logs artifact
       continue-on-error: true
       uses: actions/upload-artifact@v2
@@ -50,7 +51,6 @@ jobs:
         path: logs/
     - name: Post to discord
       continue-on-error: true
-      run: echo "::set-env name=OUTPUT::$(cat build/output.log)"
       uses: appleboy/discord-action@master
       with:
         webhook_id: ${{ secrets.WEBHOOK_ID }}
