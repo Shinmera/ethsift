@@ -33,12 +33,11 @@ static inline float pixel(struct ethsift_image image, uint32_t x, uint32_t y){
 /// <returns> The pixel value at position (r,c). </returns>
 static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
 {
-    float val;
     int c_mod = internal_min(c, w - 1);
     int r_mod = internal_min(r, h - 1);
     c_mod = internal_max(0, c_mod);
     r_mod = internal_max(0, r_mod);
-    return val = imageData[r_mod * w + c_mod];
+    return imageData[r_mod * w + c_mod];
 }
 
 // MATH
