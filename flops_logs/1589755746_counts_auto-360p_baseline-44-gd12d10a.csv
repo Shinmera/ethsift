@@ -6,6 +6,6 @@ DOGPyramid,1535500,9213012
 GradientAndRotationPyramids,10478837,5527812
 Histogram,9230,3206
 ExtremaRefinement,202,168
-KeypointDetection,903133,1976531
-ExtractDescriptor,7695085,2626154
-MeasureFull,118364735,127845616
+KeypointDetection,903181,1976531
+ExtractDescriptor,8269659,2626154
+MeasureFull,118972087,127845616

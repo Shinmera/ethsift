@@ -5,7 +5,7 @@ GaussianPyramid,172960080,192271833
 DOGPyramid,2727900,16367412
 GradientAndRotationPyramids,18606374,9820452
 Histogram,10367,3585
-ExtremaRefinement,205,170
-KeypointDetection,1310512,3195815
-ExtractDescriptor,8565149,2915918
-MeasureFull,207693564,225940824
+ExtremaRefinement,204,170
+KeypointDetection,1310415,3195815
+ExtractDescriptor,9202465,2915918
+MeasureFull,208599284,225940824
