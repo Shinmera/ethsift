@@ -283,7 +283,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             inc_mults(1);
         }
 
-        float thr = sqrt(sum_square) * ETHSIFT_DESCR_MAG_THR;
+        float thr = sqrtf(sum_square) * ETHSIFT_DESCR_MAG_THR;
 
         inc_mults(1);
 
@@ -304,7 +304,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // The numbers are usually too small to store, so we use
         // a constant factor to scale up the numbers.
         float conv_f_to_char = ETHSIFT_INT_DESCR_FCTR;
-        float norm_factor = conv_f_to_char / sqrt(sum_square);
+        float norm_factor = conv_f_to_char / sqrtf(sum_square);
 
         inc_div(1);
 
