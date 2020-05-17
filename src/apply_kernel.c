@@ -129,9 +129,9 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         partialSum2 += t13 + t33;
         partialSum3 += t14 + t34;
 
-        inc_adds(32);
-        inc_mults(32);
-        inc_mem(15);
+        inc_adds(16);
+        inc_mults(16);
+        inc_mem(11);
 
         buf_ind += 4;
       }
@@ -145,9 +145,9 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         partialSum3 += ker1 * row_buf[buf_ind + 3];
         ++buf_ind;
 
-        inc_adds(8);
-        inc_mults(8);
-        inc_mem(9);
+        inc_adds(4);
+        inc_mults(4);
+        inc_mem(5);
       }
       
       buf_ind -= 2 * kernel_rad - 3;
@@ -161,7 +161,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       output[dst_ind] = partialSum3;
       dst_ind += h;
 
-      inc_mem(8);
+      inc_mem(4);
     }
 
     for (; c < w; ++c) {
