@@ -50,8 +50,7 @@ jobs:
         path: logs/
     - name: Post to discord
       continue-on-error: true
-      env:
-        OUTPUT: $(cat build/output.log)
+      run: echo "::set-env name=OUTPUT::$(cat build/output.log)"
       uses: appleboy/discord-action@master
       with:
         webhook_id: ${{ secrets.WEBHOOK_ID }}
@@ -60,4 +59,3 @@ jobs:
 ```
 ${{ env.OUTPUT }}
 ```"
-        file: "./rel/flamegraph.svg"
