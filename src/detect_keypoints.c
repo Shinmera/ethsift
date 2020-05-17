@@ -184,12 +184,14 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
                   inc_adds(4);
                   inc_mults(2);
+                  inc_div(1);
 
                   // Since bin index means the starting point of a
                   // bin, so the real orientation should be bin
                   // index plus 0.5. for example, angles in bin 0
                   // should have a mean value of 5 instead of 0;
                   accu_ii += 0.5f; // 1 ADD
+                  inc_adds(1);
                   accu_ii = accu_ii < 0 ? (accu_ii + nBins) // 1 ADD
                                         : accu_ii >= nBins
                                           ? (accu_ii - nBins) // 1 SUB

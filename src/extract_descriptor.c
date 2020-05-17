@@ -66,7 +66,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float d_kptr = kptr_i - kptr;
         float d_kptc = kptc_i - kptc;
 
-        inc_adds(2);
+        inc_adds(4);
 
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
@@ -83,6 +83,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             (int)(M_SQRT2 * subregion_width * (nSubregion + 1) * 0.5f + 0.5f);
 
         inc_mults(4);
+        inc_adds(1);
 
         // Normalized cos() and sin() value.
         float sin_t = sinf(kpt_ori) / (float)subregion_width;
@@ -125,7 +126,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 crotate = (-sin_t * cc + cos_t * rr);
 
                 inc_mults(4);
-                inc_adds(3);
+                inc_adds(5);
 
                 // Since for a bin array with 4x4 bins, the center is actually
                 // at (1.5, 1.5)
@@ -282,7 +283,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             inc_mults(1);
         }
 
-        float thr = fast_sqrt_f(sum_square) * ETHSIFT_DESCR_MAG_THR;
+        float thr = sqrt(sum_square) * ETHSIFT_DESCR_MAG_THR;
 
         inc_mults(1);
 
@@ -303,7 +304,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // The numbers are usually too small to store, so we use
         // a constant factor to scale up the numbers.
         float conv_f_to_char = ETHSIFT_INT_DESCR_FCTR;
-        float norm_factor = conv_f_to_char / fast_sqrt_f(sum_square);
+        float norm_factor = conv_f_to_char / sqrt(sum_square);
 
         inc_div(1);
 

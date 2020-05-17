@@ -21,7 +21,7 @@ int ethsift_generate_gaussian_kernel(float *kernel,
         tmp = (float)((j - kernel_rad) / sigma); //Float conversion 2 FLOP?
         kernel[j] = expf(tmp * tmp * -0.5f) * (1 + j / 1000.0f); // 3 MULs + 1 ADDs + 1DIVs + 1EXPs = 
         accu += kernel[j];
-        inc_adds(2);
+        inc_adds(3);
         inc_mults(3);
         inc_mem(2);
         inc_div(1);
@@ -66,7 +66,7 @@ int ethsift_generate_all_kernels(int layers_count,
     sigma_i = sqrtf(sigma0 * sigma0 - sigma_pre * sigma_pre); //1 FLOPf for sqrt 2 for MULs 1 for SUB = 4
     inc_adds(1);
     inc_mults(2);
-    inc_div(1);     // For the sqrtf
+    //inc_div(1);     // For the sqrtf
     kernel_rads[0] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) // 1MUL
                 ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1; //1 MUL and 1 CEIL
     kernel_sizes[0] = kernel_rads[0] * 2 + 1; // 1MUL and 1ADD  // These seem to be integer operations
