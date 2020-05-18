@@ -60,3 +60,12 @@ make plots
 ```
 
 This requires a python3 installation with matplotlib and numpy. The plotter can be configured to select log files from a different directory using the `LOGS` environment variable, and to limit the files in the directory to ones containing a specified string in their name using `VERSION`. By default it will generate all plots. You can set it to only generate a certain kind of plot by setting `PLOT_MODE`.
+
+
+## Plotting
+For plotting there are two things to consider before running "perf_plots/main.py":
+- folder structures and naming in "logs" folder
+- lib_markers (dictionary of markers for each plot curve) in main.py
+
+First create for each measurement run which belongs together an own folder (e.g. "ethSIFT baseline") and place the logfiles which belong to that measurement into that folder. perf_plots library will automatically read in the name of the folder and chose it as label for the plot curve.
+Second make sure, that for each folder name you create a dictionary entry in lib_markers and you set a distinct marker for that very folder. Use the full folder name as dictionary key.

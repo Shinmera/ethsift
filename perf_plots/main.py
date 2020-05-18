@@ -12,10 +12,6 @@ lib_markers = dict()
 lib_markers['ethSIFT -O0'] = '*'
 lib_markers['ethSIFT -O3'] = 'x'
 lib_markers['ezSIFT -O3'] = '^'
-lib_markers['eth-O3'] = 'v'
-lib_cols = dict()
-lib_cols['eth'] = '#2138ab'
-lib_cols['ez'] = '#f0944d'
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
