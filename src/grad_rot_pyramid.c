@@ -76,6 +76,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         for(int row = 0; row < height; ++row){
             int row_plus_one = internal_min(internal_max(row + 1, 0), height - 1);
             int row_minus_one = internal_min(internal_max(row - 1, 0), height - 1);
+            //printf("HELLO I will try to MANAGE %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
             if(row < row_lower_offset || row >= height-row_upper_offset){
                 for(int column = 0; column < width; ++column){
                     
@@ -106,6 +107,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 }
             }            
             else{
+                
                 int col_plus_one = 1;
                 int col_minus_one = 0;
                 d_row = in_gaussian[row_plus_one * width] - in_gaussian[row_minus_one * width ];    
@@ -154,10 +156,12 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 out_rots2[row * width] = fast_atan2_f(d_row2, d_column2); 
                 inc_mem(6); // At least two writes
             }
+
+            
+            //printf("HELLO I MANAGED %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
         }
             
-
-
+        
 
         // DO THE MIDDLE OF THE IMAGE WITH AVX
         __m256 gaussian_rpo_cols, gaussian_rmo_cols;        
@@ -181,30 +185,36 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 int write_index = row_width + column;
                 int col_plus_one = column + 1;
                 int col_minus_one = column - 1;
-
+                
+                //printf("RPO: %d; RMO: %d; CPO: %d; CMO: %d \n", row_plus_one, row_minus_one, col_plus_one, col_minus_one);
                 int rpo_ind = row_plus_one * width + column;
                 int rmo_ind = row_minus_one * width + column;
                 int cpo_ind = row * width + col_plus_one;
                 int cmo_ind = row * width + col_minus_one;
 
-                gaussian_rpo_cols = _mm256_load_ps(in_gaussian + rpo_ind);
-                gaussian_rmo_cols = _mm256_load_ps(in_gaussian + rmo_ind);
+                //printf("Trying to load : %d \n", rpo_ind);
+                gaussian_rpo_cols = _mm256_loadu_ps(in_gaussian + rpo_ind);
+                //printf("Trying to load : %d \n", rmo_ind);
+                gaussian_rmo_cols = _mm256_loadu_ps(in_gaussian + rmo_ind);
                 
-                gaussian1_rpo_cols = _mm256_load_ps(in_gaussian1 + rpo_ind);
-                gaussian1_rmo_cols = _mm256_load_ps(in_gaussian1 + rmo_ind);
+                //printf("Trying to load : %d \n", rpo_ind);
+                gaussian1_rpo_cols = _mm256_loadu_ps(in_gaussian1 + rpo_ind);
+                //printf("Trying to load : %d \n", rmo_ind);
+                gaussian1_rmo_cols = _mm256_loadu_ps(in_gaussian1 + rmo_ind);
 
-                gaussian2_rpo_cols = _mm256_load_ps(in_gaussian2 + rpo_ind);
-                gaussian2_rmo_cols = _mm256_load_ps(in_gaussian2 + rmo_ind);
+                gaussian2_rpo_cols = _mm256_loadu_ps(in_gaussian2 + rpo_ind);
+                gaussian2_rmo_cols = _mm256_loadu_ps(in_gaussian2 + rmo_ind);
 
                 
-                gaussian_cpo_cols = _mm256_load_ps(in_gaussian + cpo_ind);
-                gaussian_cmo_cols = _mm256_load_ps(in_gaussian + cmo_ind);
+                gaussian_cpo_cols = _mm256_loadu_ps(in_gaussian + cpo_ind);
+                gaussian_cmo_cols = _mm256_loadu_ps(in_gaussian + cmo_ind);
                 
-                gaussian1_cpo_cols = _mm256_load_ps(in_gaussian1 + cpo_ind);
-                gaussian1_cmo_cols = _mm256_load_ps(in_gaussian1 + cmo_ind);
+                gaussian1_cpo_cols = _mm256_loadu_ps(in_gaussian1 + cpo_ind);
+                gaussian1_cmo_cols = _mm256_loadu_ps(in_gaussian1 + cmo_ind);
 
-                gaussian2_cpo_cols = _mm256_load_ps(in_gaussian2 + cpo_ind);
-                gaussian2_cmo_cols = _mm256_load_ps(in_gaussian2 + cmo_ind);
+                gaussian2_cpo_cols = _mm256_loadu_ps(in_gaussian2 + cpo_ind);
+                gaussian2_cmo_cols = _mm256_loadu_ps(in_gaussian2 + cmo_ind);
+                
 
                 d_row_m256 = _mm256_sub_ps(gaussian_rpo_cols, gaussian_rmo_cols);
                 d_column_m256 =  _mm256_sub_ps(gaussian_cpo_cols, gaussian_cmo_cols);
@@ -234,15 +244,15 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 grad2 = _mm256_sqrt_ps(sqrt_input);
                 eth_mm256_atan2_ps(&d_row2_m256, &d_column2_m256, &rot2);
 
-                _mm256_store_ps(out_grads + write_index, grad);
-                _mm256_store_ps(out_rots + write_index, rot);
+                _mm256_storeu_ps(out_grads + write_index, grad);
+                _mm256_storeu_ps(out_rots + write_index, rot);
                 
                 
-                _mm256_store_ps(out_grads1 + write_index, grad1);
-                _mm256_store_ps(out_rots1 + write_index, rot1);
+                _mm256_storeu_ps(out_grads1 + write_index, grad1);
+                _mm256_storeu_ps(out_rots1 + write_index, rot1);
                 
-                _mm256_store_ps(out_grads2 + write_index, grad2);
-                _mm256_store_ps(out_rots2 + write_index, rot2);
+                _mm256_storeu_ps(out_grads2 + write_index, grad2);
+                _mm256_storeu_ps(out_rots2 + write_index, rot2);
                 inc_mem(6); // At least two writes
             }
         }     
