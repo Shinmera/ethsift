@@ -21,7 +21,7 @@
 
 // default number of bins in histogram for orientation assignment
 #define ETHSIFT_ORI_HIST_BINS 36
-#define ETHSIFT_ORI_HIST_BINS_INV 1.0f / ETHSIFT_ORI_HIST_BINS
+#define ETHSIFT_ORI_HIST_BINS_INV 0.027777778
 
 // determines gaussian sigma for orientation assignment
 #define ETHSIFT_ORI_SIG_FCTR  1.5f // Can affect the orientation computation.
