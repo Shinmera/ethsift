@@ -26,7 +26,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                                       uint32_t octave_count){
     int width, height;
     int idx;
-    int col_upper_offset = 8, col_lower_offset = 1;
+    int col_upper_offset = 7, col_lower_offset = 1;
     int row_upper_offset = 1, row_lower_offset = 1;
     
 
@@ -72,94 +72,6 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
         inc_mem(9);
 
-        // DO THE THE BORDER OF THE IMAGE AS WE HAVE DONE BEFORE.
-        for(int row = 0; row < height; ++row){
-            int row_plus_one = internal_min(internal_max(row + 1, 0), height - 1);
-            int row_minus_one = internal_min(internal_max(row - 1, 0), height - 1);
-            //printf("HELLO I will try to MANAGE %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
-            if(row < row_lower_offset || row >= height-row_upper_offset){
-                for(int column = 0; column < width; ++column){
-                    
-                    int col_plus_one = internal_min(internal_max(column + 1, 0), width - 1);
-                    int col_minus_one = internal_min(internal_max(column - 1, 0), width - 1);
-
-                    d_row = in_gaussian[row_plus_one * width + column] - in_gaussian[row_minus_one * width + column];    
-                    d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
-                    
-                    d_row1 = in_gaussian1[row_plus_one * width + column] - in_gaussian1[row_minus_one * width + column];    
-                    d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
-
-                    d_row2 = in_gaussian2[row_plus_one * width + column] - in_gaussian2[row_minus_one * width + column];    
-                    d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
-                        
-                    inc_adds(6); // 2 Subtractions
-                    inc_mem(12); // Maybe?
-                        
-                    out_grads[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
-                    out_rots[row * width + column] = fast_atan2_f(d_row, d_column); 
-                    
-                    out_grads1[row * width + column] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
-                    out_rots1[row * width + column] = fast_atan2_f(d_row1, d_column1); 
-                    
-                    out_grads2[row * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                    out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2); 
-                    inc_mem(6); // At least two writes
-                }
-            }            
-            else{
-                
-                int col_plus_one = 1;
-                int col_minus_one = 0;
-                d_row = in_gaussian[row_plus_one * width] - in_gaussian[row_minus_one * width ];    
-                d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
-                
-                d_row1 = in_gaussian1[row_plus_one * width ] - in_gaussian1[row_minus_one * width ];    
-                d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
-
-                d_row2 = in_gaussian2[row_plus_one * width ] - in_gaussian2[row_minus_one * width ];    
-                d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
-                    
-                inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
-                    
-                out_grads[row * width ] = sqrtf(d_row * d_row + d_column * d_column);
-                out_rots[row * width ] = fast_atan2_f(d_row, d_column); 
-                
-                out_grads1[row * width] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
-                out_rots1[row * width] = fast_atan2_f(d_row1, d_column1); 
-                
-                out_grads2[row * width] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                out_rots2[row * width] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
-
-                col_plus_one = width-1;
-                col_minus_one = width-2;
-                d_row = in_gaussian[row_plus_one * width + col_plus_one] - in_gaussian[row_minus_one * width + col_plus_one];    
-                d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
-                
-                d_row1 = in_gaussian1[row_plus_one * width + col_plus_one] - in_gaussian1[row_minus_one * width + col_plus_one];    
-                d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
-
-                d_row2 = in_gaussian2[row_plus_one * width + col_plus_one] - in_gaussian2[row_minus_one * width + col_plus_one];    
-                d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
-                    
-                inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
-                    
-                out_grads[row * width ] = sqrtf(d_row * d_row + d_column * d_column);
-                out_rots[row * width ] = fast_atan2_f(d_row, d_column); 
-                
-                out_grads1[row * width] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
-                out_rots1[row * width] = fast_atan2_f(d_row1, d_column1); 
-                
-                out_grads2[row * width] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                out_rots2[row * width] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
-            }
-
-            
-            //printf("HELLO I MANAGED %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
-        }
             
         
 
@@ -175,13 +87,14 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         __m256 sqrt_input, sqrt_input1, sqrt_input2;
         __m256 grad, grad1, grad2;
         __m256 rot, rot1, rot2;
-
+        int col_counter = 0;
         for(int row = row_lower_offset; row < height-row_upper_offset; ++row){
         
             int row_plus_one = row + 1;
             int row_minus_one = row - 1;
             int row_width = row*width;
             for(int column = col_lower_offset; column < width-col_upper_offset; column+=8){
+                col_counter = column;
                 int write_index = row_width + column;
                 int col_plus_one = column + 1;
                 int col_minus_one = column - 1;
@@ -255,7 +168,101 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 _mm256_storeu_ps(out_rots2 + write_index, rot2);
                 inc_mem(6); // At least two writes
             }
-        }     
+        }
+
+
+        
+        // DO THE THE BORDER OF THE IMAGE AS WE HAVE DONE BEFORE.
+        for(int row = 0; row < height; ++row){
+            int row_plus_one = internal_min(internal_max(row + 1, 0), height - 1);
+            int row_minus_one = internal_min(internal_max(row - 1, 0), height - 1);
+            //printf("HELLO I will try to MANAGE %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
+            if(row < row_lower_offset || row >= height-row_upper_offset){
+                for(int column = 0; column < width; ++column){
+                    
+                    int col_plus_one = internal_min(internal_max(column + 1, 0), width - 1);
+                    int col_minus_one = internal_min(internal_max(column - 1, 0), width - 1);
+
+                    d_row = in_gaussian[row_plus_one * width + column] - in_gaussian[row_minus_one * width + column];    
+                    d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
+                    
+                    d_row1 = in_gaussian1[row_plus_one * width + column] - in_gaussian1[row_minus_one * width + column];    
+                    d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
+
+                    d_row2 = in_gaussian2[row_plus_one * width + column] - in_gaussian2[row_minus_one * width + column];    
+                    d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
+                        
+                    inc_adds(6); // 2 Subtractions
+                    inc_mem(12); // Maybe?
+                        
+                    out_grads[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
+                    out_rots[row * width + column] = fast_atan2_f(d_row, d_column); 
+                    
+                    out_grads1[row * width + column] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
+                    out_rots1[row * width + column] = fast_atan2_f(d_row1, d_column1); 
+                    
+                    out_grads2[row * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
+                    out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2); 
+                    inc_mem(6); // At least two writes
+                }
+            }            
+            else{
+                
+                int col_plus_one = 1;
+                int col_minus_one = 0;
+                d_row = in_gaussian[row_plus_one * width] - in_gaussian[row_minus_one * width ];    
+                d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
+                
+                d_row1 = in_gaussian1[row_plus_one * width ] - in_gaussian1[row_minus_one * width ];    
+                d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
+
+                d_row2 = in_gaussian2[row_plus_one * width ] - in_gaussian2[row_minus_one * width ];    
+                d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
+                    
+                inc_adds(6); // 2 Subtractions
+                inc_mem(12); // Maybe?
+                    
+                out_grads[row * width ] = sqrtf(d_row * d_row + d_column * d_column);
+                out_rots[row * width ] = fast_atan2_f(d_row, d_column); 
+                
+                out_grads1[row * width] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
+                out_rots1[row * width] = fast_atan2_f(d_row1, d_column1); 
+                
+                out_grads2[row * width] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
+                out_rots2[row * width] = fast_atan2_f(d_row2, d_column2); 
+                inc_mem(6); // At least two writes
+
+               for(int column = col_counter; column < width; ++column){
+                    
+                    int col_plus_one = internal_min(internal_max(column + 1, 0), width - 1);
+                    int col_minus_one = internal_min(internal_max(column - 1, 0), width - 1);
+
+                    d_row = in_gaussian[row_plus_one * width + column] - in_gaussian[row_minus_one * width + column];    
+                    d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];
+                    
+                    d_row1 = in_gaussian1[row_plus_one * width + column] - in_gaussian1[row_minus_one * width + column];    
+                    d_column1 = in_gaussian1[row * width + col_plus_one] - in_gaussian1[row * width + col_minus_one];
+
+                    d_row2 = in_gaussian2[row_plus_one * width + column] - in_gaussian2[row_minus_one * width + column];    
+                    d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
+                        
+                    inc_adds(6); // 2 Subtractions
+                    inc_mem(12); // Maybe?
+                        
+                    out_grads[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
+                    out_rots[row * width + column] = fast_atan2_f(d_row, d_column); 
+                    
+                    out_grads1[row * width + column] = sqrtf(d_row1 * d_row1 + d_column1 * d_column1);
+                    out_rots1[row * width + column] = fast_atan2_f(d_row1, d_column1); 
+                    
+                    out_grads2[row * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
+                    out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2); 
+                    inc_mem(6); // At least two writes
+                }
+            }
+            
+        }
+
     }
 
     return 1;
