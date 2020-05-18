@@ -325,7 +325,7 @@ define_test(eth_MeasureFull, 1, {
       fail("Failed to load image");
     
     uint32_t keypoint_count = 2048;
-    struct ethsift_keypoint keypoints[keypoint_count] = {0};
+    struct ethsift_keypoint keypoints[2048] = {0};
 
     with_repeating(ethsift_compute_keypoints(eth_img, keypoints, &keypoint_count))
   })
