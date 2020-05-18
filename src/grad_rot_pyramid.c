@@ -38,6 +38,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         out_grads = gradients[idx].pixels;
         out_rots = rotations[idx].pixels;
 
+        inc_mem(3);
+
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
 
@@ -66,6 +68,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         out_grads = gradients[idx].pixels;
         out_rots = rotations[idx].pixels;
 
+        inc_mem(3);
+
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
 
@@ -93,6 +97,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         in_gaussian = gaussians[idx].pixels;
         out_grads = gradients[idx].pixels;
         out_rots = rotations[idx].pixels;
+
+        inc_mem(3);
 
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
