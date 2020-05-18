@@ -2,6 +2,10 @@
 
 // Number of defined tests
 int test_count;
+size_t add_count = 0;
+size_t mult_count = 0;
+size_t mem_count = 0;
+size_t div_count = 0;
 
 // To save counts for the log file
 size_t add_counts[1024];
