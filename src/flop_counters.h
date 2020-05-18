@@ -3,7 +3,10 @@
 
 /// Methods and variables for counting flops
 #ifdef IS_COUNTING
-  size_t add_count, mult_count, mem_count, div_count;
+  extern size_t add_count;
+  extern size_t mult_count;
+  extern size_t mem_count;
+  extern size_t div_count;
   
   static int reset_counters() {
     add_count = 0;

@@ -121,6 +121,7 @@ int register_measurement(){
   fprintf(stderr, " %10liµs ±%10.2f", t.median, t.mad);
 #endif
   fflush(stderr);
+  return 1;
 }
 
 int run_test(struct test test){
