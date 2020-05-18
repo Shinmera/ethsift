@@ -58,6 +58,10 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
         inc_mem(3);
 
+        __m256 gaussian_rpo_cols, gaussian_rmo_cols;
+
+        gaussian_rpo_cols = _mm256_load_ps(in_gaussian);
+        gaussian_rmo_cols = _mm256_load_ps(in_gaussian);
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
 
@@ -66,6 +70,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 
                 int col_plus_one = internal_min(internal_max(column + 1, 0), width - 1);
                 int col_minus_one = internal_min(internal_max(column - 1, 0), width - 1);
+                int rpo_ind = row_plus_one * width + column;
+                int rmo_ind = row_minus_one * width + column;
 
                 d_row = in_gaussian[row_plus_one * width + column] - in_gaussian[row_minus_one * width + column];    
                 d_column = in_gaussian[row * width + col_plus_one] - in_gaussian[row * width + col_minus_one];

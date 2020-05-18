@@ -6,6 +6,7 @@
 #include "settings.h"
 #include "ethsift.h"
 #include "flop_counters.h"
+#include <immintrin.h>
 
 extern float** g_kernel_ptrs;
 extern int* g_kernel_rads;
