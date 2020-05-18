@@ -107,7 +107,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
   // Histogram
   int nBins = ETHSIFT_ORI_HIST_BINS;
-  float invBins = 1.0/nBins;
+  float invBins = ETHSIFT_ORI_HIST_BINS_INV;
   float hist[nBins];
   float max_mag;
 
