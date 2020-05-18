@@ -61,7 +61,6 @@ make plots
 
 This requires a python3 installation with matplotlib and numpy. The plotter can be configured to select log files from a different directory using the `LOGS` environment variable, and to limit the files in the directory to ones containing a specified string in their name using `VERSION`. By default it will generate all plots. You can set it to only generate a certain kind of plot by setting `PLOT_MODE`.
 
-
 ## Counting
 For counting floating point operations and memory accesses. After building the application, run the following application (a `/logs/` folder must exist!)
 
@@ -81,3 +80,12 @@ For plotting there are two things to consider before running "perf_plots/main.py
 First create for each measurement run which belongs together an own folder (e.g. "ethSIFT baseline") and place the logfiles which belong to that measurement into that folder. perf_plots library will automatically read in the name of the folder and chose it as label for the plot curve.
 Second make sure, that for each folder name you create a dictionary entry in lib_markers and you set a distinct marker for that very folder. Use the full folder name as dictionary key.
 
+## Measuring Different Variants
+In order to conveniently measure and compare different variants of compilation configurations, you can use the provided `variant.sh` script. Simply supply a variant name and the desired CMake arguments. It will automatically configure a build, compile it, run it for all standard image sizes, and put the resulting logs into a directory named after the variant.
+
+Example:
+```
+./variant.sh clang-O3 -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DMEASUREMENT_MODE=chrono -DOPT_FLAGS=03
+```
+
+This will create a build directory called `build-clang-O3` and put the resulting measurement logs into `logs/clang-O3/`.
