@@ -9,13 +9,12 @@ import numpy as np
 import math
 
 lib_markers = dict()
-lib_markers['ethSIFT -O0'] = '*'
-lib_markers['ethSIFT -O3'] = 'x'
-lib_markers['ezSIFT -O3'] = '^'
-lib_markers['eth-O3'] = 'v'
-lib_cols = dict()
-lib_cols['eth'] = '#2138ab'
-lib_cols['ez'] = '#f0944d'
+lib_markers['ethSIFT baseline FASTMATH'] = '*'
+lib_markers['ethSIFT baseline AVX'] = 'x'
+lib_markers['ethSIFT baseline O3 No Vectorization'] = '^'
+lib_markers['ethSIFT baseline FULL skylake'] = 'v'
+lib_markers['ethSIFT baseline FULL broadwell'] = '.'
+lib_markers['ezSIFT O3'] = '+'
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
