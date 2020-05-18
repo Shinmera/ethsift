@@ -115,7 +115,7 @@ add_executable(count_flops
 target_link_libraries(count_flops PRIVATE m)
 
 set_property(TARGET count_flops PROPERTY C_STANDARD 99)
-target_compile_options(count_flops PRIVATE -DDEBUG -g -pg -O0)
+target_compile_options(count_flops PRIVATE -DDEBUG -mfma -mavx2 -g -pg -O0)
 target_compile_definitions(count_flops PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DIR}/data")
 target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 target_compile_definitions(count_flops PRIVATE IS_COUNTING)
