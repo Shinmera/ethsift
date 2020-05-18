@@ -19,7 +19,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                                       uint32_t layers,
                                       uint32_t octave_count){
     int width, height;
-    int idx;
+    int idx1, idx2, idx3, base_idx;
     float d_row, d_column;
 
 
@@ -29,66 +29,62 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         height = (int) gaussians[i * gaussian_count].height;
         inc_mem(2);
 
-
-        idx = i * gaussian_count + 1;         
+        base_idx = i * gaussian_count;
+        idx1 = base_idx + 1;         
+        idx2 = base_idx + 2;
+        idx3 = base_idx + 3;
 
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
 
-                d_row = get_pixel_f(gaussians[idx].pixels, width, height, row+1, column) - 
-                        get_pixel_f(gaussians[idx].pixels, width, height, row-1, column);
+                //COMPUTATIONS ON LAYER 1
+                d_row = get_pixel_f(gaussians[idx1].pixels, width, height, row+1, column) - 
+                        get_pixel_f(gaussians[idx1].pixels, width, height, row-1, column);
                     
-                d_column = get_pixel_f(gaussians[idx].pixels, width, height, row, column+1) - 
-                            get_pixel_f(gaussians[idx].pixels, width, height, row, column-1);
+                d_column = get_pixel_f(gaussians[idx1].pixels, width, height, row, column+1) - 
+                            get_pixel_f(gaussians[idx1].pixels, width, height, row, column-1);
                     
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
                     
-                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
-                rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column); 
+                gradients[idx1].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
+                rotations[idx1].pixels[row * width + column] = fast_atan2_f(d_row, d_column); 
                 inc_mem(2); // At least two writes
-            }
-        }
 
-        idx = i * gaussian_count + 2;
+                
+                //COMPUTATIONS ON LAYER 2
+                d_row = get_pixel_f(gaussians[idx2].pixels, width, height, row + 1, column) -
+                    get_pixel_f(gaussians[idx2].pixels, width, height, row - 1, column);
 
-        for (int row = 0; row < height; row++) {
-            for (int column = 0; column < width; column++) {
-
-                d_row = get_pixel_f(gaussians[idx].pixels, width, height, row + 1, column) -
-                    get_pixel_f(gaussians[idx].pixels, width, height, row - 1, column);
-
-                d_column = get_pixel_f(gaussians[idx].pixels, width, height, row, column + 1) -
-                    get_pixel_f(gaussians[idx].pixels, width, height, row, column - 1);
+                d_column = get_pixel_f(gaussians[idx2].pixels, width, height, row, column + 1) -
+                    get_pixel_f(gaussians[idx2].pixels, width, height, row, column - 1);
 
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
 
-                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
-                rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
+                gradients[idx2].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
+                rotations[idx2].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
                 inc_mem(2); // At least two writes
-            }
-        }
 
-        idx = i * gaussian_count + 3;
 
-        for (int row = 0; row < height; row++) {
-            for (int column = 0; column < width; column++) {
+                //COMPUTATIONS ON LAYER 3
+                d_row = get_pixel_f(gaussians[idx3].pixels, width, height, row + 1, column) -
+                    get_pixel_f(gaussians[idx3].pixels, width, height, row - 1, column);
 
-                d_row = get_pixel_f(gaussians[idx].pixels, width, height, row + 1, column) -
-                    get_pixel_f(gaussians[idx].pixels, width, height, row - 1, column);
-
-                d_column = get_pixel_f(gaussians[idx].pixels, width, height, row, column + 1) -
-                    get_pixel_f(gaussians[idx].pixels, width, height, row, column - 1);
+                d_column = get_pixel_f(gaussians[idx3].pixels, width, height, row, column + 1) -
+                    get_pixel_f(gaussians[idx3].pixels, width, height, row, column - 1);
 
                 inc_adds(2); // 2 Subtractions
                 inc_mem(4); // Maybe?
 
-                gradients[idx].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
-                rotations[idx].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
+                gradients[idx3].pixels[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
+                rotations[idx3].pixels[row * width + column] = fast_atan2_f(d_row, d_column);
                 inc_mem(2); // At least two writes
             }
+
+            
         }
+
      
     }
 
