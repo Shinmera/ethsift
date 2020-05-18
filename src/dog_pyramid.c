@@ -31,8 +31,8 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             differences[i * layers + 3].pixels[idx] = gaussians[row_index + 4].pixels[idx] - gaussians[row_index + 3].pixels[idx];
             differences[i * layers + 4].pixels[idx] = gaussians[row_index + 5].pixels[idx] - gaussians[row_index + 4].pixels[idx]; 
             
-            inc_adds(3);
-            inc_mem(18);
+            inc_adds(5);
+            inc_mem(30);
         }
 
     }
