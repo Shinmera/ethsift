@@ -47,9 +47,9 @@ define_test(eth_Octaves, 1, {
     struct ethsift_image eth_octaves[OCTAVE_COUNT];
     ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
 
-    with_repeating(ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT))
+    with_repeating(ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT));
 
-      ethsift_free_pyramid(eth_octaves);
+    ethsift_free_pyramid(eth_octaves);
   })
 
 define_test(eth_GaussianKernelGeneration, 1, {
@@ -69,18 +69,12 @@ define_test(eth_GaussianPyramid, 1, {
       fail("Failed to load image");
     
     // Allocate the pyramids!
-    struct ethsift_image eth_octaves[OCTAVE_COUNT];
-    ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
-
     struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
     ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
-    //Create Octaves for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-
-    with_repeating(ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT));
+    //Create Octaves for ethSift
+    with_repeating(ethsift_generate_gaussian_pyramid(eth_img, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT));
     
-    ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
   })
 
@@ -93,9 +87,6 @@ define_test(eth_DOGPyramid, 1, {
     std::vector<ezsift::Image<unsigned char > > ez_octaves(OCTAVE_COUNT);
 
     // Allocate the pyramids!
-    struct ethsift_image eth_octaves[OCTAVE_COUNT];
-    ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
-
     struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
     ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
     
@@ -103,12 +94,10 @@ define_test(eth_DOGPyramid, 1, {
     ethsift_allocate_pyramid(eth_differences, eth_img.width, eth_img.height, OCTAVE_COUNT, DOG_COUNT);
 
     //Create DOG for ethSift    
-    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-    ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+    ethsift_generate_gaussian_pyramid(eth_img, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     with_repeating(ethsift_generate_difference_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_differences, DOG_COUNT, OCTAVE_COUNT));
     
-    ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_differences);
   })
@@ -119,9 +108,6 @@ define_test(eth_GradientAndRotationPyramids, 1, {
       fail("Failed to load image");
        
     // Allocate the pyramids!
-    struct ethsift_image eth_octaves[OCTAVE_COUNT];
-    ethsift_allocate_pyramid(eth_octaves, eth_img.width, eth_img.height, OCTAVE_COUNT, 1);
-
     struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
     ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
@@ -132,12 +118,10 @@ define_test(eth_GradientAndRotationPyramids, 1, {
     ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
     // Calculate all pyramid contents
-    ethsift_generate_octaves(eth_img, eth_octaves, OCTAVE_COUNT);
-    ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+    ethsift_generate_gaussian_pyramid(eth_img, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 
     with_repeating(ethsift_generate_gradient_pyramid(eth_gaussians, GAUSSIAN_COUNT, eth_gradients, eth_rotations, GRAD_ROT_LAYERS, OCTAVE_COUNT));
 
-    ethsift_free_pyramid(eth_octaves);
     ethsift_free_pyramid(eth_gaussians);
     ethsift_free_pyramid(eth_gradients);
     ethsift_free_pyramid(eth_rotations);

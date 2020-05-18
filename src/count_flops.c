@@ -26,8 +26,7 @@ int init_gaussian() {
   ethsift_allocate_pyramid(eth_gaussians, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
   
   // Generate gaussian pyramid for input picture
-  ethsift_generate_octaves(input_img, eth_octaves, OCTAVE_COUNT);
-  ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
+  ethsift_generate_gaussian_pyramid(input_img, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
 }
 
 
@@ -69,21 +68,14 @@ int test_convolution() {
 
 int test_gaussian_pyramid() {
   // Allocate the pyramids!
-  struct ethsift_image eth_octaves[OCTAVE_COUNT];
-  ethsift_allocate_pyramid(eth_octaves, input_img.width, input_img.height, OCTAVE_COUNT, 1);
-
   struct ethsift_image eth_gaussians[OCTAVE_COUNT * GAUSSIAN_COUNT];
   ethsift_allocate_pyramid(eth_gaussians, input_img.width, input_img.height, OCTAVE_COUNT, GAUSSIAN_COUNT);
 
-  //Create Octaves for ethSift    
-  ethsift_generate_octaves(input_img, eth_octaves, OCTAVE_COUNT);
   // Create gaussians for ethSift
   #ifdef IS_COUNTING
   reset_counters();
   #endif
-  ethsift_generate_gaussian_pyramid(eth_octaves, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
-  
-  ethsift_free_pyramid(eth_octaves);
+  ethsift_generate_gaussian_pyramid(input_img, OCTAVE_COUNT, eth_gaussians, GAUSSIAN_COUNT);
   ethsift_free_pyramid(eth_gaussians);
   
   return 1;

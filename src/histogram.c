@@ -45,8 +45,7 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     int bin;
     float fbin; // float point bin
 
-    float tmpHist[bin_count];
-    memset(tmpHist, 0, bin_count * sizeof(float));
+    float tmpHist[ETHSIFT_ORI_HIST_BINS] = {0};
     // (2*win_radius+1)^2 * (18 + EXP)
     for (int i = -win_radius; i <= win_radius; i++) // rows
     {
@@ -64,14 +63,13 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
             
             inc_mem(2);
 
-            fbin = angle * bin_count / M_TWOPI; // 1 MUL and + 1 DIV
-            weight = expf(
-                ((i - d_kptr) * (i - d_kptr) + (j - d_kptc) * (j - d_kptc)) *
-                exp_factor); // 4 SUBS + 3 MULs + 1 ADD + 1 EXP
+            fbin = angle * bin_count * M_1_2PI;
+            float w1 = i-d_kptr;
+            float w2 = j-d_kptc;
+            weight = expf((w1*w1 + w2*w2) * exp_factor);
 
-            inc_mults(4);
-            inc_adds(5);
-            inc_div(1);
+            inc_mults(5);
+            inc_adds(3);
             // 1 EXP
 
             bin = (int)(fbin - 0.5f); // 1 SUB
@@ -90,54 +88,50 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
         }
     }
 
-   
     // bin_count * 10 FLOPs
     // Smooth the histogram. Algorithm comes from OpenCV.
-    histogram[0] = (tmpHist[0] + tmpHist[2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-              (tmpHist[0] + tmpHist[1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-              tmpHist[0] * 6.0f / 16.0f;  //  1 MUL + 1 DIV
+    float div1 = 1.0f/16.0f;
+    float div2 = 4.0f/16.0f;
+    float div3 = 6.0f/16.0f;
 
+    float tmpHist0 = tmpHist[0];
+    histogram[0] = (tmpHist0 + tmpHist[2]) * div1 +
+      (tmpHist0 + tmpHist[1]) * div2 +
+      tmpHist0 * div3;
     inc_mults(3);
     inc_adds(4);
-    inc_div(3);
-    inc_mem(6) // 1 write / 5 reads
+    inc_mem(4);
 
-    histogram[1] = (tmpHist[0] + tmpHist[3]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-              (tmpHist[0] + tmpHist[2]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-              tmpHist[1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
-
+    histogram[1] = (tmpHist0 + tmpHist[3]) * div1 +
+      (tmpHist0 + tmpHist[2]) * div2 +
+      tmpHist[1] * div3;
     inc_mults(3);
     inc_adds(4);
-    inc_div(3);
-    inc_mem(6) // 1 write / 5 reads
+    inc_mem(4);
+
+    float tmpHistb1 = tmpHist[bin_count - 1];
+    histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHistb1) * div1 +
+      (tmpHist[bin_count - 3] + tmpHistb1) * div2 +
+      tmpHist[bin_count - 2] * div3;
+    inc_mults(3);
+    inc_adds(4);
+    inc_mem(5);
     
-    histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                      (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                      tmpHist[bin_count - 2] * 6.0f / 16.0f; //  1 MUL + 1 DIV
-
+    histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHistb1) * div1 +
+      (tmpHist[bin_count - 2] + tmpHistb1) * div2 +
+      tmpHistb1 * div3;
     inc_mults(3);
     inc_adds(4);
-    inc_div(3);
-    inc_mem(6) // 1 write / 5 reads
-    
-    histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHist[bin_count - 1]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                      (tmpHist[bin_count - 2] + tmpHist[bin_count - 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                      tmpHist[bin_count - 1] * 6.0f / 16.0f; //  1 MUL + 1 DIV
-
-    inc_mults(3);
-    inc_adds(4);
-    inc_div(3);
-    inc_mem(6) // 1 write / 5 reads
+    inc_mem(3);
 
     for (int i = 2; i < bin_count - 2; i++) {
-        histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * 1.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                  (tmpHist[i - 1] + tmpHist[i + 1]) * 4.0f / 16.0f + // 2 ADD + 1 MUL + 1 DIV
-                  tmpHist[i] * 6.0f / 16.0f; //  1 MUL + 1 DIV
+      histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * div1 +
+        (tmpHist[i - 1] + tmpHist[i + 1]) * div2 +
+        tmpHist[i] * div3;
 
-        inc_mults(3);
-        inc_adds(4);
-        inc_div(3);
-        inc_mem(6) // 1 write / 5 reads
+      inc_mults(3);
+      inc_adds(4);
+      inc_mem(6);
     }
 
     // Find the maximum item of the histogram
@@ -159,8 +153,5 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
 
     inc_mults(1);
     inc_div(1);
-
-    //free(tmpHist);
-    //tmpHist = nullptr;
     return 1;
 }

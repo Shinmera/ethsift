@@ -24,15 +24,17 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
         height = gaussians[row_index].height;
         inc_mem(2); // 2 reads (maybe?)
 
-        for(int j = 0; j < layers; j++){
+        for(int idx = 0; idx < (width * height); idx++){
+            differences[i * layers].pixels[idx] = gaussians[row_index + 1].pixels[idx] - gaussians[row_index].pixels[idx]; 
+            differences[i * layers + 1].pixels[idx] = gaussians[row_index + 2].pixels[idx] - gaussians[row_index + 1].pixels[idx];
+            differences[i * layers + 2].pixels[idx] = gaussians[row_index + 3].pixels[idx] - gaussians[row_index + 2].pixels[idx];  
+            differences[i * layers + 3].pixels[idx] = gaussians[row_index + 4].pixels[idx] - gaussians[row_index + 3].pixels[idx];
+            differences[i * layers + 4].pixels[idx] = gaussians[row_index + 5].pixels[idx] - gaussians[row_index + 4].pixels[idx]; 
+            
+            inc_adds(5);
+            inc_mem(30);
+        }
 
-            // TODO: "Accelerate" framework can be used to subtract two floating point arrays
-            for(int idx = 0; idx < (width * height); idx++){
-                differences[i * layers + j].pixels[idx] = gaussians[row_index + j + 1].pixels[idx] - gaussians[row_index + j].pixels[idx]; 
-                inc_adds(1);
-                inc_mem(6);
-            }
-        } 
     }
 
     return 1;
