@@ -2,6 +2,7 @@ build/
 logs/
 debug/
 CMakeFiles/
+build*/
 *.o
 *.s
 *.S

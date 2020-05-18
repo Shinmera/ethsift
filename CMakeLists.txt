@@ -167,5 +167,9 @@ add_custom_target(flamegraph
   COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"
   DEPENDS tester)
 
+add_custom_target(measure
+  COMMAND bash "${PROJECT_SOURCE_DIR}/measure.sh" "${PROJECT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/tester"
+  DEPENDS tester)
+
 add_custom_target(plots
   COMMAND python3 "${PROJECT_SOURCE_DIR}/perf_plots/main.py")
