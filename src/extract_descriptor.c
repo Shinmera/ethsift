@@ -242,7 +242,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         }
 
         // Discard all the edges for row and column.
-        // Only retrive edges for orientation bins.
+        // Only retrieve edges for orientation bins.
         float dstBins[nBins];
         for (int i = 1; i <= nSubregion; i++) // slice
         {
@@ -316,8 +316,11 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Normalize the histogram
         float sum_square = 0.0f;
-        for (int i = 0; i < nBins; i++) {
+        for (int i = 0; i < nBins; i+=4) {
             sum_square += dstBins[i] * dstBins[i];
+            sum_square += dstBins[i+1] * dstBins[i+1];
+            sum_square += dstBins[i+2] * dstBins[i+2];
+            sum_square += dstBins[i+3] * dstBins[i+3];
             inc_adds(1);
             inc_mults(1);
         }
@@ -327,16 +330,32 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         inc_mults(1);
 
         float tmp = 0.0;
+        float tmp1 = 0.0;
+        float tmp2 = 0.0;
+        float tmp3 = 0.0;
+
         sum_square = 0.0;
         // Cut off the numbers bigger than 0.2 after normalized.
-        for (int i = 0; i < nBins; i++) {
+        for (int i = 0; i < nBins; i+=4) {
+
             tmp = float_min(thr, dstBins[i]);
+            tmp1 = float_min(thr, dstBins[i+1]);
+            tmp2 = float_min(thr, dstBins[i+2]);
+            tmp3 = float_min(thr, dstBins[i+3]);
+
             dstBins[i] = tmp;
+            dstBins[i+1] = tmp1;
+            dstBins[i+2] = tmp2;
+            dstBins[i+3] = tmp3;
+
             sum_square += tmp * tmp;
+            sum_square += tmp1 * tmp1;
+            sum_square += tmp2 * tmp2;
+            sum_square += tmp3 * tmp3;
             
-            inc_adds(1);
-            inc_mults(1);
-            inc_mem(2);
+            inc_adds(4);
+            inc_mults(4);
+            inc_mem(8);
         }
 
         // Re-normalize
@@ -347,11 +366,14 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         inc_div(1);
 
-        for (int i = 0; i < nBins; i++) {
+        for (int i = 0; i < nBins; i+=4) {
             dstBins[i] = dstBins[i] * norm_factor;
+            dstBins[i+1] = dstBins[i+1] * norm_factor;
+            dstBins[i+2] = dstBins[i+2] * norm_factor;
+            dstBins[i+3] = dstBins[i+3] * norm_factor;
             
-            inc_mults(1);
-            inc_mem(2);
+            inc_mults(4);
+            inc_mem(8);
         }
 
         memcpy(kpt->descriptors, dstBins, nBins * sizeof(float));
