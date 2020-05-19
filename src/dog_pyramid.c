@@ -22,13 +22,6 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
     __m256 gaussian_vec4_0, gaussian_vec4_1;
     __m256 gaussian_vec5_0, gaussian_vec5_1;
 
-    __m256 gaussian_vec0_2, gaussian_vec0_3;
-    __m256 gaussian_vec1_2, gaussian_vec1_3;
-    __m256 gaussian_vec2_2, gaussian_vec2_3;
-    __m256 gaussian_vec3_2, gaussian_vec3_3;
-    __m256 gaussian_vec4_2, gaussian_vec4_3;
-    __m256 gaussian_vec5_2, gaussian_vec5_3;
-
     __m256 dif_vec0_0;
     __m256 dif_vec1_0;
     __m256 dif_vec2_0;
@@ -40,18 +33,6 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
     __m256 dif_vec2_1;
     __m256 dif_vec3_1;
     __m256 dif_vec4_1;
-    
-    __m256 dif_vec0_2;
-    __m256 dif_vec1_2;
-    __m256 dif_vec2_2;
-    __m256 dif_vec3_2;
-    __m256 dif_vec4_2;
-    
-    __m256 dif_vec0_3;
-    __m256 dif_vec1_3;
-    __m256 dif_vec2_3;
-    __m256 dif_vec3_3;
-    __m256 dif_vec4_3;
 
     for(int i = 0; i < octave_count; i++){
         
@@ -74,10 +55,8 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
         float * gaussian5 = gaussians[row_index + 5].pixels;
         inc_mem(11);
         
-        for(int idx = 0; idx < (width * height); idx+= 32){
+        for(int idx = 0; idx < (width * height); idx+= 16){
             int idx2 = idx + 8;
-            int idx3 = idx + 16;
-            int idx4 = idx + 24;
 
             gaussian_vec0_0 =  _mm256_loadu_ps(gaussian0 + idx);
             gaussian_vec1_0 =  _mm256_loadu_ps(gaussian1 + idx);
@@ -92,20 +71,6 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             gaussian_vec3_1 =  _mm256_loadu_ps(gaussian3 + idx2);
             gaussian_vec4_1 =  _mm256_loadu_ps(gaussian4 + idx2);
             gaussian_vec5_1 =  _mm256_loadu_ps(gaussian5 + idx2);
-            
-            gaussian_vec0_2 =  _mm256_loadu_ps(gaussian0 + idx3);
-            gaussian_vec1_2 =  _mm256_loadu_ps(gaussian1 + idx3);
-            gaussian_vec2_2 =  _mm256_loadu_ps(gaussian2 + idx3);
-            gaussian_vec3_2 =  _mm256_loadu_ps(gaussian3 + idx3);
-            gaussian_vec4_2 =  _mm256_loadu_ps(gaussian4 + idx3);
-            gaussian_vec5_2 =  _mm256_loadu_ps(gaussian5 + idx3);
-            
-            gaussian_vec0_3 =  _mm256_loadu_ps(gaussian0 + idx4);
-            gaussian_vec1_3 =  _mm256_loadu_ps(gaussian1 + idx4);
-            gaussian_vec2_3 =  _mm256_loadu_ps(gaussian2 + idx4);
-            gaussian_vec3_3 =  _mm256_loadu_ps(gaussian3 + idx4);
-            gaussian_vec4_3 =  _mm256_loadu_ps(gaussian4 + idx4);
-            gaussian_vec5_3 =  _mm256_loadu_ps(gaussian5 + idx4);
 
             dif_vec0_0 = _mm256_sub_ps(gaussian_vec1_0,gaussian_vec0_0);
             dif_vec1_0 = _mm256_sub_ps(gaussian_vec2_0,gaussian_vec1_0);
@@ -118,18 +83,6 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             dif_vec2_1 = _mm256_sub_ps(gaussian_vec3_1,gaussian_vec2_1);
             dif_vec3_1 = _mm256_sub_ps(gaussian_vec4_1,gaussian_vec3_1);
             dif_vec4_1 = _mm256_sub_ps(gaussian_vec5_1,gaussian_vec4_1);
-            
-            dif_vec0_2 = _mm256_sub_ps(gaussian_vec1_2,gaussian_vec0_2);
-            dif_vec1_2 = _mm256_sub_ps(gaussian_vec2_2,gaussian_vec1_2);
-            dif_vec2_2 = _mm256_sub_ps(gaussian_vec3_2,gaussian_vec2_2);
-            dif_vec3_2 = _mm256_sub_ps(gaussian_vec4_2,gaussian_vec3_2);
-            dif_vec4_2 = _mm256_sub_ps(gaussian_vec5_2,gaussian_vec4_2);
-            
-            dif_vec0_3 = _mm256_sub_ps(gaussian_vec1_3,gaussian_vec0_3);
-            dif_vec1_3 = _mm256_sub_ps(gaussian_vec2_3,gaussian_vec1_3);
-            dif_vec2_3 = _mm256_sub_ps(gaussian_vec3_3,gaussian_vec2_3);
-            dif_vec3_3 = _mm256_sub_ps(gaussian_vec4_3,gaussian_vec3_3);
-            dif_vec4_3 = _mm256_sub_ps(gaussian_vec5_3,gaussian_vec4_3);
 
 
             _mm256_storeu_ps(dif_layer0 + idx, dif_vec0_0);
@@ -143,21 +96,9 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             _mm256_storeu_ps(dif_layer2 + idx2, dif_vec2_1);
             _mm256_storeu_ps(dif_layer3 + idx2, dif_vec3_1);
             _mm256_storeu_ps(dif_layer4 + idx2, dif_vec4_1);
-            
-            _mm256_storeu_ps(dif_layer0 + idx3, dif_vec0_2);
-            _mm256_storeu_ps(dif_layer1 + idx3, dif_vec1_2);
-            _mm256_storeu_ps(dif_layer2 + idx3, dif_vec2_2);
-            _mm256_storeu_ps(dif_layer3 + idx3, dif_vec3_2);
-            _mm256_storeu_ps(dif_layer4 + idx3, dif_vec4_2);
 
-            _mm256_storeu_ps(dif_layer0 + idx4, dif_vec0_3);
-            _mm256_storeu_ps(dif_layer1 + idx4, dif_vec1_3);
-            _mm256_storeu_ps(dif_layer2 + idx4, dif_vec2_3);
-            _mm256_storeu_ps(dif_layer3 + idx4, dif_vec3_3);
-            _mm256_storeu_ps(dif_layer4 + idx4, dif_vec4_3);
-
-            inc_adds(20);
-            inc_mem(44);
+            inc_adds(10);
+            inc_mem(22);
         }
 
     }
