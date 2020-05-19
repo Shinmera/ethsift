@@ -246,17 +246,23 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float dstBins[nBins];
         for (int i = 1; i <= nSubregion; i++) // slice
         {
-            for (int j = 1; j <= nSubregion; j++) // row
+            for (int j = 1; j <= nSubregion; j+=4) // row
             {
                 int idx = i * nSliceStep + j * nRowStep;
+                int idx1 = i * nSliceStep + (j+1) * nRowStep;
+                int idx2 = i * nSliceStep + (j+2) * nRowStep;
+                int idx3 = i * nSliceStep + (j+3) * nRowStep;
                 // comments: how this line works.
                 // Suppose you want to write w=width, y=1, due to circular
                 // buffer, we should write it to w=0, y=1; since we use a
                 // circular buffer, it is written into w=width, y=1. Now, we
                 // fectch the data back.
                 histBin[idx] = histBin[idx + nBinsPerSubregion];
+                histBin[idx1] = histBin[idx1 + nBinsPerSubregion];
+                histBin[idx2] = histBin[idx2 + nBinsPerSubregion];
+                histBin[idx3] = histBin[idx3 + nBinsPerSubregion];
 
-                inc_mem(2); // 1 read 1 write
+                inc_mem(8);
 
                 // comments: how this line works.
                 // Suppose you want to write x=-1 y=1, due to circular, it
@@ -267,9 +273,42 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                     inc_mem(2);
                 }
 
-                int idx1 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
+                if (idx1 != 0) {
+                    histBin[idx1 + nBinsPerSubregion + 1] = histBin[idx1 - 1];
+                    inc_mem(2);
+                }
+
+                if (idx2 != 0) {
+                    histBin[idx2 + nBinsPerSubregion + 1] = histBin[idx2 - 1];
+                    inc_mem(2);
+                }
+
+                if (idx3 != 0) {
+                    histBin[idx3 + nBinsPerSubregion + 1] = histBin[idx3 - 1];
+                    inc_mem(2);
+                }
+
+                int idx4 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
-                    dstBins[idx1 + k] = histBin[idx + k];
+                    dstBins[idx4 + k] = histBin[idx + k];
+                    inc_mem(2);
+                }
+
+                int idx5 = ((i - 1) * nSubregion + (j+1) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx5 + k] = histBin[idx1 + k];
+                    inc_mem(2);
+                }
+
+                int idx6 = ((i - 1) * nSubregion + (j+2) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx6 + k] = histBin[idx2 + k];
+                    inc_mem(2);
+                }
+
+                int idx7 = ((i - 1) * nSubregion + (j+3) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx7 + k] = histBin[idx3 + k];
                     inc_mem(2);
                 }
             }
