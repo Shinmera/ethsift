@@ -315,14 +315,21 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         }
 
         // Normalize the histogram
+        __m256 vec_dstBins;
         float sum_square = 0.0f;
-        for (int i = 0; i < nBins; i+=4) {
-            sum_square += dstBins[i] * dstBins[i];
-            sum_square += dstBins[i+1] * dstBins[i+1];
-            sum_square += dstBins[i+2] * dstBins[i+2];
-            sum_square += dstBins[i+3] * dstBins[i+3];
-            inc_adds(1);
-            inc_mults(1);
+        for (int i = 0; i < nBins; i+=8) {
+
+            vec_dstBins = _mm256_loadu_ps(dstBins+i);
+            vec_dstBins = _mm256_mul_ps(vec_dstBins,vec_dstBins);
+            
+            // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
+            const __m128 x128 = _mm_add_ps(_mm256_extractf128_ps(vec_dstBins, 1), _mm256_castps256_ps128(vec_dstBins));
+            const __m128 x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
+            const __m128 x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
+            sum_square += _mm_cvtss_f32(x32);
+
+            inc_adds(8);
+            inc_mults(8);
         }
 
         float thr = sqrtf(sum_square) * ETHSIFT_DESCR_MAG_THR;
@@ -378,12 +385,12 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         inc_div(1);
 
-        __m256 vec_norm_factor, vec_dstBin;
+        __m256 vec_norm_factor;
         vec_norm_factor = _mm256_set1_ps(norm_factor);
         for (int i = 0; i < nBins; i+=8) {
-            vec_dstBin = _mm256_loadu_ps(dstBins+i);
-            vec_dstBin = _mm256_mul_ps(vec_dstBin, vec_norm_factor);
-            _mm256_storeu_ps(dstBins+i, vec_dstBin);
+            vec_dstBins = _mm256_loadu_ps(dstBins+i);
+            vec_dstBins = _mm256_mul_ps(vec_dstBins, vec_norm_factor);
+            _mm256_storeu_ps(dstBins+i, vec_dstBins);
             inc_mults(8);
             inc_mem(16);
         }
