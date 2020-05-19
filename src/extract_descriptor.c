@@ -333,29 +333,41 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float tmp1 = 0.0;
         float tmp2 = 0.0;
         float tmp3 = 0.0;
+        float tmp4 = 0.0;
+        float tmp5 = 0.0;
+        float tmp6 = 0.0;
+        float tmp7 = 0.0;
 
         sum_square = 0.0;
+
+        __m256 vec_float_min;
+
         // Cut off the numbers bigger than 0.2 after normalized.
-        for (int i = 0; i < nBins; i+=4) {
+        for (int i = 0; i < nBins; i+=8) {
 
             tmp = float_min(thr, dstBins[i]);
             tmp1 = float_min(thr, dstBins[i+1]);
             tmp2 = float_min(thr, dstBins[i+2]);
             tmp3 = float_min(thr, dstBins[i+3]);
+            tmp4 = float_min(thr, dstBins[i+4]);
+            tmp5 = float_min(thr, dstBins[i+5]);
+            tmp6 = float_min(thr, dstBins[i+6]);
+            tmp7 = float_min(thr, dstBins[i+7]);
 
-            dstBins[i] = tmp;
-            dstBins[i+1] = tmp1;
-            dstBins[i+2] = tmp2;
-            dstBins[i+3] = tmp3;
+            vec_float_min = _mm256_set_ps(tmp7, tmp6, tmp5, tmp4, tmp3, tmp2, tmp1, tmp);
+            _mm256_storeu_ps(dstBins+i, vec_float_min);
 
-            sum_square += tmp * tmp;
-            sum_square += tmp1 * tmp1;
-            sum_square += tmp2 * tmp2;
-            sum_square += tmp3 * tmp3;
+            vec_float_min = _mm256_mul_ps(vec_float_min, vec_float_min);
+
+            // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
+            const __m128 x128 = _mm_add_ps(_mm256_extractf128_ps(vec_float_min, 1), _mm256_castps256_ps128(vec_float_min));
+            const __m128 x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
+            const __m128 x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
+            sum_square += _mm_cvtss_f32(x32);
             
-            inc_adds(4);
-            inc_mults(4);
-            inc_mem(8);
+            inc_adds(8);
+            inc_mults(8);
+            inc_mem(16);
         }
 
         // Re-normalize
