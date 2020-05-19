@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <float.h>
+#include <sys/mman.h>
 #include "settings.h"
 #include "ethsift.h"
 #include "flop_counters.h"
