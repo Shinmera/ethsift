@@ -265,3 +265,123 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
     return 1;
 }
+
+int ethsift_generate_gradient_pyramid_blob(struct ethsift_image gaussians[], 
+                                      uint32_t gaussian_count, 
+                                      struct ethsift_image gradients[], 
+                                      struct ethsift_image rotations[], 
+                                      uint32_t layers,
+                                      uint32_t octave_count){
+    int width, height;
+    int idx;
+
+    float *in_gaussian;
+    float *out_grads;
+    float *out_rots;
+
+    for(int i = 0; i < octave_count; i++){
+        
+        width = (int) gaussians[i * gaussian_count].width;
+        height = (int) gaussians[i * gaussian_count].height;
+        
+        inc_mem(2);   
+        
+        __m256 d_cp1;
+        __m256 d_cm1;
+        __m256 d_rp1;
+        __m256 d_rm1;
+        
+        __m256 d_row;
+        __m256 d_col;
+        
+        __m256 d_input_sqrt;
+        
+        __m256 d_sqrt;
+        __m256 d_atan;
+
+        int w_lim = width - 8;
+        for (int l = 1; l <= layers; ++l) {
+            idx = i * gaussian_count + l;
+
+            in_gaussian = gaussians[idx].pixels;
+            out_grads = gradients[idx].pixels;
+            out_rots = rotations[idx].pixels;
+            
+            int c;
+            for (int r = 1; r < height - 1; ++r) {
+                for (c = 1; c < w_lim; c += 8) {
+                    int c_m1 = c - 1;
+                    int c_p1 = c + 1;
+                    int r_m1 = r - 1;
+                    int r_p1 = r + 1; 
+
+                    int pos = r * width + c;
+
+                    d_cp1 = _mm256_loadu_ps(in_gaussian + r * width + c_p1);
+                    d_cm1 = _mm256_loadu_ps(in_gaussian + r * width + c_m1);
+                    d_rm1 = _mm256_loadu_ps(in_gaussian + r_m1 * width + c);
+                    d_rp1 = _mm256_loadu_ps(in_gaussian + r_p1 * width + c);
+
+                    d_row = _mm256_sub_ps(d_rp1, d_rm1);
+                    d_col = _mm256_sub_ps(d_cp1, d_cm1);
+                    
+                    d_input_sqrt = _mm256_mul_ps(d_col, d_col);
+                    d_input_sqrt = _mm256_fmadd_ps(d_row, d_row, d_input_sqrt);
+                    d_sqrt = _mm256_sqrt_ps(d_input_sqrt);
+
+                    eth_mm256_atan2_ps(&d_row, &d_col, &d_atan);
+
+                    _mm256_storeu_ps(out_grads + pos, d_sqrt);
+                    _mm256_storeu_ps(out_rots + pos, d_atan);
+                }
+
+                for (; c < width; ++c) {
+                    int r_p1 = r + 1;
+                    int r_m1 = r - 1;
+                    int c_m1 = internal_min(internal_max(c - 1, 0), width - 1);
+                    int c_p1 = internal_min(internal_max(c + 1, 0), width - 1);
+
+                    float row = in_gaussian[r_p1 * width + c] - in_gaussian[r_m1 * width + c];    
+                    float col = in_gaussian[r * width + c_p1] - in_gaussian[r * width + c_m1];
+
+                    out_grads[r * width + c] = sqrtf(row * row + col * col);
+                    out_rots[r * width + c] = fast_atan2_f(row, col); 
+                }
+            }
+
+
+            for (int i = 0; i < width; ++ i) {
+                int c_p1 = internal_min(internal_max(i + 1, 0), width - 1);
+                int c_m1 = internal_min(internal_max(i - 1, 0), width - 1);
+                
+                float row1 = in_gaussian[width + i] - in_gaussian[i];
+                float col1 = in_gaussian[c_p1] - in_gaussian[c_m1];
+
+                float row2 = in_gaussian[(height - 1) * width + i] - in_gaussian[(height - 2) * width + i];
+                float col2 = in_gaussian[(height - 1) * width + c_p1] - in_gaussian[(height - 1) * width + c_m1];
+
+                out_grads[i] = sqrtf(row1 * row1 + col1 * col1);
+                out_rots[i] = fast_atan2_f(row1, col1); 
+
+                out_grads[(height - 1) * width + i] = sqrtf(row2 * row2 + col2 * col2);
+                out_rots[(height - 1) * width + i] = fast_atan2_f(row2, col2); 
+            }
+
+            for (int i = 0; i < height; ++i) {
+                int c_m1 = 0;
+                int c_p1 = 1;
+                
+                int r_p1 = internal_min(internal_max(i + 1, 0), height - 1);
+                int r_m1 = internal_min(internal_max(i - 1, 0), height - 1);
+                
+                float row1 = in_gaussian[r_p1 * width] - in_gaussian[r_m1 * width];
+                float col1 = in_gaussian[i * width + c_p1] - in_gaussian[i * width + c_m1];
+
+                out_grads[i * width] = sqrtf(row1 * row1 + col1 * col1);
+                out_rots[i * width] = fast_atan2_f(row1, col1); 
+            }
+        }      
+    }
+    return 1;
+}
+
