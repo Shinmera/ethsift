@@ -104,6 +104,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float rbin, cbin, obin;
         float d_rbin, d_cbin, d_obin;
 
+        float sin_t_rr, cos_t_rr;
+
         // Boundary of sample region.
         int r, c;
         int left = int_max(-win_size, 1 - kptc_i);
@@ -115,17 +117,23 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         {
             // Accurate position relative to kptr
             rr = i + d_kptr;
+            sin_t_rr = sin_t * rr;
+            cos_t_rr = cos_t * rr;
             inc_adds(1);
+            inc_mults(2);
+            
             for (int j = left; j <= right; j++) // columns
             {
                 // Accurate position relative to kptc
                 cc = j + d_kptc;
-                inc_adds(1);
-                // Rotate the coordinate of (i, j)
-                rrotate = (cos_t * cc + sin_t * rr);
-                crotate = (-sin_t * cc + cos_t * rr);
 
-                inc_mults(4);
+                inc_adds(1);
+
+                // Rotate the coordinate of (i, j)
+                rrotate = (cos_t * cc + sin_t_rr);
+                crotate = (-sin_t * cc + cos_t_rr);
+
+                inc_mults(2);
                 inc_adds(3);
 
                 // Since for a bin array with 4x4 bins, the center is actually
@@ -243,6 +251,9 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Discard all the edges for row and column.
         // Only retrieve edges for orientation bins.
+
+
+        // NB: mainly int operations - so no AVX on it for the time being
         float dstBins[nBins];
         for (int i = 1; i <= nSubregion; i++) // slice
         {
@@ -321,7 +332,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
             vec_dstBins = _mm256_loadu_ps(dstBins+i);
             vec_dstBins = _mm256_mul_ps(vec_dstBins,vec_dstBins);
-            
+
             // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
             const __m128 x128 = _mm_add_ps(_mm256_extractf128_ps(vec_dstBins, 1), _mm256_castps256_ps128(vec_dstBins));
             const __m128 x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
