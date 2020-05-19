@@ -102,7 +102,7 @@ static inline void eth_mm256_atan2_ps(__m256* y, __m256* x, __m256* dst)
     __m256 angle, r;
     __m256 c3 = _mm256_set1_ps(0.1821f);
     __m256 c1 = _mm256_set1_ps(-0.9675f);
-    __m256 zeros = _mm256_set1_ps(0.0);
+    __m256 zeros = _mm256_set1_ps(-0.000001);
     __m256 ones = _mm256_set1_ps(1.0);
     __m256 twos = _mm256_set1_ps(2.0);
     __m256 threes = _mm256_set1_ps(3.0);

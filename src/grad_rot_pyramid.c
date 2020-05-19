@@ -26,7 +26,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                                       uint32_t octave_count){
     int width, height;
     int idx;
-    int col_upper_offset = 7, col_lower_offset = 1;
+    int col_upper_offset = 8, col_lower_offset = 1;
     int row_upper_offset = 1, row_lower_offset = 1;
     
 
@@ -93,8 +93,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
             int row_plus_one = row + 1;
             int row_minus_one = row - 1;
             int row_width = row*width;
-            for(int column = col_lower_offset; column < width-col_upper_offset; column+=8){
-                col_counter = column;
+            int column = col_lower_offset;
+            for(; column < width-col_upper_offset; column+=8){
                 int write_index = row_width + column;
                 int col_plus_one = column + 1;
                 int col_minus_one = column - 1;
@@ -105,14 +105,10 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 int cpo_ind = row * width + col_plus_one;
                 int cmo_ind = row * width + col_minus_one;
 
-                //printf("Trying to load : %d \n", rpo_ind);
                 gaussian_rpo_cols = _mm256_loadu_ps(in_gaussian + rpo_ind);
-                //printf("Trying to load : %d \n", rmo_ind);
                 gaussian_rmo_cols = _mm256_loadu_ps(in_gaussian + rmo_ind);
                 
-                //printf("Trying to load : %d \n", rpo_ind);
                 gaussian1_rpo_cols = _mm256_loadu_ps(in_gaussian1 + rpo_ind);
-                //printf("Trying to load : %d \n", rmo_ind);
                 gaussian1_rmo_cols = _mm256_loadu_ps(in_gaussian1 + rmo_ind);
 
                 gaussian2_rpo_cols = _mm256_loadu_ps(in_gaussian2 + rpo_ind);
@@ -151,10 +147,10 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 grad = _mm256_sqrt_ps(sqrt_input);                
                 eth_mm256_atan2_ps(&d_row_m256, &d_column_m256, &rot);
 
-                grad1 = _mm256_sqrt_ps(sqrt_input);
+                grad1 = _mm256_sqrt_ps(sqrt_input1);
                 eth_mm256_atan2_ps(&d_row1_m256, &d_column1_m256, &rot1);
 
-                grad2 = _mm256_sqrt_ps(sqrt_input);
+                grad2 = _mm256_sqrt_ps(sqrt_input2);
                 eth_mm256_atan2_ps(&d_row2_m256, &d_column2_m256, &rot2);
 
                 _mm256_storeu_ps(out_grads + write_index, grad);
@@ -168,6 +164,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 _mm256_storeu_ps(out_rots2 + write_index, rot2);
                 inc_mem(6); // At least two writes
             }
+            
+            col_counter = column;
         }
 
 

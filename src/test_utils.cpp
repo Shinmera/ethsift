@@ -118,7 +118,7 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
       if(diff < 0.0) diff *= -1;
       if(eps < diff) {
         printf("COMPARE_IMAGE_APPROX PIXEL: col = %d , row = %d ; val a = %f ; val b = %f  DIFFERENCE : %f\n", (int)j, (int)i, a.pixels[i*a.width + j], b.pixels[i*a.width + j], diff);
-        retval = 0;
+        return 0;
       }
     }
   }

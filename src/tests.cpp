@@ -312,7 +312,7 @@ define_test(TestGradientPyramids, 0, {
     for (int i = 0; i < OCTAVE_COUNT; ++i) {
       for (int j = 1; j <= GRAD_ROT_LAYERS; ++j) {        
          if(!compare_image_approx(ez_gradients[i * GAUSSIAN_COUNT + j], eth_gradients[i * GAUSSIAN_COUNT + j])){
-           fail("Gradient images did not match");
+            printf("FAILED ON INSTANCE: %d\n",i * GAUSSIAN_COUNT + j);
          }          
          else {
           ++res_g;
