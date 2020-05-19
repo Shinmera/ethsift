@@ -374,8 +374,13 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
       tmp_r > h - 1 || tmp_c < 0 || tmp_c > w - 1)
     return 0;
 
-  
-  float value = get_pixel_f(curData, w, h, r, c) + 0.5f * (dx * xc + dy * xr + ds * xs); // 4MUL + 3 ADD 
+  int c_center =  internal_min(internal_max(c, 0), w - 1); 
+  int r_center =  internal_min(internal_max(r, 0), h - 1);
+  float cur_rc_cc = curData[r_center * w + c_center];     // [r, c]
+
+  inc_mem(1);
+
+  float value = cur_rc_cc + 0.5f * (dx * xc + dy * xr + ds * xs); // 4MUL + 3 ADD 
   
   inc_adds(3);
   inc_mults(4);
