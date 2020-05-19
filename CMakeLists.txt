@@ -124,7 +124,7 @@ target_compile_definitions(count_flops PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSIO
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags")
   set_property(TARGET tester APPEND_STRING PROPERTY LINK_FLAGS " -pg")
-  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
+  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -mfma -mavx2 -Wall -Wno-unused-variable)
 
   add_custom_target(gprof
     COMMAND ./tester lena.pgm eth_MeasureFull
