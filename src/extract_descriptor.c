@@ -366,14 +366,14 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         inc_div(1);
 
-        for (int i = 0; i < nBins; i+=4) {
-            dstBins[i] = dstBins[i] * norm_factor;
-            dstBins[i+1] = dstBins[i+1] * norm_factor;
-            dstBins[i+2] = dstBins[i+2] * norm_factor;
-            dstBins[i+3] = dstBins[i+3] * norm_factor;
-            
-            inc_mults(4);
-            inc_mem(8);
+        __m256 vec_norm_factor, vec_dstBin;
+        vec_norm_factor = _mm256_set1_ps(norm_factor);
+        for (int i = 0; i < nBins; i+=8) {
+            vec_dstBin = _mm256_loadu_ps(dstBins+i);
+            vec_dstBin = _mm256_mul_ps(vec_dstBin, vec_norm_factor);
+            _mm256_storeu_ps(dstBins+i, vec_dstBin);
+            inc_mults(8);
+            inc_mem(16);
         }
 
         memcpy(kpt->descriptors, dstBins, nBins * sizeof(float));
