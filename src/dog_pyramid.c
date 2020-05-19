@@ -23,13 +23,26 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
         width = gaussians[row_index].width;
         height = gaussians[row_index].height;
         inc_mem(2); // 2 reads (maybe?)
+        float * dif_layer0 = differences[i * layers].pixels;
+        float * dif_layer1 = differences[i * layers + 1].pixels;
+        float * dif_layer2 = differences[i * layers + 2].pixels;
+        float * dif_layer3 = differences[i * layers + 3].pixels;
+        float * dif_layer4 = differences[i * layers + 4].pixels;
 
+        float * gaussian0 = gaussians[row_index].pixels;
+        float * gaussian1 = gaussians[row_index + 1].pixels;
+        float * gaussian2 = gaussians[row_index + 2].pixels;
+        float * gaussian3 = gaussians[row_index + 3].pixels;
+        float * gaussian4 = gaussians[row_index + 4].pixels;
+        float * gaussian5 = gaussians[row_index + 5].pixels;
+        inc_mem(11);
+        
         for(int idx = 0; idx < (width * height); idx++){
-            differences[i * layers].pixels[idx] = gaussians[row_index + 1].pixels[idx] - gaussians[row_index].pixels[idx]; 
-            differences[i * layers + 1].pixels[idx] = gaussians[row_index + 2].pixels[idx] - gaussians[row_index + 1].pixels[idx];
-            differences[i * layers + 2].pixels[idx] = gaussians[row_index + 3].pixels[idx] - gaussians[row_index + 2].pixels[idx];  
-            differences[i * layers + 3].pixels[idx] = gaussians[row_index + 4].pixels[idx] - gaussians[row_index + 3].pixels[idx];
-            differences[i * layers + 4].pixels[idx] = gaussians[row_index + 5].pixels[idx] - gaussians[row_index + 4].pixels[idx]; 
+            dif_layer0[idx] = gaussian1[idx] - gaussian0[idx]; 
+            dif_layer1[idx] = gaussian2[idx] - gaussian1[idx];
+            dif_layer2[idx] = gaussian3[idx] - gaussian2[idx];  
+            dif_layer3[idx] = gaussian4[idx] - gaussian3[idx];
+            dif_layer4[idx] = gaussian5[idx] - gaussian4[idx]; 
             
             inc_adds(5);
             inc_mem(30);
