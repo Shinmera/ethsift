@@ -78,62 +78,45 @@ static inline int is_local_min(float pixel, int pos, int w, float *curData, floa
 int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_image gradients[], struct ethsift_image rotations[], uint32_t octave_count, uint32_t gaussian_count, struct ethsift_keypoint keypoints[], uint32_t *keypoint_count){
   
   // Settings
-  int image_border = ETHSIFT_IMG_BORDER;
-  float contr_thr = ETHSIFT_CONTR_THR;
-  float orientation_peak_ratio = ETHSIFT_ORI_PEAK_RATIO;
-  
-  float threshold = 0.8f * contr_thr;
-  
-  inc_mults(1);
-  
-  // Layers of DoG
-  int layersDoG = gaussian_count - 1;
-
-  // Requested number of keypoints and actual number of keypoints
-  int keypoints_required = *keypoint_count;
+  const int image_border = ETHSIFT_IMG_BORDER;
+  const float contr_thr = ETHSIFT_CONTR_THR;
+  const float orientation_peak_ratio = ETHSIFT_ORI_PEAK_RATIO;
+  const int nBins = ETHSIFT_ORI_HIST_BINS;
+  const float invBins = ETHSIFT_ORI_HIST_BINS_INV;
+  const float threshold = 0.8f * contr_thr;
+  const int layersDoG = gaussian_count - 1;
+  const int keypoints_required = *keypoint_count;
   int keypoints_found = 0;
   int keypoints_current = 0;
 
   struct ethsift_keypoint temp;
-  
-  // Loop variables
-  float *curData;
-  float *lowData;
-  float *highData;
-
-  int w, h;
-  int layer_ind, pos;
-  float pixel;
 
   // Histogram
-  int nBins = ETHSIFT_ORI_HIST_BINS;
-  float invBins = ETHSIFT_ORI_HIST_BINS_INV;
   float hist[nBins];
   float max_mag;
 
   for (int i = 0; i < octave_count; ++i) {
-    w = (int) differences[i * layersDoG].width;
-    h = (int) differences[i * layersDoG].height;
+    const size_t w = differences[i * layersDoG].width;
+    const size_t h = differences[i * layersDoG].height;
 
     inc_mem(2);
 
     // (h-10)(w-10)(11 + rle + coh)*layersDoG*
     for (int j = 1; j < layersDoG - 1; ++j) {
-      layer_ind = i * layersDoG + j;
-
-      highData = differences[layer_ind + 1].pixels; 
-      curData  = differences[layer_ind ].pixels; 
-      lowData  = differences[layer_ind - 1].pixels; 
+      const int layer_ind = i * layersDoG + j;
+      const float *highData = differences[layer_ind + 1].pixels;
+      const float *curData  = differences[layer_ind ].pixels;
+      const float *lowData  = differences[layer_ind - 1].pixels;
 
       inc_mem(3);
 
       // (h-10)(w-10)(11 + rle + coh)
       // Iterate over all pixels in image, ignore border values
       for (int r = image_border; r < h - image_border; ++r) {
+        int pos = r*w+image_border;
         for (int c = image_border; c < w - image_border; ++c) {
           // Pixel position and value
-          pos = r * w + c;
-          pixel = curData[pos];
+          const float pixel = curData[pos];
 
           inc_mem(1);
 
@@ -187,6 +170,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                                     pixel < lowData[pos + w - 1] &&
                                     pixel < lowData[pos + w] &&
                                     pixel < lowData[pos + w + 1]);
+          pos++;
 
           // 11 + rle + coh
           if (isExtrema) {
