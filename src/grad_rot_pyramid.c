@@ -99,7 +99,6 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 int col_plus_one = column + 1;
                 int col_minus_one = column - 1;
                 
-                //printf("RPO: %d; RMO: %d; CPO: %d; CMO: %d \n", row_plus_one, row_minus_one, col_plus_one, col_minus_one);
                 int rpo_ind = row_plus_one * width + column;
                 int rmo_ind = row_minus_one * width + column;
                 int cpo_ind = row * width + col_plus_one;
@@ -174,7 +173,6 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         for(int row = 0; row < height; ++row){
             int row_plus_one = internal_min(internal_max(row + 1, 0), height - 1);
             int row_minus_one = internal_min(internal_max(row - 1, 0), height - 1);
-            //printf("HELLO I will try to MANAGE %d, %d : height -> %d\n", row_plus_one, row_minus_one, height);
             if(row < row_lower_offset || row >= height-row_upper_offset){
                 for(int column = 0; column < width; ++column){
                     
