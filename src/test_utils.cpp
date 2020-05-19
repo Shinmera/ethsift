@@ -34,7 +34,8 @@ int convert_image(const ezsift::Image<unsigned char> &input,
                   struct ethsift_image *output){
   output->width = input.w;
   output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
+  if(output->pixels == 0)
+    output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
   if(output->pixels == 0) return 0;
   for(int y=0; y<input.h; ++y){
     for(int x=0; x<input.w; ++x){
@@ -49,7 +50,8 @@ int convert_image(const ezsift::Image<float> &input,
                   struct ethsift_image *output){
   output->width = input.w;
   output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
+  if(output->pixels == 0)
+    output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
   if(output->pixels == 0) return 0;
   for(int y=0; y<input.h; ++y){
     for(int x=0; x<input.w; ++x){
