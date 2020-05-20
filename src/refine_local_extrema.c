@@ -33,16 +33,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int r = keypoint->layer_pos.y;
   int c = keypoint->layer_pos.x;
   
-  int xs_i = 0, xr_i = 0, xc_i = 0;
-  float tmp_r = 0.0f, tmp_c = 0.0f, tmp_layer = 0.0f;
+  int xr_i = 0, xc_i = 0;
   float xr = 0.0f, xc = 0.0f, xs = 0.0f;
   float dx = 0.0f, dy = 0.0f, ds = 0.0f;
   float dxx = 0.0f, dyy = 0.0f, dss = 0.0f, dxs = 0.0f, dys = 0.0f,
         dxy = 0.0f;
-
-  tmp_r = (float)r;
-  tmp_c = (float)c;
-  tmp_layer = (float)layer;
 
   // Current, low and high index in DoG pyramid  
   float *curData = 0;
@@ -58,6 +53,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   layer_ind = octave * nDoGLayers + layer;
   w = differences[layer_ind].width;
   h = differences[layer_ind].height;
+
+  float temp[4] = {r, c, layer, 0.0};
+
   for (; i < max_interp_steps; i++) {
     
     c += xc_i;
@@ -153,11 +151,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float det;
     // SARRUS
 
-    float Hinvert[9];
+    float Hinvert[12];
 
     Hinvert[0] = (H[4] * H[8] - H[5] * H[7]);
-    Hinvert[3] = (H[5] * H[6] - H[3] * H[8]);
-    Hinvert[6] = (H[3] * H[7] - H[4] * H[6]);
+    Hinvert[1] = (H[5] * H[6] - H[3] * H[8]);
+    Hinvert[2] = (H[3] * H[7] - H[4] * H[6]);
 
     det =  H[0] * Hinvert[0]; // 3 MUL + 1 SUB
     det += H[1] * Hinvert[3]; // 3 MUL + 2 SUB
@@ -169,14 +167,18 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     if (fabsf(det) < FLT_MIN)
       break;
-                                                                          
-    Hinvert[1] = (H[2] * H[7] - H[1] * H[8]);
-    Hinvert[4] = (H[0] * H[8] - H[2] * H[6]);
-    Hinvert[7] = (H[1] * H[6] - H[0] * H[7]);
+
+    Hinvert[3] = 1.0;
+    Hinvert[7] = 1.0;
+    Hinvert[11] = 1.0;
+
+    Hinvert[4] = (H[2] * H[7] - H[1] * H[8]);
+    Hinvert[5] = (H[0] * H[8] - H[2] * H[6]);
+    Hinvert[6] = (H[1] * H[6] - H[0] * H[7]);
                                                                         
-    Hinvert[2] = (H[1] * H[5] - H[2] * H[4]);
-    Hinvert[5] = (H[2] * H[3] - H[0] * H[5]);
-    Hinvert[8] = (H[0] * H[4] - H[1] * H[3]);
+    Hinvert[8] = (H[1] * H[5] - H[2] * H[4]);
+    Hinvert[9] = (H[2] * H[3] - H[0] * H[5]);
+    Hinvert[10] = (H[0] * H[4] - H[1] * H[3]);
 
     inc_adds(9);
     inc_mults(27);
@@ -189,22 +191,38 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float t2 = dy * s;
     float t3 = ds * s;
 
-    // MAT_DOT_VEC_3X3  
+    // MAT_DOT_VEC_3X3 
+    __m128 xc_xr_xs, col1, col2, vec_t1, vec_t2, vec_t3, temp_add;
+
+    vec_t1 = _mm_set1_ps(t1);
+    vec_t2 = _mm_set1_ps(t2);
+    vec_t3 = _mm_set1_ps(t3);
+
+    xc_xr_xs = _mm_load_ps(Hinvert);
+    col1 = _mm_load_ps(Hinvert+4);
+    col2 = _mm_load_ps(Hinvert+8);
+
+    xc_xr_xs = _mm_mul_ps(xc_xr_xs, vec_t1);
+    xc_xr_xs = _mm_fmadd_ps(col1, vec_t2, xc_xr_xs);
+    xc_xr_xs = _mm_fmadd_ps(col2, vec_t3, xc_xr_xs);
+
+    temp_add = _mm_set_ps(0.0, layer, c, r);
+
+    xc_xr_xs = _mm_add_ps(xc_xr_xs, temp_add);
+
+    _mm_store_ps(temp, xc_xr_xs);
+
+
+
     //            MUL              <- FMA             <- FMA
-    xc          = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
-    xr          = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
-    xs          = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
-    //reduntdant  = 1 * t1          + 1 * t2          + 1 * t3;
+    //xc          = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
+    //xr          = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
+    //xs          = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
+
 
     inc_adds(6);
     inc_mults(9);
-    inc_mem(21); 
-
-    
-    // Update tmp data for keypoint update.
-    tmp_r = r + xr;
-    tmp_c = c + xc;
-    tmp_layer = layer + xs;
+    inc_mem(21);
 
     inc_adds(3);
 
@@ -227,8 +245,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (fabsf(xc) >= 1.5 || fabsf(xr) >= 1.5 || fabsf(xs) >= 1.5) return 0; 
 
   // If (r, c, layer) is out of range, return false.
-  if (tmp_layer < 0 || tmp_layer > (((int) gaussian_count) - 1) || tmp_r < 0 ||
-      tmp_r > h - 1 || tmp_c < 0 || tmp_c > w - 1)
+  if (temp[2] < 0 || temp[2] > (((int) gaussian_count) - 1) || temp[0] < 0 ||
+      temp[0] > h - 1 || temp[1] < 0 || temp[1] > w - 1)
     return 0;
 
   int c_center =  internal_min(internal_max(c, 0), w - 1); 
@@ -261,9 +279,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (detH <= 0 || (trH * trH / detH) >= response) // 1 MUL + 1 DIV
     return 0;
   
-  keypoint->layer_pos.y = tmp_r;
-  keypoint->layer_pos.x = tmp_c;
-  keypoint->layer_pos.scale = sigma * powf(2.0f, tmp_layer * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
+  keypoint->layer_pos.y = temp[0];
+  keypoint->layer_pos.x = temp[1];
+  keypoint->layer_pos.scale = sigma * powf(2.0f, temp[2] * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
 
   inc_adds(1);
   inc_div(1);
@@ -271,8 +289,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   float norm = (float)(1 << octave); // 1 POW
 
   // Coordinates in the normalized format (compared to the original image).
-  keypoint->global_pos.y = tmp_r * norm; // 1 MUL
-  keypoint->global_pos.x = tmp_c * norm; // 1 MUL
+  keypoint->global_pos.y = temp[0] * norm; // 1 MUL
+  keypoint->global_pos.x = temp[1] * norm; // 1 MUL
   keypoint->global_pos.scale = keypoint->layer_pos.scale * norm; // 1 MUL
 
   inc_mults(3);
