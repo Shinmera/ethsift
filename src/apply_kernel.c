@@ -52,7 +52,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
       for (int i = 0; i < kernel_size; ++i) {
         d_kernel = _mm256_broadcast_ss(kernel + i);
-        d_rowbuf = _mm256_loadu_ps(row_buf + buf_ind);
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
 
         d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
 
@@ -63,7 +63,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         inc_mem(2);   
       }
 
-      _mm256_storeu_ps(partialSum, d_partialSum);
+      _mm256_store_ps(partialSum, d_partialSum);
 
       buf_ind -= 2 * kernel_rad;
       buf_ind += 7;
@@ -98,16 +98,32 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
   return 1;
 }
 
+int fft_1D(float* fft_out, float* vector, int inp_size, int out_size) {
+  // Maybe can be removed later, but to test if the fft does work in general
+  fft_out = (float*)calloc(out_size, sizeof(float));
+  
+
+
+  return 1;
+}
+
+int ifft_1D(float* ifft_out, float* vector, int inp_size, int out_size) {
+  // Maybe can be removed later, but to test if the ifft does work in general
+  ifft_out = (float*)calloc(out_size, sizeof(float));
+  
+  
+
+  return 1;
+}
+
 // TODO 
 int row_filter_transpose_fft(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
-  int kernel_size_2D = kernel_size * kernel_size;
-  float kernel_2D[kernel_size_2D];
+  // Using 1D FFT
+  // for each row in image ifft_1D(fft_1D(row_buf, w + 2 * kernel_size) .* fft_1D(kernel, w + 2 * kernel_size)));
+  // And transpose the result
+  // precompute only once fft_1D(kernel, w + 2 * kernel_size)
 
-  for (int i = 0; i < kernel_size; ++i) {
-    for (int j = 0; j < kernel_size; ++j) {
-      kernel_2D[i * kernel_size + j] = kernel[i] * kernel[j];
-    }
-  }
+
 
   return 1;
 }
