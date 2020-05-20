@@ -23,9 +23,11 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
   int dst_ind = 0;
   int row_ind = 0;
 
-  const int align = 32;
-  void *p = alloca(8*sizeof(float) + align - 1);
-  float *partialSum = (float*)((((intptr_t)p + align - 1) / align) * align);
+  // const int align = 32;
+  // void *p = alloca(8*sizeof(float) + align - 1);
+  // float *partialSum = (float*)((((intptr_t)p + align - 1) / align) * align);
+
+  float partialSum[8];
   
   __m256 d_partialSum;
   __m256 d_kernel, d_rowbuf;
