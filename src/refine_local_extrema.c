@@ -53,7 +53,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   w = differences[layer_ind].width;
   h = differences[layer_ind].height;
 
-  float temp[4] = {r, c, layer, 0.0};
+  float temp[4] = {c, r, layer, 0.0};
   float xD[4] = {0.0, 0.0, 0.0, 0.0};
 
   for (; i < max_interp_steps; i++) {
@@ -194,8 +194,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     // MAT_DOT_VEC_3X3 
     __m128 xc_xr_xs, col1, col2, vec_t1, vec_t2, vec_t3, temp_add;
 
-    /*
-
     vec_t1 = _mm_set1_ps(t1);
     vec_t2 = _mm_set1_ps(t2);
     vec_t3 = _mm_set1_ps(t3);
@@ -210,13 +208,15 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     _mm_store_ps(xD, xc_xr_xs);
 
-    temp_add = _mm_set_ps(0.0, layer, c, r);
+    temp_add = _mm_set_ps(0.0, layer, r, c);
 
     temp_add = _mm_add_ps(xc_xr_xs, temp_add);
 
     _mm_store_ps(temp, temp_add);
 
-    */
+    
+
+   /*
 
     xD[0] = Hinvert[0] * t1 + Hinvert[4] * t2 + Hinvert[8] * t3;
     xD[1] = Hinvert[1] * t1 + Hinvert[5] * t2 + Hinvert[9] * t3;
@@ -225,6 +225,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     temp[0] = xD[1] + r;
     temp[1] = xD[0] + c;
     temp[2] = xD[2] + layer;
+
+    */
 
 
     inc_adds(6);
@@ -252,8 +254,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (fabsf(xD[0]) >= 1.5 || fabsf(xD[1]) >= 1.5 || fabsf(xD[2]) >= 1.5) return 0; 
 
   // If (r, c, layer) is out of range, return false.
-  if (temp[2] < 0 || temp[2] > (((int) gaussian_count) - 1) || temp[0] < 0 ||
-      temp[0] > h - 1 || temp[1] < 0 || temp[1] > w - 1)
+  if (temp[2] < 0 || temp[2] > (((int) gaussian_count) - 1) || temp[1] < 0 ||
+      temp[1] > h - 1 || temp[0] < 0 || temp[0] > w - 1)
     return 0;
 
   int c_center =  internal_min(internal_max(c, 0), w - 1); 
@@ -286,8 +288,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   if (detH <= 0 || (trH * trH / detH) >= response) // 1 MUL + 1 DIV
     return 0;
   
-  keypoint->layer_pos.y = temp[0];
-  keypoint->layer_pos.x = temp[1];
+  keypoint->layer_pos.y = temp[1];
+  keypoint->layer_pos.x = temp[0];
   keypoint->layer_pos.scale = sigma * powf(2.0f, temp[2] * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
 
   inc_adds(1);
@@ -296,8 +298,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   float norm = (float)(1 << octave); // 1 POW
 
   // Coordinates in the normalized format (compared to the original image).
-  keypoint->global_pos.y = temp[0] * norm; // 1 MUL
-  keypoint->global_pos.x = temp[1] * norm; // 1 MUL
+  keypoint->global_pos.y = temp[1] * norm; // 1 MUL
+  keypoint->global_pos.x = temp[0] * norm; // 1 MUL
   keypoint->global_pos.scale = keypoint->layer_pos.scale * norm; // 1 MUL
 
   inc_mults(3);
