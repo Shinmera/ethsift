@@ -271,7 +271,10 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
         d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute1);
 
         d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
-               
+ 
+        inc_mem(3);
+        inc_adds(1);     
+        inc_mults(1);
 
         for (int j = 1; j < 8; ++j) {
           d_kernel = _mm256_broadcast_ss(kernel + i + j);
@@ -281,8 +284,11 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
           d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute2);
 
           d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
-        }
 
+          inc_mem(1);
+          inc_adds(1);
+          inc_mults(1);
+        }
 
         buf_ind += 8;  
       }
