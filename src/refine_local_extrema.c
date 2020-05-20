@@ -14,22 +14,7 @@ int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
 }
 // 9 * (3MULs + 1 SUB) = 36 FLOPs
 int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
-  a[0][0] = (s) * (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
-  a[1][0] = (s) * (m[1][2] * m[2][0] - m[1][0] * m[2][2]);
-  a[2][0] = (s) * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-                                                                         
-  a[0][1] = (s) * (m[0][2] * m[2][1] - m[0][1] * m[2][2]);
-  a[1][1] = (s) * (m[0][0] * m[2][2] - m[0][2] * m[2][0]);
-  a[2][1] = (s) * (m[0][1] * m[2][0] - m[0][0] * m[2][1]);
-                                                                        
-  a[0][2] = (s) * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
-  a[1][2] = (s) * (m[0][2] * m[1][0] - m[0][0] * m[1][2]);
-  a[2][2] = (s) * (m[0][0] * m[1][1] - m[0][1] * m[1][0]);
-
-  inc_adds(9);
-  inc_mults(27);
-  inc_mem(45);
-
+  
   return 1;
 }
 
@@ -91,7 +76,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   layer_ind = octave * nDoGLayers + layer;
   w = differences[layer_ind].width;
   h = differences[layer_ind].height;
-
+  float * differences_pixels = differences[layer_ind].pixels;
   for (; i < max_interp_steps; i++) {
     
     c += xc_i;
@@ -107,9 +92,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     // Cannot load them as such:
     // __m256 curData_row_bottom, curData_row_center, curData_row_top;
-    //curData_row_bottom = _mm256_loadu_ps(differences[layer_ind].pixels + (r_bottom * w + c_left));
-    //curData_row_center = _mm256_loadu_ps(differences[layer_ind].pixels + (r_center * w + c_left));
-    //curData_row_top = _mm256_loadu_ps(differences[layer_ind].pixels + (r_top * w + c_left));
+    //curData_row_bottom = _mm256_loadu_ps(differences_pixels + (r_bottom * w + c_left));
+    //curData_row_center = _mm256_loadu_ps(differences_pixels + (r_center * w + c_left));
+    //curData_row_top = _mm256_loadu_ps(differences_pixels + (r_top * w + c_left));
 
     curData  = differences[layer_ind].pixels;
     float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
@@ -206,12 +191,12 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_mults(1);
 
     // The scale in two sides of the equation should cancel each other.
-    float H[3][3] = {{dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss}};
+    float H[9] = {dxx, dxy, dxs, dxy, dyy, dys, dxs, dys, dss};
     
     float det;
-    det =  H[0][0] * (H[1][1] * H[2][2] - H[1][2] * H[2][1]); // 3 MUL + 1 SUB
-    det -= H[0][1] * (H[1][0] * H[2][2] - H[1][2] * H[2][0]); // 3 MUL + 2 SUB
-    det += H[0][2] * (H[1][0] * H[2][1] - H[1][1] * H[2][0]); // 3 MUL + 1 SUB + 1 ADD
+    det =  H[0] * (H[4] * H[8] - H[5] * H[7]); // 3 MUL + 1 SUB
+    det -= H[1] * (H[6] * H[8] - H[5] * H[6]); // 3 MUL + 2 SUB
+    det += H[2] * (H[3] * H[7] - H[4] * H[6]); // 3 MUL + 1 SUB + 1 ADD
     
     inc_adds(6);
     inc_mults(9);
@@ -220,23 +205,44 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     if (fabsf(det) < FLT_MIN)
       break;
 
-    float Hinvert[3][3];
+    float Hinvert[9];
 
     float s = 1.0f / det; // 1 DIV
 
     inc_div(1);
 
     // SCALE_ADJOINT_3X3
-    scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+    //scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
+
+    Hinvert[0] = (s) * (H[4] * H[8] - H[5] * H[7]);
+    Hinvert[3] = (s) * (H[5] * H[6] - H[3] * H[8]);
+    Hinvert[6] = (s) * (H[3] * H[7] - H[4] * H[6]);
+                                                                          
+    Hinvert[1] = (s) * (H[2] * H[7] - H[1] * H[8]);
+    Hinvert[4] = (s) * (H[0] * H[8] - H[2] * H[6]);
+    Hinvert[7] = (s) * (H[1] * H[6] - H[0] * H[7]);
+                                                                        
+    Hinvert[2] = (s) * (H[1] * H[5] - H[2] * H[4]);
+    Hinvert[5] = (s) * (H[2] * H[3] - H[0] * H[5]);
+    Hinvert[8] = (s) * (H[0] * H[4] - H[1] * H[3]);
+
+    inc_adds(9);
+    inc_mults(27);
+    inc_mem(45);
+
 
     // MAT_DOT_VEC_3X3
-    mat_dot_vec_3x3(x_hat, Hinvert, dD); // 15 FLOPs
+    //mat_dot_vec_3x3(, Hinvert, dD); // 15 FLOPs
 
-    xs = x_hat[2];
-    xr = x_hat[1];
-    xc = x_hat[0];
+    
+    xc = Hinvert[0] * dD[0] + Hinvert[1] * dD[1] + Hinvert[2] * dD[2];
+    xr = Hinvert[3] * dD[0] + Hinvert[4] * dD[1] + Hinvert[5] * dD[2];
+    xs = Hinvert[6] * dD[0] + Hinvert[7] * dD[1] + Hinvert[8] * dD[2];
+    
+    inc_adds(6);
+    inc_mults(9);
+    inc_mem(21); 
 
-    inc_mem(3);
     
     // Update tmp data for keypoint update.
     tmp_r = r + xr;
@@ -305,7 +311,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   inc_adds(1);
   inc_div(1);
 
-  float norm = powf(2.0f, (float)(octave)); // 1 POW
+  float norm = (float)(1 << octave); // 1 POW
 
   // Coordinates in the normalized format (compared to the original image).
   keypoint->global_pos.y = tmp_r * norm; // 1 MUL
