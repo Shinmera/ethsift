@@ -100,6 +100,15 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
 // TODO 
 int row_filter_transpose_fft(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+  int kernel_size_2D = kernel_size * kernel_size;
+  float kernel_2D[kernel_size_2D];
+
+  for (int i = 0; i < kernel_size; ++i) {
+    for (int j = 0; j < kernel_size; ++j) {
+      kernel_2D[i * kernel_size + j] = kernel[i] * kernel[j];
+    }
+  }
+
   return 1;
 }
 
