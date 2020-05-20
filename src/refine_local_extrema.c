@@ -105,6 +105,12 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     int r_center =  internal_min(internal_max(r, 0), h - 1);
     int r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
 
+    // Cannot load them as such:
+    // __m256 curData_row_bottom, curData_row_center, curData_row_top;
+    //curData_row_bottom = _mm256_loadu_ps(differences[layer_ind].pixels + (r_bottom * w + c_left));
+    //curData_row_center = _mm256_loadu_ps(differences[layer_ind].pixels + (r_center * w + c_left));
+    //curData_row_top = _mm256_loadu_ps(differences[layer_ind].pixels + (r_top * w + c_left));
+
     curData  = differences[layer_ind].pixels;
     float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
     float cur_rb_cc = curData[r_bottom * w + c_center];     // [r - 1, c]
@@ -117,6 +123,23 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
     float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
     float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
+
+    __m256 initial_vec, add_sub_vec, mul_vec;
+
+    /*
+    mul_vec = _mm256_set_ps(2.0, 0.5, 1, 0.5, 1, 1, 1, 1);
+    add_sub_vec = _mm256_set_ps(0.0, cur_rc_cl, cur_rc_cl, cur_rb_cc, cur_rb_cc, cur_rt_cl, cur_rb_cl, 0.0);
+    initial_vec = _mm256_set_ps(cur_rc_cc, cur_rc_cr, cur_rc_cr, cur_rt_cc, cur_rt_cc, cur_rt_cr, cur_rb_cr, 0.0);
+
+    OR    
+
+    mul_vec = _mm256_set_ps(1,1,1,1,0.5,1,0.5,2.0);
+    add_sub_vec = _mm256_set_ps(0.0, cur_rb_cl, cur_rt_cl, cur_rb_cc, cur_rb_cc, cur_rc_cl, cur_rc_cl, 0.0);
+    initial_vec = _mm256_set_ps(0.0, cur_rb_cr, cur_rt_cr, cur_rt_cc, cur_rt_cc, cur_rc_cr, cur_rc_cr, cur_rc_cc);
+
+    initial_vec = _mm256_addsub_ps(initial_vec, add_sub_vec);
+    initial_vec = _mm256_mul_ps(mul_vec, initial_vec);
+    */
 
     float v2 = 2.0f * cur_rc_cc; //1 ADD
 
