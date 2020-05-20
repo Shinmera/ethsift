@@ -152,9 +152,16 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     
     float det;
     // SARRUS
-    det =  H[0] * (H[4] * H[8] - H[5] * H[7]); // 3 MUL + 1 SUB
-    det += H[1] * (H[5] * H[6] - H[3] * H[8]); // 3 MUL + 2 SUB
-    det += H[2] * (H[3] * H[7] - H[4] * H[6]); // 3 MUL + 1 SUB + 1 ADD
+
+    float Hinvert[9];
+
+    Hinvert[0] = (H[4] * H[8] - H[5] * H[7]);
+    Hinvert[3] = (H[5] * H[6] - H[3] * H[8]);
+    Hinvert[6] = (H[3] * H[7] - H[4] * H[6]);
+
+    det =  H[0] * Hinvert[0]; // 3 MUL + 1 SUB
+    det += H[1] * Hinvert[3]; // 3 MUL + 2 SUB
+    det += H[2] * Hinvert[6]; // 3 MUL + 1 SUB + 1 ADD
     
     inc_adds(6);
     inc_mults(9);
@@ -162,17 +169,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     if (fabsf(det) < FLT_MIN)
       break;
-
-    float Hinvert[9];
-
-    float s = -1.0f / det; // 1 DIV
-
-    inc_div(1);
-
-    // CROSS PRODUCT WITH SCALING ? (was named scale adjoint)
-    Hinvert[0] = (H[4] * H[8] - H[5] * H[7]);
-    Hinvert[3] = (H[5] * H[6] - H[3] * H[8]);
-    Hinvert[6] = (H[3] * H[7] - H[4] * H[6]);
                                                                           
     Hinvert[1] = (H[2] * H[7] - H[1] * H[8]);
     Hinvert[4] = (H[0] * H[8] - H[2] * H[6]);
@@ -185,6 +181,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_adds(9);
     inc_mults(27);
     inc_mem(45);
+
+    float s = -1.0f / det; // 1 DIV
+    inc_div(1);
     
     float t1 = dx * s;
     float t2 = dy * s;
