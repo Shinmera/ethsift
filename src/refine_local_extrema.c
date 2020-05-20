@@ -84,8 +84,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
     float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
 
-
-
     float v2 = 2.0f * cur_rc_cc; //1 ADD
 
     dx = 0.5f * (cur_rc_cr - cur_rc_cl); //1 MUL + 1 SUB
@@ -173,27 +171,32 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_div(1);
 
     // CROSS PRODUCT WITH SCALING ? (was named scale adjoint)
-    Hinvert[0] = (s) * (H[4] * H[8] - H[5] * H[7]);
-    Hinvert[3] = (s) * (H[5] * H[6] - H[3] * H[8]);
-    Hinvert[6] = (s) * (H[3] * H[7] - H[4] * H[6]);
+    Hinvert[0] = (H[4] * H[8] - H[5] * H[7]);
+    Hinvert[3] = (H[5] * H[6] - H[3] * H[8]);
+    Hinvert[6] = (H[3] * H[7] - H[4] * H[6]);
                                                                           
-    Hinvert[1] = (s) * (H[2] * H[7] - H[1] * H[8]);
-    Hinvert[4] = (s) * (H[0] * H[8] - H[2] * H[6]);
-    Hinvert[7] = (s) * (H[1] * H[6] - H[0] * H[7]);
+    Hinvert[1] = (H[2] * H[7] - H[1] * H[8]);
+    Hinvert[4] = (H[0] * H[8] - H[2] * H[6]);
+    Hinvert[7] = (H[1] * H[6] - H[0] * H[7]);
                                                                         
-    Hinvert[2] = (s) * (H[1] * H[5] - H[2] * H[4]);
-    Hinvert[5] = (s) * (H[2] * H[3] - H[0] * H[5]);
-    Hinvert[8] = (s) * (H[0] * H[4] - H[1] * H[3]);
+    Hinvert[2] = (H[1] * H[5] - H[2] * H[4]);
+    Hinvert[5] = (H[2] * H[3] - H[0] * H[5]);
+    Hinvert[8] = (H[0] * H[4] - H[1] * H[3]);
 
     inc_adds(9);
     inc_mults(27);
     inc_mem(45);
 
+    float t1 = dD[0] * s;
+    float t2 = dD[1] * s;
+    float t3 = dD[2] * s;
+
+
 
     // MAT_DOT_VEC_3X3   
-    xc = Hinvert[0] * dD[0] + Hinvert[1] * dD[1] + Hinvert[2] * dD[2];
-    xr = Hinvert[3] * dD[0] + Hinvert[4] * dD[1] + Hinvert[5] * dD[2];
-    xs = Hinvert[6] * dD[0] + Hinvert[7] * dD[1] + Hinvert[8] * dD[2];
+    xc = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
+    xr = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
+    xs = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
     
     inc_adds(6);
     inc_mults(9);
