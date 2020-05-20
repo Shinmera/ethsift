@@ -189,7 +189,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float t2 = dy * s;
     float t3 = ds * s;
 
-<<<<<<< HEAD
     // MAT_DOT_VEC_3X3  
     //            MUL              <- FMA             <- FMA
     xc          = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
@@ -197,13 +196,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     xs          = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
     reduntdant  = 1 * t1          + 1 * t2          + 1 * t3;
 
-=======
-    // MAT_DOT_VEC_3X3   
-    xc = (Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3);
-    xr = (Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3);
-    xs = (Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3);
-    
->>>>>>> bbef90034a19f3bc76d21ccdf061fbffb39be71f
     inc_adds(6);
     inc_mults(9);
     inc_mem(21); 
