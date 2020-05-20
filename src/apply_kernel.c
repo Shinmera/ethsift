@@ -216,6 +216,122 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
   return 1;
 }
 
+// Another AVX version, that should decrease the amount of split_loads
+int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+  
+  // ==========================================================================
+  // TODO Work in progress
+  //      - Rewrite to make it in place
+  int elemSize = sizeof(float);
+
+  int buf_ind = 0;
+  int dst_ind = 0;
+  int row_ind = 0;
+
+  float partialSum[8];
+  __m256 d_partialSum;
+  __m256 d_kernel, d_rowbuf;
+  __m256 d_rowbuf1;
+
+  float firstData, lastData;
+
+
+  __m256i permute = _mm256_set_epi32(0,7,6,5,4,3,2,1);
+  __m256i permute1 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
+  __m256i permute2 = _mm256_set_epi32(6,5,4,3,2,1,0,7);
+  
+  for (int r = 0; r < h; r++) {
+    memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
+    inc_mem(w); // memcpy 1 read / 1 write
+    inc_mem(w);
+    firstData = pixels[row_ind];
+    lastData = pixels[row_ind + w - 1];
+    inc_mem(2); // 2 reads
+    for (int i = 0; i < kernel_rad; i++) {
+      row_buf[i] = firstData;
+      row_buf[i + w + kernel_rad] = lastData;
+      inc_mem(2); // 2 writes
+    }
+
+    dst_ind = r;
+    buf_ind = 0;
+    
+    int w_lim = w - 7;
+    int c;
+    for (c = 0; c < w_lim; c += 8) {
+      d_partialSum = _mm256_setzero_ps();    
+
+      int k_lim = kernel_size - 15;
+      int i;
+      for (i = 0; i < k_lim; i += 8) {
+
+        d_kernel = _mm256_broadcast_ss(kernel + i);
+        
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+        
+        d_rowbuf1 = _mm256_load_ps(row_buf + buf_ind + 8);
+        d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute1);
+
+        d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+               
+
+        for (int j = 1; j < 8; ++j) {
+          d_kernel = _mm256_broadcast_ss(kernel + i + j);
+          
+          d_rowbuf = _mm256_permutevar8x32_ps(d_rowbuf, permute);
+          d_rowbuf = _mm256_blend_ps(d_rowbuf, d_rowbuf1, 0b10000000);
+          d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute2);
+
+          d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+        }
+
+
+        buf_ind += 8;  
+      }
+
+      _mm256_store_ps(partialSum, d_partialSum);   
+
+      for (; i < kernel_size; ++i) {
+        for (int j = 0; j < 8; ++j) {
+          partialSum[j] += kernel[i] * row_buf[buf_ind];
+          ++buf_ind;
+        }
+        buf_ind -= 7;
+      }
+
+      buf_ind -= 2 * kernel_rad;
+      buf_ind += 7;
+
+      for (i = 0; i < 8; ++i) {
+        output[dst_ind] = partialSum[i];
+        inc_mem(1);
+        dst_ind += h;
+      }
+    }
+
+    for (; c < w; ++c) {
+      float s_partialSum = 0.0f;       
+
+      for (int i = 0; i < kernel_size; i++) {
+        s_partialSum += kernel[i] * row_buf[buf_ind];
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);
+        ++buf_ind;
+      }
+
+      buf_ind -= 2 * kernel_rad;
+      output[dst_ind] = s_partialSum;
+      inc_mem(1);
+      dst_ind += h;
+    }
+
+    row_ind += w;
+  }
+
+  return 1;
+}
+
 /// <summary> 
 /// Apply the gaussian kernel to the image and write the result to the output.
 /// </summary>
