@@ -19,6 +19,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   float kpt_subpixel_thr = ETHSIFT_KEYPOINT_SUBPiXEL_THR;
   float contr_thr = ETHSIFT_CONTR_THR;
   float curv_thr = ETHSIFT_CURV_THR;
+  float response = ETHSIFT_RESPONSE;
   float sigma = ETHSIFT_SIGMA;
 
   // Fields:
@@ -247,7 +248,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   float trH = dxx + dyy; // 1 ADD
   float detH = dxx * dyy - dxy * dxy; // 2 MUL
-  float response = ETHSIFT_RESPONSE; // 2 ADDs + 1 MUL + 1 DIV
+   // 2 ADDs + 1 MUL + 1 DIV
 
   inc_adds(3);
   inc_mults(3);
