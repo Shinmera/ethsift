@@ -60,6 +60,8 @@
 // default threshold on keypoint ratio of principle curvatures
 #define ETHSIFT_CURV_THR 10.0f;
 
+#define ETHSIFT_RESPONSE 12.1f;
+
 // width of border in which to ignore keypoints
 #define ETHSIFT_IMG_BORDER 5;
 

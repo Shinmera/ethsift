@@ -194,7 +194,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     xc          = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
     xr          = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
     xs          = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
-    reduntdant  = 1 * t1          + 1 * t2          + 1 * t3;
+    //reduntdant  = 1 * t1          + 1 * t2          + 1 * t3;
 
     inc_adds(6);
     inc_mults(9);
@@ -247,7 +247,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   float trH = dxx + dyy; // 1 ADD
   float detH = dxx * dyy - dxy * dxy; // 2 MUL
-  float response = (curv_thr + 1) * (curv_thr + 1) / (curv_thr); // 2 ADDs + 1 MUL + 1 DIV
+  float response = ETHSIFT_RESPONSE; // 2 ADDs + 1 MUL + 1 DIV
 
   inc_adds(3);
   inc_mults(3);
