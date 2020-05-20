@@ -85,91 +85,99 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   // Interpolation (x,y,sigma) 3D space to find sub-pixel accurate
   // location of keypoints.
   // 5 * 91 = 455 FLOPs
+
   int i = 0;
-  for (; i < max_interp_steps; i+=2) {
+
+  layer_ind = octave * nDoGLayers + layer;
+  w = differences[layer_ind].width;
+  h = differences[layer_ind].height;
+
+  for (; i < max_interp_steps; i++) {
+    
     c += xc_i;
     r += xr_i;
 
-    layer_ind = octave * nDoGLayers + layer;
-    w = differences[layer_ind].width;
-    h = differences[layer_ind].height;
-
     int c_right =   internal_min(internal_max(c + 1, 0), w - 1);
-    int c_left =    internal_min(internal_max(c - 1, 0), w - 1);
     int c_center =  internal_min(internal_max(c, 0), w - 1);
+    int c_left =    internal_min(internal_max(c - 1, 0), w - 1);
 
     int r_top =     internal_min(internal_max(r + 1, 0), h - 1);
-    int r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
     int r_center =  internal_min(internal_max(r, 0), h - 1);
-    
+    int r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
+
     curData  = differences[layer_ind].pixels;
-    lowData  = differences[layer_ind - 1].pixels;
-    highData = differences[layer_ind + 1].pixels;
+    float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
+    float cur_rb_cc = curData[r_bottom * w + c_center];     // [r - 1, c]
+    float cur_rb_cr = curData[r_bottom * w + c_right];      // [r - 1, c + 1]
 
-    inc_mem(3);
-
+    float cur_rc_cl = curData[r_center * w + c_left];       // [r, c - 1]
     float cur_rc_cc = curData[r_center * w + c_center];     // [r, c]
     float cur_rc_cr = curData[r_center * w + c_right];      // [r, c + 1]
-    float cur_rc_cl = curData[r_center * w + c_left];       // [r, c - 1]
-    float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
-    float cur_rb_cc = curData[r_bottom * w + c_center];     // [r - 1, c]
-    float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
-    float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
-    float cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
-    float cur_rb_cr = curData[r_bottom * w + c_right];      // [r - 1, c + 1]
     
+    float cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
+    float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
+    float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
+
+    float v2 = 2.0f * cur_rc_cc; //1 ADD
+
+    dx = 0.5f * (cur_rc_cr - cur_rc_cl); //1 MUL + 1 SUB
+    dxx = cur_rc_cr + cur_rc_cl - v2; //1 ADD + 1 SUB
+
+    dy = 0.5f * (cur_rt_cc - cur_rb_cc); //1 MUL + 1 SUB
+    dyy = cur_rt_cc + cur_rb_cc - v2; //1 ADD + 1 SUB
+
+    dxy = 0.25f * (cur_rt_cr -
+    cur_rt_cl -
+    cur_rb_cr +
+    cur_rb_cl); // 1MUL + 2SUBs + 1ADD 17
+    
+    highData = differences[layer_ind + 1].pixels;
+
+    float high_rc_cl = highData[r_center * w + c_left];     // [r, c - 1]
     float high_rc_cc = highData[r_center * w + c_center];   // [r, c]
     float high_rc_cr = highData[r_center * w + c_right];    // [r, c + 1]
-    float high_rc_cl = highData[r_center * w + c_left];     // [r, c - 1]
+
+    lowData  = differences[layer_ind - 1].pixels;
+
+    float low_rc_cl = lowData[r_center * w + c_left];       // [r, c - 1]
+    float low_rc_cc = lowData[r_center * w + c_center];     // [r, c]
+    float low_rc_cr = lowData[r_center * w + c_right];      // [r, c + 1]
+
     float high_rt_cc = highData[r_top * w + c_center];      // [r + 1, c]
     float high_rb_cc = highData[r_bottom * w + c_center];   // [r - 1, c]
 
-    float low_rc_cc = lowData[r_center * w + c_center];     // [r, c]
-    float low_rc_cr = lowData[r_center * w + c_right];      // [r, c + 1]
-    float low_rc_cl = lowData[r_center * w + c_left];       // [r, c - 1]
     float low_rt_cc = lowData[r_top * w + c_center];        // [r + 1, c]
     float low_rb_cc = lowData[r_bottom * w + c_center];     // [r - 1, c]
 
     inc_mem(19)
-
-    dx = 0.5f * (cur_rc_cr - cur_rc_cl); //1 MUL + 1 SUB
-    dy = 0.5f * (cur_rt_cc - cur_rb_cc); //1 MUL + 1 SUB
+    
     ds = 0.5f * (high_rc_cc - low_rc_cc); //1 MUL + 1 SUB
-    
-    inc_adds(3);
-    inc_mults(3);
 
-    float dD[3] = {-dx, -dy, -ds}; 
-
-    float v2 = 2.0f * cur_rc_cc; //1 ADD
-
-    dxx = cur_rc_cr + cur_rc_cl - v2; //1 ADD + 1 SUB
-    dyy = cur_rt_cc + cur_rb_cc - v2; //1 ADD + 1 SUB
     dss = high_rc_cc + low_rc_cc - v2; //1 ADD + 1 SUB
-
-    inc_adds(6);
-    inc_mults(1);
-
-    dxy = 0.25f * (cur_rt_cr -
-      cur_rt_cl -
-      cur_rb_cr +
-      cur_rb_cl); // 1MUL + 2SUBs + 1ADD 17
-    
-    inc_adds(3);
-    inc_mults(1);
 
     dxs = 0.25f * (high_rc_cr -
       high_rc_cl -
       low_rc_cr +
-      low_rc_cl); // 1MUL + 2SUBs + 1ADD 
-      
-    inc_adds(3);
-    inc_mults(1);
-
+      low_rc_cl); // 1MUL + 2SUBs + 1ADD
+    
     dys = 0.25f * (high_rt_cc -
       high_rb_cc -
       low_rt_cc +
       low_rb_cc); // 1MUL + 2SUBs + 1ADD 25
+
+    float dD[3] = {-dx, -dy, -ds}; 
+
+    inc_adds(3); // TODO: update counters
+    inc_mults(3);
+  
+    inc_adds(6);
+    inc_mults(1); 
+    
+    inc_adds(3);
+    inc_mults(1);
+      
+    inc_adds(3);
+    inc_mults(1);
     
     inc_adds(3);
     inc_mults(1);
@@ -221,144 +229,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
            ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
 
-    if (xc_i == 0 && xr_i == 0)
-      break;
-    
-    c += xc_i;
-    r += xr_i;
-
-    layer_ind = octave * nDoGLayers + layer;
-    w = differences[layer_ind].width;
-    h = differences[layer_ind].height;
-
-    c_right =   internal_min(internal_max(c + 1, 0), w - 1);
-    c_left =    internal_min(internal_max(c - 1, 0), w - 1);
-    c_center =  internal_min(internal_max(c, 0), w - 1);
-
-    r_top =     internal_min(internal_max(r + 1, 0), h - 1);
-    r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
-    r_center =  internal_min(internal_max(r, 0), h - 1);
-    
-    curData  = differences[layer_ind].pixels;
-    lowData  = differences[layer_ind - 1].pixels;
-    highData = differences[layer_ind + 1].pixels;
-
-    inc_mem(3);
-
-    cur_rc_cc = curData[r_center * w + c_center];     // [r, c]
-    cur_rc_cr = curData[r_center * w + c_right];      // [r, c + 1]
-    cur_rc_cl = curData[r_center * w + c_left];       // [r, c - 1]
-    cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
-    cur_rb_cc = curData[r_bottom * w + c_center];     // [r - 1, c]
-    cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
-    cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
-    cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
-    cur_rb_cr = curData[r_bottom * w + c_right];      // [r - 1, c + 1]
-    
-    high_rc_cc = highData[r_center * w + c_center];   // [r, c]
-    high_rc_cr = highData[r_center * w + c_right];    // [r, c + 1]
-    high_rc_cl = highData[r_center * w + c_left];     // [r, c - 1]
-    high_rt_cc = highData[r_top * w + c_center];      // [r + 1, c]
-    high_rb_cc = highData[r_bottom * w + c_center];   // [r - 1, c]
-
-    low_rc_cc = lowData[r_center * w + c_center];     // [r, c]
-    low_rc_cr = lowData[r_center * w + c_right];      // [r, c + 1]
-    low_rc_cl = lowData[r_center * w + c_left];       // [r, c - 1]
-    low_rt_cc = lowData[r_top * w + c_center];        // [r + 1, c]
-    low_rb_cc = lowData[r_bottom * w + c_center];     // [r - 1, c]
-
-    inc_mem(19);
-
-    dx = 0.5f * (cur_rc_cr - cur_rc_cl); //1 MUL + 1 SUB
-    dy = 0.5f * (cur_rt_cc - cur_rb_cc); //1 MUL + 1 SUB
-    ds = 0.5f * (high_rc_cc - low_rc_cc); //1 MUL + 1 SUB
-    
-    inc_adds(3);
-    inc_mults(3);
-
-    float temp[3] = {-dx, -dy, -ds}; 
-
-    v2 = 2.0f * cur_rc_cc; //1 ADD
-
-    dxx = cur_rc_cr + cur_rc_cl - v2; //1 ADD + 1 SUB
-    dyy = cur_rt_cc + cur_rb_cc - v2; //1 ADD + 1 SUB
-    dss = high_rc_cc + low_rc_cc - v2; //1 ADD + 1 SUB
-
-    inc_adds(6);
-    inc_mults(1);
-
-    dxy = 0.25f * (cur_rt_cr -
-      cur_rt_cl -
-      cur_rb_cr +
-      cur_rb_cl); // 1MUL + 2SUBs + 1ADD 17
-    
-    inc_adds(3);
-    inc_mults(1);
-
-    dxs = 0.25f * (high_rc_cr -
-      high_rc_cl -
-      low_rc_cr +
-      low_rc_cl); // 1MUL + 2SUBs + 1ADD 
-      
-    inc_adds(3);
-    inc_mults(1);
-
-    dys = 0.25f * (high_rt_cc -
-      high_rb_cc -
-      low_rt_cc +
-      low_rb_cc); // 1MUL + 2SUBs + 1ADD 25
-    
-    inc_adds(3);
-    inc_mults(1);
-
-    // The scale in two sides of the equation should cancel each other.
-    float tempH[3][3] = {{dxx, dxy, dxs}, {dxy, dyy, dys}, {dxs, dys, dss}};
-    
-    det;
-    det =  tempH[0][0] * (tempH[1][1] * tempH[2][2] - tempH[1][2] * tempH[2][1]); // 3 MUL + 1 SUB
-    det -= tempH[0][1] * (tempH[1][0] * tempH[2][2] - tempH[1][2] * tempH[2][0]); // 3 MUL + 2 SUB
-    det += tempH[0][2] * (tempH[1][0] * tempH[2][1] - tempH[1][1] * tempH[2][0]); // 3 MUL + 1 SUB + 1 ADD
-    
-    inc_adds(6);
-    inc_mults(9);
-    inc_mem(15);
-
-    if (fabsf(det) < FLT_MIN)
-      break;
-
-    Hinvert[3][3];
-
-    s = 1.0f / det; // 1 DIV
-
-    inc_div(1);
-
-    // SCALE_ADJOINT_3X3
-    scale_adjoint_3x3(Hinvert, tempH, s); // 36 FLOPs
-
-    // MAT_DOT_VEC_3X3
-    mat_dot_vec_3x3(x_hat, Hinvert, temp); // 15 FLOPs
-
-    xs = x_hat[2];
-    xr = x_hat[1];
-    xc = x_hat[0];
-
-    inc_mem(3);
-    
-    // Update tmp data for keypoint update.
-    tmp_r = r + xr;
-    tmp_c = c + xc;
-    tmp_layer = layer + xs;
-
-    inc_adds(3);
-
-    // Make sure there is room to move for next iteration.
-    xc_i = ((xc >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
-           ((xc <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
-
-    xr_i = ((xr >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
-           ((xr <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
-
-    if (xc_i == 0 && xr_i == 0)
+    if (xc_i == 0 && xr_i == 0) // xs_i is never modifed, so I remove it from the checks
       break;
     
   }
