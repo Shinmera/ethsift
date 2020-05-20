@@ -1,23 +1,5 @@
 #include "internal.h"
 
-// 3 * (2 ADDs + 3 MULs) = 15 FLOPs
-int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
-  p[0] = m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2];
-  p[1] = m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2];
-  p[2] = m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2];
-
-  inc_adds(6);
-  inc_mults(9);
-  inc_mem(21); 
-
-  return 1;
-}
-// 9 * (3MULs + 1 SUB) = 36 FLOPs
-int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
-  
-  return 1;
-}
-
 
 /// <summary> 
 /// Refine the location of the keypoints to be sub-pixel accurate.
@@ -53,7 +35,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int xs_i = 0, xr_i = 0, xc_i = 0;
   float tmp_r = 0.0f, tmp_c = 0.0f, tmp_layer = 0.0f;
   float xr = 0.0f, xc = 0.0f, xs = 0.0f;
-  float x_hat[3] = {xc, xr, xs};
   float dx = 0.0f, dy = 0.0f, ds = 0.0f;
   float dxx = 0.0f, dyy = 0.0f, dss = 0.0f, dxs = 0.0f, dys = 0.0f,
         dxy = 0.0f;
@@ -76,7 +57,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   layer_ind = octave * nDoGLayers + layer;
   w = differences[layer_ind].width;
   h = differences[layer_ind].height;
-  float * differences_pixels = differences[layer_ind].pixels;
   for (; i < max_interp_steps; i++) {
     
     c += xc_i;
@@ -90,11 +70,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     int r_center =  internal_min(internal_max(r, 0), h - 1);
     int r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
 
-    // Cannot load them as such:
-    // __m256 curData_row_bottom, curData_row_center, curData_row_top;
-    //curData_row_bottom = _mm256_loadu_ps(differences_pixels + (r_bottom * w + c_left));
-    //curData_row_center = _mm256_loadu_ps(differences_pixels + (r_center * w + c_left));
-    //curData_row_top = _mm256_loadu_ps(differences_pixels + (r_top * w + c_left));
 
     curData  = differences[layer_ind].pixels;
     float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
@@ -109,22 +84,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
     float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
 
-    __m256 initial_vec, add_sub_vec, mul_vec;
 
-    /*
-    mul_vec = _mm256_set_ps(2.0, 0.5, 1, 0.5, 1, 1, 1, 1);
-    add_sub_vec = _mm256_set_ps(0.0, cur_rc_cl, cur_rc_cl, cur_rb_cc, cur_rb_cc, cur_rt_cl, cur_rb_cl, 0.0);
-    initial_vec = _mm256_set_ps(cur_rc_cc, cur_rc_cr, cur_rc_cr, cur_rt_cc, cur_rt_cc, cur_rt_cr, cur_rb_cr, 0.0);
-
-    OR    
-
-    mul_vec = _mm256_set_ps(1,1,1,1,0.5,1,0.5,2.0);
-    add_sub_vec = _mm256_set_ps(0.0, cur_rb_cl, cur_rt_cl, cur_rb_cc, cur_rb_cc, cur_rc_cl, cur_rc_cl, 0.0);
-    initial_vec = _mm256_set_ps(0.0, cur_rb_cr, cur_rt_cr, cur_rt_cc, cur_rt_cc, cur_rc_cr, cur_rc_cr, cur_rc_cc);
-
-    initial_vec = _mm256_addsub_ps(initial_vec, add_sub_vec);
-    initial_vec = _mm256_mul_ps(mul_vec, initial_vec);
-    */
 
     float v2 = 2.0f * cur_rc_cc; //1 ADD
 
@@ -194,8 +154,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float H[9] = {dxx, dxy, dxs, dxy, dyy, dys, dxs, dys, dss};
     
     float det;
+    // SARRUS
     det =  H[0] * (H[4] * H[8] - H[5] * H[7]); // 3 MUL + 1 SUB
-    det -= H[1] * (H[6] * H[8] - H[5] * H[6]); // 3 MUL + 2 SUB
+    det -= H[1] * (H[3] * H[8] - H[5] * H[6]); // 3 MUL + 2 SUB
     det += H[2] * (H[3] * H[7] - H[4] * H[6]); // 3 MUL + 1 SUB + 1 ADD
     
     inc_adds(6);
@@ -211,9 +172,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     inc_div(1);
 
-    // SCALE_ADJOINT_3X3
-    //scale_adjoint_3x3(Hinvert, H, s); // 36 FLOPs
-
+    // CROSS PRODUCT WITH SCALING ? (was named scale adjoint)
     Hinvert[0] = (s) * (H[4] * H[8] - H[5] * H[7]);
     Hinvert[3] = (s) * (H[5] * H[6] - H[3] * H[8]);
     Hinvert[6] = (s) * (H[3] * H[7] - H[4] * H[6]);
@@ -231,10 +190,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_mem(45);
 
 
-    // MAT_DOT_VEC_3X3
-    //mat_dot_vec_3x3(, Hinvert, dD); // 15 FLOPs
-
-    
+    // MAT_DOT_VEC_3X3   
     xc = Hinvert[0] * dD[0] + Hinvert[1] * dD[1] + Hinvert[2] * dD[2];
     xr = Hinvert[3] * dD[0] + Hinvert[4] * dD[1] + Hinvert[5] * dD[2];
     xs = Hinvert[6] * dD[0] + Hinvert[7] * dD[1] + Hinvert[8] * dD[2];
