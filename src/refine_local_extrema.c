@@ -131,8 +131,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
       low_rt_cc +
       low_rb_cc); // 1MUL + 2SUBs + 1ADD 25
 
-    float dD[3] = {-dx, -dy, -ds}; 
-
     inc_adds(3); // TODO: update counters
     inc_mults(3);
   
@@ -166,7 +164,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     float Hinvert[9];
 
-    float s = 1.0f / det; // 1 DIV
+    float s = -1.0f / det; // 1 DIV
 
     inc_div(1);
 
@@ -186,17 +184,15 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_adds(9);
     inc_mults(27);
     inc_mem(45);
-
-    float t1 = dD[0] * s;
-    float t2 = dD[1] * s;
-    float t3 = dD[2] * s;
-
-
+    
+    float t1 = dx * s;
+    float t2 = dy * s;
+    float t3 = ds * s;
 
     // MAT_DOT_VEC_3X3   
-    xc = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
-    xr = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
-    xs = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
+    xc = (Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3);
+    xr = (Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3);
+    xs = (Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3);
     
     inc_adds(6);
     inc_mults(9);
