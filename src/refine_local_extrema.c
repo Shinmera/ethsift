@@ -154,7 +154,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float det;
     // SARRUS
     det =  H[0] * (H[4] * H[8] - H[5] * H[7]); // 3 MUL + 1 SUB
-    det -= H[1] * (H[3] * H[8] - H[5] * H[6]); // 3 MUL + 2 SUB
+    det += H[1] * (H[5] * H[6] - H[3] * H[8]); // 3 MUL + 2 SUB
     det += H[2] * (H[3] * H[7] - H[4] * H[6]); // 3 MUL + 1 SUB + 1 ADD
     
     inc_adds(6);
@@ -193,11 +193,13 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
 
 
-    // MAT_DOT_VEC_3X3   
-    xc = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
-    xr = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
-    xs = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
-    
+    // MAT_DOT_VEC_3X3  
+    //            MUL              <- FMA             <- FMA
+    xc          = Hinvert[0] * t1 + Hinvert[1] * t2 + Hinvert[2] * t3;
+    xr          = Hinvert[3] * t1 + Hinvert[4] * t2 + Hinvert[5] * t3;
+    xs          = Hinvert[6] * t1 + Hinvert[7] * t2 + Hinvert[8] * t3;
+    reduntdant  = 1 * t1          + 1 * t2          + 1 * t3;
+
     inc_adds(6);
     inc_mults(9);
     inc_mem(21); 
