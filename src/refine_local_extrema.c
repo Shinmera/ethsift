@@ -34,7 +34,6 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   int c = keypoint->layer_pos.x;
   
   int xr_i = 0, xc_i = 0;
-  float xr = 0.0f, xc = 0.0f, xs = 0.0f;
   float dx = 0.0f, dy = 0.0f, ds = 0.0f;
   float dxx = 0.0f, dyy = 0.0f, dss = 0.0f, dxs = 0.0f, dys = 0.0f,
         dxy = 0.0f;
@@ -195,13 +194,15 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     // MAT_DOT_VEC_3X3 
     __m128 xc_xr_xs, col1, col2, vec_t1, vec_t2, vec_t3, temp_add;
 
+    /*
+
     vec_t1 = _mm_set1_ps(t1);
     vec_t2 = _mm_set1_ps(t2);
     vec_t3 = _mm_set1_ps(t3);
 
-    xc_xr_xs = _mm_loadu_ps(Hinvert);
-    col1 = _mm_loadu_ps(Hinvert+4);
-    col2 = _mm_loadu_ps(Hinvert+8);
+    xc_xr_xs = _mm_load_ps(Hinvert);
+    col1 = _mm_load_ps(Hinvert+4);
+    col2 = _mm_load_ps(Hinvert+8);
 
     xc_xr_xs = _mm_mul_ps(xc_xr_xs, vec_t1);
     xc_xr_xs = _mm_fmadd_ps(col1, vec_t2, xc_xr_xs);
@@ -213,7 +214,18 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     temp_add = _mm_add_ps(xc_xr_xs, temp_add);
 
-    _mm_storeu_ps(temp, temp_add);
+    _mm_store_ps(temp, temp_add);
+
+    */
+
+    xD[0] = Hinvert[0] * t1 + Hinvert[4] * t2 + Hinvert[8] * t3;
+    xD[1] = Hinvert[1] * t1 + Hinvert[5] * t2 + Hinvert[9] * t3;
+    xD[2] = Hinvert[2] * t1 + Hinvert[6] * t2 + Hinvert[10] * t3;
+
+    temp[0] = xD[1] + r;
+    temp[1] = xD[0] + c;
+    temp[2] = xD[2] + layer;
+
 
     inc_adds(6);
     inc_mults(9);
