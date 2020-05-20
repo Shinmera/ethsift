@@ -221,9 +221,6 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
 // Another AVX version, that should decrease the amount of split_loads
 int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
-  // ==========================================================================
-  // TODO Work in progress
-  //      - Rewrite to make it in place
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
@@ -236,7 +233,6 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
   __m256 d_rowbuf1;
 
   float firstData, lastData;
-
 
   __m256i permute = _mm256_set_epi32(0,7,6,5,4,3,2,1);
   __m256i permute1 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
@@ -291,15 +287,21 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
         buf_ind += 8;  
       }
 
-      _mm256_store_ps(partialSum, d_partialSum);   
-
+      // Do the remaining kernels
       for (; i < kernel_size; ++i) {
-        for (int j = 0; j < 8; ++j) {
-          partialSum[j] += kernel[i] * row_buf[buf_ind];
-          ++buf_ind;
-        }
-        buf_ind -= 7;
+        d_kernel = _mm256_broadcast_ss(kernel + i);
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+
+        d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+
+        ++buf_ind;
+          
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);   
       }
+
+      _mm256_store_ps(partialSum, d_partialSum);   
 
       buf_ind -= 2 * kernel_rad;
       buf_ind += 7;
