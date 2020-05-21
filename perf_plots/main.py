@@ -237,7 +237,7 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
 
 def make_roofline_plot(measurements, tot_runtimes, autosave=True, img_format='svg', debug=False):
     # Only test code because I cannot run the read log files
-    plt = RooflinePlot(64)
+    plt = RooflinePlot()
 
     plt.plot_bounds()
 
