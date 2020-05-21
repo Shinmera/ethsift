@@ -23,7 +23,8 @@ int ethsift_generate_gaussian_kernel(float *kernel,
         accu += kernel[j];
         inc_adds(2);
         inc_mults(3);
-        inc_mem(2);
+        inc_read(1, float);
+        inc_write(1, float);
         inc_div(1);
     }
     float mul = 1.0f / accu; // 1 DIV
@@ -31,7 +32,8 @@ int ethsift_generate_gaussian_kernel(float *kernel,
     for (int j = 0; j < kernel_size; j++) {
         kernel[j] = kernel[j]*mul; // 1 MUL
         inc_mults(1);
-        inc_mem(2);
+        inc_read(1, float);
+        inc_write(1, float);
     }
     return 1;
 }
@@ -71,7 +73,8 @@ int ethsift_generate_all_kernels(int layers_count,
                 ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1; //1 MUL and 1 CEIL
     kernel_sizes[0] = kernel_rads[0] * 2 + 1; // 1MUL and 1ADD  // These seem to be integer operations
     inc_mults(2); // Worst case
-    inc_mem(3);
+    inc_write(1, int);
+    inc_write(2, int);
 
     // Create first kernel.
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
@@ -79,9 +82,11 @@ int ethsift_generate_all_kernels(int layers_count,
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
     if(posix_memalign((void*)&kernel_ptrs[0], ETHSIFT_MEMALIGN, kernel_sizes[0]*sizeof(float)))
       return 0;
+    inc_read(1, int);
     
     ethsift_generate_gaussian_kernel(kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], sigma_i); // ggk FLOPs
-    inc_mem(5); // 1 write, 4 reads
+    inc_read(1, float*);
+    inc_read(2, int);
 
     //Calculate all other sigmas and create the according kernel
     for (int i = 1; i < gaussian_count; ++i) {
@@ -96,15 +101,19 @@ int ethsift_generate_all_kernels(int layers_count,
         kernel_rads[i] = (sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS > 1.0f) // 1MUL
                 ? (int)ceilf(sigma_i * ETHSIFT_GAUSSIAN_FILTER_RADIUS) : 1; //1 MUL and 1 CEIL
         kernel_sizes[i] = kernel_rads[i] * 2 + 1;
-        inc_mem(3);
+        inc_read(1, int);
+        inc_write(2, int);
         inc_mults(2);
 
         // Create kernel and store it in kernels for next step.
         // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
         if(posix_memalign((void*)&kernel_ptrs[i], ETHSIFT_MEMALIGN, kernel_sizes[i]*sizeof(float)))
           return 0;
+        inc_read(1, int);
+        
         ethsift_generate_gaussian_kernel(kernel_ptrs[i], kernel_sizes[i], kernel_rads[i], sigma_i); // ggk FLOPs
-        inc_mem(5); // 1 write, 4 reads
+        inc_read(1, float*);
+        inc_read(2, int);
     }
     return 1;
 }

@@ -30,8 +30,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   int octave = (int) keypoint->octave;
   int layer = (int) keypoint->layer;
+  inc_read(2, float);
+  
   int r = keypoint->layer_pos.y;
   int c = keypoint->layer_pos.x;
+  inc_read(2, int32_t);
   
   int xr_i = 0, xc_i = 0;
   float dx = 0.0f, dy = 0.0f, ds = 0.0f;
@@ -52,15 +55,14 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   layer_ind = octave * nDoGLayers + layer;
   w = differences[layer_ind].width;
   h = differences[layer_ind].height;
+  inc_read(2, int32_t);
 
   float temp[4] = {c, r, layer, 0.0};
   float xD[4] = {0.0, 0.0, 0.0, 0.0};
 
-  float Hinvert[12];
-  Hinvert[3] = 1.0;
-  Hinvert[7] = 1.0;
-  Hinvert[11] = 1.0;
-  inc_mem(3);
+  float Hinvert[12] = {0.0, 0.0, 0.0, 1.0,
+                       0.0, 0.0, 0.0, 1.0,
+                       0.0, 0.0, 0.0, 1.0};
 
   for (; i < max_interp_steps; i++) {
     
@@ -88,8 +90,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
     float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
     float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
-
-    inc_mem(10);
+    inc_read(1+3*3, float);
 
     float v2 = 2.0f * cur_rc_cc; //1 MUL
 
@@ -121,6 +122,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float high_rc_cc = highData[r_center * w + c_center];   // [r, c]
     float high_rc_cr = highData[r_center * w + c_right];    // [r, c + 1]
 
+    inc_read(1+3, float);
+
     lowData  = differences[layer_ind - 1].pixels;
 
     float low_rc_cl = lowData[r_center * w + c_left];       // [r, c - 1]
@@ -133,7 +136,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     float low_rt_cc = lowData[r_top * w + c_center];        // [r + 1, c]
     float low_rb_cc = lowData[r_bottom * w + c_center];     // [r - 1, c]
 
-    inc_mem(12)
+    inc_read(1+3+2+2, float);
     
     ds = 0.5f * (high_rc_cc - low_rc_cc); //1 MUL + 1 SUB
 
@@ -162,6 +165,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     // The scale in two sides of the equation should cancel each other.
     float H[9] = {dxx, dxy, dxs, dxy, dyy, dys, dxs, dys, dss};
+    inc_write(9, float);
     
     float det;
     // SARRUS
@@ -172,7 +176,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     inc_mults(6);
     inc_adds(3);
-    inc_mem(15);
+    inc_read(3*4, float);
+    inc_write(3, float);
 
     det =  H[0] * Hinvert[0]; // 3 MUL + 1 SUB
     det += H[1] * Hinvert[1]; // 3 MUL + 2 SUB
@@ -180,7 +185,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     
     inc_adds(2);
     inc_mults(3);
-    inc_mem(6);
+    inc_read(3*2, float);
     
     if (fabsf(det) < FLT_MIN)
       break;
@@ -195,7 +200,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     inc_adds(8);
     inc_mults(12);
-    inc_mem(27);
+    inc_read(2*3*4, float);
+    inc_write(2*3, float);
 
     float s = -1.0f / det; // 1 DIV
     inc_div(1);
@@ -217,7 +223,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     col1 = _mm_load_ps(Hinvert+4);
     col2 = _mm_load_ps(Hinvert+8);
 
-    inc_mem(3);
+    inc_read(3+3*8, float);
 
     xc_xr_xs = _mm_mul_ps(xc_xr_xs, vec_t1);
     xc_xr_xs = _mm_fmadd_ps(col1, vec_t2, xc_xr_xs);
@@ -228,7 +234,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     _mm_store_ps(xD, xc_xr_xs);
 
-    inc_mem(1);
+    inc_write(8, float);
 
     temp_add = _mm_set_ps(0.0, layer, r, c);
 
@@ -238,18 +244,18 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     _mm_store_ps(temp, temp_add);
 
-    inc_mem(1);
+    inc_write(8, float);
 
     // Make sure there is room to move for next iteration.
     xc_i = ((xD[0] >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
            ((xD[0] <= -kpt_subpixel_thr && c > 1) ? -1 : 0);
     
-    inc_mem(2);
+    inc_read(2, float);
 
     xr_i = ((xD[1] >= kpt_subpixel_thr && r < h - 2) ? 1 : 0) +
            ((xD[1] <= -kpt_subpixel_thr && r > 1) ? -1 : 0);
     
-    inc_mem(2);
+    inc_read(2, float);
 
     if (xc_i == 0 && xr_i == 0) // xs_i is never modifed, so I remove it from the checks
       break;
@@ -262,26 +268,26 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   // Condition 2.
   if (fabsf(xD[0]) >= 1.5 || fabsf(xD[1]) >= 1.5 || fabsf(xD[2]) >= 1.5) return 0; 
 
-  inc_mem(3);
+  inc_read(3, float);
 
   // If (r, c, layer) is out of range, return false.
   if (temp[2] < 0 || temp[2] > (((int) gaussian_count) - 1) || temp[1] < 0 ||
       temp[1] > h - 1 || temp[0] < 0 || temp[0] > w - 1)
     return 0;
   
-  inc_mem(6);
+  inc_read(6, float);
 
   int c_center =  internal_min(internal_max(c, 0), w - 1); 
   int r_center =  internal_min(internal_max(r, 0), h - 1);
   float cur_rc_cc = curData[r_center * w + c_center];     // [r, c]
 
-  inc_mem(1);
+  inc_read(1, float);
 
   float value = cur_rc_cc + 0.5f * (dx * xD[0] + dy * xD[1] + ds * xD[2]); // 4MUL + 3 ADD 
   
   inc_adds(3);
   inc_mults(4);
-  inc_mem(3);
+  inc_read(3, float);
 
   if (fabsf(value) < contr_thr) // 1 MASK 
     return 0;
@@ -308,8 +314,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   inc_adds(1);
   inc_div(1);
-
-  inc_mem(3);
+  inc_read(3, float);
+  inc_write(3, float);
 
   float norm = (float)(1 << octave); // 1 POW
 
@@ -319,7 +325,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   keypoint->global_pos.scale = keypoint->layer_pos.scale * norm; // 1 MUL
 
   inc_mults(3);
-  inc_mem(2);
+  inc_read(2, float);
+  inc_write(3, float);
 
   //22 FLOPS + 2 POWs
   return 1;

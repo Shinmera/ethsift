@@ -48,7 +48,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         
         width = (int) gaussians[i * gaussian_count].width;
         height = (int) gaussians[i * gaussian_count].height;
-        inc_mem(2);
+        inc_read(2, int32_t);
 
         idx = i * gaussian_count + 1;    
 
@@ -63,8 +63,6 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         in_gaussian2 = gaussians[idx + 2].pixels;
         out_grads2 = gradients[idx + 2].pixels;
         out_rots2 = rotations[idx + 2].pixels;
-
-        inc_mem(9);
 
         // DO THE MIDDLE OF THE IMAGE WITH AVX
         __m256 gaussian_rpo_cols, gaussian_rmo_cols;        
@@ -113,6 +111,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
                 gaussian2_cpo_cols = _mm256_loadu_ps(in_gaussian2 + cpo_ind);
                 gaussian2_cmo_cols = _mm256_loadu_ps(in_gaussian2 + cmo_ind);
+                inc_read(2*3*2*8, float);
                 
 
                 d_row_m256 = _mm256_sub_ps(gaussian_rpo_cols, gaussian_rmo_cols);
@@ -123,9 +122,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
                 d_row2_m256 = _mm256_sub_ps(gaussian2_rpo_cols, gaussian2_rmo_cols);
                 d_column2_m256 =  _mm256_sub_ps(gaussian2_cpo_cols, gaussian2_cmo_cols);
-                    
                 inc_adds(48); // 2 Subtractions
-                inc_mem(12); // Maybe?
+                
                 sqrt_input = _mm256_mul_ps(d_row_m256, d_row_m256);  
                 sqrt_input1 = _mm256_mul_ps(d_row1_m256, d_row1_m256);
                 sqrt_input2 = _mm256_mul_ps(d_row2_m256, d_row2_m256);
@@ -146,13 +144,12 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 _mm256_storeu_ps(out_grads + write_index, grad);
                 _mm256_storeu_ps(out_rots + write_index, rot);
                 
-                
                 _mm256_storeu_ps(out_grads1 + write_index, grad1);
                 _mm256_storeu_ps(out_rots1 + write_index, rot1);
                 
                 _mm256_storeu_ps(out_grads2 + write_index, grad2);
                 _mm256_storeu_ps(out_rots2 + write_index, rot2);
-                inc_mem(6); // At least two writes
+                inc_write(3*2*8, float);
             }
             //DO THE REST UP UNTIL TO THE BORDERS
             for(; column < width-1; ++column){
@@ -168,9 +165,9 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
 
                 d_row2 = in_gaussian2[row_plus_one * width + column] - in_gaussian2[row_minus_one * width + column];    
                 d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
+                inc_read(3*2*2, float);
                     
                 inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
                     
                 out_grads[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
                 out_rots[row * width + column] = fast_atan2_f(d_row, d_column); 
@@ -179,8 +176,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 out_rots1[row * width + column] = fast_atan2_f(d_row1, d_column1); 
                 
                 out_grads2[row * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
+                out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2);
+                inc_write(3*2, float);
             }
         }
 
@@ -207,7 +204,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
             d_column2 = in_gaussian2[row1 * width + col_plus_one] - in_gaussian2[row1 * width + col_minus_one];
                 
             inc_adds(6); // 2 Subtractions
-            inc_mem(12); // Maybe?
+            inc_read(3*2*2, float);
                 
             out_grads[row1 * width + column] = sqrtf(d_row * d_row + d_column * d_column);
             out_rots[row1 * width + column] = fast_atan2_f(d_row, d_column); 
@@ -217,7 +214,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
             
             out_grads2[row1 * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
             out_rots2[row1 * width + column] = fast_atan2_f(d_row2, d_column2); 
-            inc_mem(6); // At least two writes
+            inc_write(3*2, float);
 
             // LOWER ROW BORDER
             d_row = in_gaussian[row2 * width + column] - in_gaussian[row_minus_one2 * width + column];    
@@ -230,7 +227,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
             d_column2 = in_gaussian2[row2 * width + col_plus_one] - in_gaussian2[row2 * width + col_minus_one];
                 
             inc_adds(6); // 2 Subtractions
-            inc_mem(12); // Maybe?
+            inc_read(3*2*2, float);
                 
             out_grads[row2 * width + column] = sqrtf(d_row * d_row + d_column * d_column);
             out_rots[row2 * width + column] = fast_atan2_f(d_row, d_column); 
@@ -239,8 +236,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
             out_rots1[row2 * width + column] = fast_atan2_f(d_row1, d_column1); 
             
             out_grads2[row2 * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-            out_rots2[row2 * width + column] = fast_atan2_f(d_row2, d_column2); 
-            inc_mem(6); // At least two writes
+            out_rots2[row2 * width + column] = fast_atan2_f(d_row2, d_column2);
+            inc_write(3*2, float);
         }
         //DO COLUMN BORDERS
         for(int row = 1; row < height-1; ++row){
@@ -259,7 +256,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width];
                     
                 inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
+                inc_read(3*2*2, float);
                     
                 out_grads[row * width] = sqrtf(d_row * d_row + d_column * d_column);
                 out_rots[row * width] = fast_atan2_f(d_row, d_column); 
@@ -268,8 +265,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 out_rots1[row * width] = fast_atan2_f(d_row1, d_column1); 
                 
                 out_grads2[row * width] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                out_rots2[row * width] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
+                out_rots2[row * width] = fast_atan2_f(d_row2, d_column2);
+                inc_write(3*2, float);
 
                 
                 //RIGHTHAND SIDE COLUMN BORDER
@@ -286,7 +283,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
                     
                 inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
+                inc_read(3*2*2, float);
                     
                 out_grads[row * width + col_plus_one] = sqrtf(d_row * d_row + d_column * d_column);
                 out_rots[row * width + col_plus_one] = fast_atan2_f(d_row, d_column); 
@@ -295,8 +292,8 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 out_rots1[row * width + col_plus_one] = fast_atan2_f(d_row1, d_column1); 
                 
                 out_grads2[row * width + col_plus_one] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
-                out_rots2[row * width + col_plus_one] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
+                out_rots2[row * width + col_plus_one] = fast_atan2_f(d_row2, d_column2);
+                inc_write(3*2, float);
             
         }
 
@@ -323,7 +320,7 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
         width = (int) gaussians[i * gaussian_count].width;
         height = (int) gaussians[i * gaussian_count].height;
         
-        inc_mem(2);   
+        inc_read(2, int32_t);   
         
         __m256 d_cp1;
         __m256 d_cm1;
@@ -360,6 +357,7 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
                     d_cm1 = _mm256_loadu_ps(in_gaussian + r * width + c_m1);
                     d_rm1 = _mm256_loadu_ps(in_gaussian + r_m1 * width + c);
                     d_rp1 = _mm256_loadu_ps(in_gaussian + r_p1 * width + c);
+                    inc_read(4*8, float);
 
                     d_row = _mm256_sub_ps(d_rp1, d_rm1);
                     d_col = _mm256_sub_ps(d_cp1, d_cm1);
@@ -372,6 +370,7 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
 
                     _mm256_storeu_ps(out_grads + pos, d_sqrt);
                     _mm256_storeu_ps(out_rots + pos, d_atan);
+                    inc_write(2*8, float);
                 }
 
                 for (; c < width; ++c) {
@@ -382,9 +381,11 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
 
                     float row = in_gaussian[r_p1 * width + c] - in_gaussian[r_m1 * width + c];    
                     float col = in_gaussian[r * width + c_p1] - in_gaussian[r * width + c_m1];
+                    inc_read(2*2, float);
 
                     out_grads[r * width + c] = sqrtf(row * row + col * col);
-                    out_rots[r * width + c] = fast_atan2_f(row, col); 
+                    out_rots[r * width + c] = fast_atan2_f(row, col);
+                    inc_write(2, float);
                 }
             }
 
@@ -395,15 +396,18 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
                 
                 float row1 = in_gaussian[width + i] - in_gaussian[i];
                 float col1 = in_gaussian[c_p1] - in_gaussian[c_m1];
+                inc_read(2*2, float);
 
                 float row2 = in_gaussian[(height - 1) * width + i] - in_gaussian[(height - 2) * width + i];
                 float col2 = in_gaussian[(height - 1) * width + c_p1] - in_gaussian[(height - 1) * width + c_m1];
+                inc_read(2*2, float);
 
                 out_grads[i] = sqrtf(row1 * row1 + col1 * col1);
                 out_rots[i] = fast_atan2_f(row1, col1); 
 
                 out_grads[(height - 1) * width + i] = sqrtf(row2 * row2 + col2 * col2);
                 out_rots[(height - 1) * width + i] = fast_atan2_f(row2, col2); 
+                inc_write(2, float);
             }
 
             for (int i = 0; i < height; ++i) {
@@ -415,9 +419,11 @@ int ethsift_generate_gradient_pyramid_janleu(struct ethsift_image gaussians[],
                 
                 float row1 = in_gaussian[r_p1 * width] - in_gaussian[r_m1 * width];
                 float col1 = in_gaussian[i * width + c_p1] - in_gaussian[i * width + c_m1];
+                inc_read(2*2, float);
 
                 out_grads[i * width] = sqrtf(row1 * row1 + col1 * col1);
                 out_rots[i * width] = fast_atan2_f(row1, col1); 
+                inc_write(2, float);
             }
         }      
     }
