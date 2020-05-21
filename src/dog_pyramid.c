@@ -83,7 +83,8 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             dif_vec2_1 = _mm256_sub_ps(gaussian_vec3_1,gaussian_vec2_1);
             dif_vec3_1 = _mm256_sub_ps(gaussian_vec4_1,gaussian_vec3_1);
             dif_vec4_1 = _mm256_sub_ps(gaussian_vec5_1,gaussian_vec4_1);
-            inc_adds(10);
+            
+            inc_adds(80);
 
             _mm256_storeu_ps(dif_layer0 + idx, dif_vec0_0);
             _mm256_storeu_ps(dif_layer1 + idx, dif_vec1_0);
@@ -96,13 +97,8 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             _mm256_storeu_ps(dif_layer2 + idx2, dif_vec2_1);
             _mm256_storeu_ps(dif_layer3 + idx2, dif_vec3_1);
             _mm256_storeu_ps(dif_layer4 + idx2, dif_vec4_1);
-<<<<<<< HEAD
 
-            inc_adds(80);
-            inc_mem(22);
-=======
             inc_write(2*5*8, float);
->>>>>>> dc5e4f111c9ca1512a5cc57faa87ce545a6a0cd9
         }
 
     }
