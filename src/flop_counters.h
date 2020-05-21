@@ -28,7 +28,7 @@
   #define inc_adds(AMOUNT) inc_counters(AMOUNT, 0, 0, 0);
   #define inc_mults(AMOUNT) inc_counters(0, AMOUNT, 0, 0);
   #define inc_read(AMOUNT, TYPE) inc_counters(0, 0, AMOUNT*sizeof(TYPE), 0);
-  #define inc_write(AMOUNT, TYPE) inc_counters(0, 0, AMOUNT*sizeof(TYPE), 0);
+  #define inc_write(AMOUNT, TYPE) inc_counters(0, 0, 2*AMOUNT*sizeof(TYPE), 0);
   #define inc_div(AMOUNT) inc_counters(0, 0, 0, AMOUNT);
 
 #else
