@@ -6,7 +6,7 @@
 // default number of sampled intervals per octave
 #define ETHSIFT_INTVLS 3
 
-#define ETHSIFT_INVERSE_INTVLS 1.0f / ETHSIFT_INTVLS;
+#define ETHSIFT_INVERSE_INTVLS 0.333333333333333f           // 1.0f / ETHSIFT_INTVLS;
 
 // default sigma for initial gaussian smoothing
 #define ETHSIFT_SIGMA 1.6f
@@ -21,26 +21,27 @@
 
 // default number of bins in histogram for orientation assignment
 #define ETHSIFT_ORI_HIST_BINS 36
+#define ETHSIFT_ORI_HIST_BINS_INV 0.027777778               // 1.0f / ETHSIFT_ORI_HIST_BINS
 
 // determines gaussian sigma for orientation assignment
-#define ETHSIFT_ORI_SIG_FCTR  1.5f // Can affect the orientation computation.
+#define ETHSIFT_ORI_SIG_FCTR 1.5f                           // Can affect the orientation computation.
 
 // determines the radius of the region used in orientation assignment
-#define ETHSIFT_ORI_RADIUS (3.0f * ETHSIFT_ORI_SIG_FCTR) // Can affect the orientation computation.
+#define ETHSIFT_ORI_RADIUS 4.5f                             // (3.0f * ETHSIFT_ORI_SIG_FCTR) // Can affect the orientation computation.
 
 // default width of descriptor histogram array
 #define ETHSIFT_DESCR_WIDTH 4
 
-#define ETHSIFT_DESCR_WIDTH_HALF (ETHSIFT_DESCR_WIDTH >> 1)
+#define ETHSIFT_DESCR_WIDTH_HALF 2                          // (ETHSIFT_DESCR_WIDTH >> 1)
 
-#define ETHSIFT_DESCR_WIDTH_PRECISE_HALF (ETHSIFT_DESCR_WIDTH_HALF - 0.5f)
+#define ETHSIFT_DESCR_WIDTH_PRECISE_HALF 1.5f               // (ETHSIFT_DESCR_WIDTH_HALF - 0.5f)
 
-#define ETHSIFT_DESCR_EXP_SCALE -2.0f / (ETHSIFT_DESCR_WIDTH * ETHSIFT_DESCR_WIDTH);
+#define ETHSIFT_DESCR_EXP_SCALE -0.125f                     // -2.0f / (ETHSIFT_DESCR_WIDTH * ETHSIFT_DESCR_WIDTH)
 
 // default number of bins per histogram in descriptor array
 #define ETHSIFT_DESCR_HIST_BINS 8
 
-#define ETHSIFT_DESCR_HIST_BINS_DEGREE ((float) ETHSIFT_DESCR_HIST_BINS / M_TWOPI);
+#define ETHSIFT_DESCR_HIST_BINS_DEGREE 1.273239544735162f   // ((float) ETHSIFT_DESCR_HIST_BINS / M_TWOPI);
 
 // determines the size of a single descriptor orientation histogram
 #define ETHSIFT_DESCR_SCL_FCTR 3.f;

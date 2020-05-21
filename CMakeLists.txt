@@ -124,7 +124,7 @@ target_compile_definitions(count_flops PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSIO
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags")
   set_property(TARGET tester APPEND_STRING PROPERTY LINK_FLAGS " -pg")
-  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -Wall -Wno-unused-variable)
+  target_compile_options(ethsift PRIVATE -DDEBUG -g -pg -O0 -mfma -mavx2 -Wall -Wno-unused-variable)
 
   add_custom_target(gprof
     COMMAND ./tester lena.pgm eth_MeasureFull
@@ -134,7 +134,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 else()
   message("Adding optimise flags (${OPT_FLAGS})")
   if(OPT_FLAGS MATCHES full)
-    target_compile_options(ethsift PRIVATE -O3 -mfma -mavx2 -march=native -flto -ffast-math -fno-unsafe-math-optimizations)
+    target_compile_options(ethsift PRIVATE -g -O3 -mfma -mavx2 -march=native -flto -ffast-math -fno-unsafe-math-optimizations)
     set_property(TARGET ethsift APPEND_STRING PROPERTY LINK_FLAGS " -flto")
     set_property(TARGET tester APPEND_STRING PROPERTY LINK_FLAGS " -flto")
   elseif(OPT_FLAGS MATCHES fastmath)
@@ -161,7 +161,7 @@ else()
 endif()
 
 add_custom_target(flamegraph
-  COMMAND perf record -F MAX -g "${CMAKE_BINARY_DIR}/tester" lena.pgm eth_MeasureFull
+  COMMAND perf record -F MAX -g "${CMAKE_BINARY_DIR}/tester" lena.pgm eth_MeasureFullNoAlloc
   COMMAND perf script | "${PROJECT_SOURCE_DIR}/perf/stackcollapse-perf.pl" > out.perf-folded
   COMMAND "${PROJECT_SOURCE_DIR}/perf/flamegraph.pl" out.perf-folded > flamegraph.svg
   COMMAND echo "Wrote flamegraph to ${CMAKE_BINARY_DIR}/flamegraph.svg"

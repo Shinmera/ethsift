@@ -15,17 +15,23 @@
 int row_filter_transpose(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   
   // ==========================================================================
-  // Outer and inner loop are unrolled. With -O0 optimization level needs about 90 Mio cycles, -O3 -fno-tree-vectorize about 22Mio to convolve lena.pgm (AMD Zen).
+  // TODO Work in progress
+  //      - Rewrite to make it in place
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
   int dst_ind = 0;
   int row_ind = 0;
 
-  float partialSum = 0.0f;
-  float partialSum1 = 0.0f;
-  float partialSum2 = 0.0f;
-  float partialSum3 = 0.0f;
+  // const int align = 32;
+  // void *p = alloca(8*sizeof(float) + align - 1);
+  // float *partialSum = (float*)((((intptr_t)p + align - 1) / align) * align);
+
+  float partialSum[8];
+  
+  __m256 d_partialSum;
+  __m256 d_kernel, d_rowbuf;
+
   float firstData, lastData;
   
   for (int r = 0; r < h; r++) {
@@ -43,132 +49,42 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
     dst_ind = r;
     buf_ind = 0;
-
-    int lim = w - 3;
+    
+    int w_lim = w - 7;
     int c;
-    for (c = 0; c < lim; c += 4) {
-      partialSum = 0;
-      partialSum1 = 0;
-      partialSum2 = 0;
-      partialSum3 = 0;
+    for (c = 0; c < w_lim; c += 8) {
+      d_partialSum = _mm256_setzero_ps();    
 
-      float t11 = 0;
-      float t21 = 0; 
-      float t31 = 0;
-      float t41 = 0;
+      for (int i = 0; i < kernel_size; ++i) {
+        d_kernel = _mm256_broadcast_ss(kernel + i);
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
 
-      float t12 = 0;
-      float t22 = 0; 
-      float t32 = 0;
-      float t42 = 0;
-      
-      float t13 = 0;
-      float t23 = 0; 
-      float t33 = 0;
-      float t43 = 0;
-      
-      float t14 = 0;
-      float t24 = 0; 
-      float t34 = 0;
-      float t44 = 0;
+        d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
 
-      float val1, val2, val3, val4, val5, val6, val7;
-      float ker1, ker2, ker3, ker4;
-
-      int kernel_lim = kernel_size - 4;
-      int i;
-      for (i = 0; i < kernel_lim; i += 4) {
-
-        val1 = row_buf[buf_ind];
-        val2 = row_buf[buf_ind + 1];
-        val3 = row_buf[buf_ind + 2];
-        val4 = row_buf[buf_ind + 3];
-        val5 = row_buf[buf_ind + 4];
-        val6 = row_buf[buf_ind + 5];
-        val7 = row_buf[buf_ind + 6];
-
-        ker1 = kernel[i];
-        ker2 = kernel[i + 1];
-        ker3 = kernel[i + 2];
-        ker4 = kernel[i + 3];
-        
-        t11 = ker1 * val1;
-        t21 = ker2 * val2;
-        t31 = ker3 * val3;
-        t41 = ker4 * val4;
-        
-        t12 = ker1 * val2;
-        t22 = ker2 * val3;
-        t32 = ker3 * val4;
-        t42 = ker4 * val5;
-        
-        t13 = ker1 * val3;
-        t23 = ker2 * val4;
-        t33 = ker3 * val5;
-        t43 = ker4 * val6;
-
-        t14 = ker1 * val4;
-        t24 = ker2 * val5;
-        t34 = ker3 * val6;
-        t44 = ker4 * val7;
-
-        t11 += t21;
-        t31 += t41;
-
-        t12 += t22;
-        t32 += t42;
-
-        t13 += t23;
-        t33 += t43;
-
-        t14 += t24;
-        t34 += t44;
-        
-        partialSum += t11 + t31;
-        partialSum1 += t12 + t32;
-        partialSum2 += t13 + t33;
-        partialSum3 += t14 + t34;
-
-        inc_adds(16);
-        inc_mults(16);
-        inc_mem(11);
-
-        buf_ind += 4;
-      }
-
-      for (; i < kernel_size; ++i) {
-        ker1 = kernel[i];
-
-        partialSum += ker1 * row_buf[buf_ind];
-        partialSum1 += ker1 * row_buf[buf_ind + 1];
-        partialSum2 += ker1 * row_buf[buf_ind + 2];
-        partialSum3 += ker1 * row_buf[buf_ind + 3];
         ++buf_ind;
-
-        inc_adds(4);
-        inc_mults(4);
-        inc_mem(5);
+          
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);   
       }
-      
-      buf_ind -= 2 * kernel_rad - 3;
 
-      output[dst_ind] = partialSum;
-      dst_ind += h;
-      output[dst_ind] = partialSum1;
-      dst_ind += h;
-      output[dst_ind] = partialSum2;
-      dst_ind += h;
-      output[dst_ind] = partialSum3;
-      dst_ind += h;
+      _mm256_store_ps(partialSum, d_partialSum);
 
-      inc_mem(4);
+      buf_ind -= 2 * kernel_rad;
+      buf_ind += 7;
+
+      for (int i = 0; i < 8; ++i) {
+        output[dst_ind] = partialSum[i];
+        inc_mem(1);
+        dst_ind += h;
+      }
     }
 
     for (; c < w; ++c) {
-      partialSum = 0;
+      float s_partialSum = 0.0f;       
 
       for (int i = 0; i < kernel_size; i++) {
-        partialSum += kernel[i] * row_buf[buf_ind];
+        s_partialSum += kernel[i] * row_buf[buf_ind];
         inc_adds(1);
         inc_mults(1);
         inc_mem(2);
@@ -176,19 +92,49 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       }
 
       buf_ind -= 2 * kernel_rad;
-      output[dst_ind] = partialSum;
+      output[dst_ind] = s_partialSum;
+      inc_mem(1);
       dst_ind += h;
-
-      inc_mem(1)
     }
 
     row_ind += w;
   }
+
   return 1;
 }
 
-// In this version of row_filter_unroll only the inner loop is unrolled. When using -O0 optimization level needs about 111 Mio cycles to convolve lena.pgm (AMD Zen) 
-int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+int fft_1D(float* fft_out, float* vector, int inp_size, int out_size) {
+  // Maybe can be removed later, but to test if the fft does work in general
+  fft_out = (float*)calloc(out_size, sizeof(float));
+  
+
+
+  return 1;
+}
+
+int ifft_1D(float* ifft_out, float* vector, int inp_size, int out_size) {
+  // Maybe can be removed later, but to test if the ifft does work in general
+  ifft_out = (float*)calloc(out_size, sizeof(float));
+  
+  
+
+  return 1;
+}
+
+// TODO 
+int row_filter_transpose_fft(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+  // Using 1D FFT
+  // for each row in image ifft_1D(fft_1D(row_buf, w + 2 * kernel_size) .* fft_1D(kernel, w + 2 * kernel_size)));
+  // And transpose the result
+  // precompute only once fft_1D(kernel, w + 2 * kernel_size)
+
+
+
+  return 1;
+}
+
+// First prototype, to show each optimization step
+int row_filter_transpose_first(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
   int elemSize = sizeof(float);
 
   int buf_ind = 0;
@@ -197,6 +143,12 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
 
   float partialSum = 0.0f;
   float firstData, lastData;
+
+  __m256 t;
+  __m256 d_kernel;
+  __m256 d_row_buf;
+
+  float t_temp[8];
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
@@ -213,31 +165,20 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
 
     dst_ind = r;
     buf_ind = 0;
+
     for (int c = 0; c < w; c++) {
       partialSum = 0.0f;   
 
-      // 8-times inner loop unroll: This could give a potential speed-up when using an Intel CPU (AMD avg. 125'978'544 cycles)
-      float t1 = 0;
-      float t2 = 0; 
-      float t3 = 0;
-      float t4 = 0; 
-      float t5 = 0;
-      float t6 = 0;
-      float t7 = 0;
-      float t8 = 0;
+      t = _mm256_setzero_ps();
+
       int j;
-      for (j = 0; j < kernel_size; j+=8) {
-        if (kernel_size - j < 8) {
-          break;
-        } 
-        t1 += kernel[j] * row_buf[buf_ind];
-        t2 += kernel[j + 1] * row_buf[buf_ind + 1];
-        t3 += kernel[j + 2] * row_buf[buf_ind + 2];
-        t4 += kernel[j + 3] * row_buf[buf_ind + 3];
-        t5 += kernel[j + 4] * row_buf[buf_ind + 4];
-        t6 += kernel[j + 5] * row_buf[buf_ind + 5];
-        t7 += kernel[j + 6] * row_buf[buf_ind + 6];
-        t8 += kernel[j + 7] * row_buf[buf_ind + 7];
+      int k_lim = kernel_size - 7;
+      for (j = 0; j < k_lim; j += 8) {
+        d_kernel = _mm256_loadu_ps(kernel + j);
+        d_row_buf = _mm256_loadu_ps(row_buf + buf_ind);
+
+        t = _mm256_fmadd_ps(d_kernel, d_row_buf, t);
+        
         buf_ind += 8;
     
         inc_adds(8);
@@ -246,7 +187,7 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
       }
 
       for (; j < kernel_size; ++j) {
-        t1 += kernel[j] * row_buf[buf_ind];
+        partialSum += kernel[j] * row_buf[buf_ind];
         ++buf_ind;
 
         inc_adds(1);
@@ -254,51 +195,17 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
         inc_mem(2);
       }
 
-      t1 += t2;
-      t3 += t4;
-      t5 += t6;
-      t7 += t8;
-      t1 += t5;
-      t3 += t7;
-      partialSum += t1 + t3;
+      t = _mm256_hadd_ps(t, t);
+      _mm256_storeu_ps(t_temp, t);
+
+      partialSum += t_temp[0];
+      partialSum += t_temp[1];
+      partialSum += t_temp[4];
+      partialSum += t_temp[5];
+      partialSum = partialSum;
 
       inc_adds(8);
 
-      // // 4 times inner loop unroll: This version completed in avg. 112'452'012 cycles on AMD (atm best version on AMD)
-      // float t1 = 0;
-      // float t2 = 0; 
-      // float t3 = 0;
-      // float t4 = 0;
-      // int j;
-      // for (j = 0; j < kernel_size; j+=4) {
-      //   if (kernel_size - j < 4) {
-      //     break;
-      //   } 
-      //   t1 += kernel[j] * row_buf[buf_ind];
-      //   t2 += kernel[j + 1] * row_buf[buf_ind + 1];
-      //   t3 += kernel[j + 2] * row_buf[buf_ind + 2];
-      //   t4 += kernel[j + 3] * row_buf[buf_ind + 3];
-      //   buf_ind += 4;
-    
-      //   inc_adds(4);
-      //   inc_mults(4);
-      //   inc_mem(8);
-      // }
-
-      // for (; j < kernel_size; ++j) {
-      //   t1 += kernel[j] * row_buf[buf_ind];
-      //   ++buf_ind;
-
-      //   inc_adds(1);
-      //   inc_mults(1);
-      //   inc_mem(2);
-      // }
-
-      // t1 += t2;
-      // t3 += t4;
-      // partialSum += t1 + t3;
-
-      // inc_adds(4);
 
       buf_ind -= 2 * kernel_rad;
       output[dst_ind] = partialSum;
@@ -311,6 +218,129 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
   return 1;
 }
 
+// Another AVX version, that should decrease the amount of split_loads
+int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restrict output, int w, int h, float * restrict kernel, uint32_t kernel_size, uint32_t kernel_rad) {
+  
+  int elemSize = sizeof(float);
+
+  int buf_ind = 0;
+  int dst_ind = 0;
+  int row_ind = 0;
+
+  float partialSum[8];
+  __m256 d_partialSum;
+  __m256 d_kernel, d_rowbuf;
+  __m256 d_rowbuf1;
+
+  float firstData, lastData;
+
+  __m256i permute = _mm256_set_epi32(0,7,6,5,4,3,2,1);
+  __m256i permute1 = _mm256_set_epi32(0,1,2,3,4,5,6,7);
+  __m256i permute2 = _mm256_set_epi32(6,5,4,3,2,1,0,7);
+  
+  for (int r = 0; r < h; r++) {
+    memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
+    inc_mem(w); // memcpy 1 read / 1 write
+    inc_mem(w);
+    firstData = pixels[row_ind];
+    lastData = pixels[row_ind + w - 1];
+    inc_mem(2); // 2 reads
+    for (int i = 0; i < kernel_rad; i++) {
+      row_buf[i] = firstData;
+      row_buf[i + w + kernel_rad] = lastData;
+      inc_mem(2); // 2 writes
+    }
+
+    dst_ind = r;
+    buf_ind = 0;
+    
+    int w_lim = w - 7;
+    int c;
+    for (c = 0; c < w_lim; c += 8) {
+      d_partialSum = _mm256_setzero_ps();    
+
+      int k_lim = kernel_size - 15;
+      int i;
+      for (i = 0; i < k_lim; i += 8) {
+
+        d_kernel = _mm256_broadcast_ss(kernel + i);
+        
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+        
+        d_rowbuf1 = _mm256_load_ps(row_buf + buf_ind + 8);
+        d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute1);
+
+        d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+ 
+        inc_mem(3);
+        inc_adds(1);     
+        inc_mults(1);
+
+        for (int j = 1; j < 8; ++j) {
+          d_kernel = _mm256_broadcast_ss(kernel + i + j);
+          
+          d_rowbuf = _mm256_permutevar8x32_ps(d_rowbuf, permute);
+          d_rowbuf = _mm256_blend_ps(d_rowbuf, d_rowbuf1, 0b10000000);
+          d_rowbuf1 = _mm256_permutevar8x32_ps(d_rowbuf1, permute2);
+
+          d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+
+          inc_mem(1);
+          inc_adds(1);
+          inc_mults(1);
+        }
+
+        buf_ind += 8;  
+      }
+
+      // Do the remaining kernels
+      for (; i < kernel_size; ++i) {
+        d_kernel = _mm256_broadcast_ss(kernel + i);
+        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+
+        d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
+
+        ++buf_ind;
+          
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);   
+      }
+
+      _mm256_store_ps(partialSum, d_partialSum);   
+
+      buf_ind -= 2 * kernel_rad;
+      buf_ind += 7;
+
+      for (i = 0; i < 8; ++i) {
+        output[dst_ind] = partialSum[i];
+        inc_mem(1);
+        dst_ind += h;
+      }
+    }
+
+    for (; c < w; ++c) {
+      float s_partialSum = 0.0f;       
+
+      for (int i = 0; i < kernel_size; i++) {
+        s_partialSum += kernel[i] * row_buf[buf_ind];
+        inc_adds(1);
+        inc_mults(1);
+        inc_mem(2);
+        ++buf_ind;
+      }
+
+      buf_ind -= 2 * kernel_rad;
+      output[dst_ind] = s_partialSum;
+      inc_mem(1);
+      dst_ind += h;
+    }
+
+    row_ind += w;
+  }
+
+  return 1;
+}
 
 /// <summary> 
 /// Apply the gaussian kernel to the image and write the result to the output.

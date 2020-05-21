@@ -313,5 +313,41 @@ define_test(eth_MeasureFull, 1, {
 
     with_repeating(ethsift_compute_keypoints(eth_img, keypoints, &keypoint_count))
   })
+
+define_test(eth_MeasureFullNoAlloc, 1, {
+    ezsift::Image<unsigned char> ez_img;
+    struct ethsift_image eth_img = {0};
+    if(!load_image(get_testimg_path(), eth_img, &ez_img))
+      fail("Failed to load image");
+    
+    uint32_t keypoint_count = 2048;
+    struct ethsift_keypoint keypoints[2048] = {0};
+    const int layers = ETHSIFT_INTVLS;
+    const int gaussian_count = layers + 3;
+    const int dog_count = layers + 2;
+    const int octave_count = (int)log2f((float)(eth_img.width<eth_img.height)?eth_img.width:eth_img.height) - 3;
+    struct ethsift_image eth_gaussians[octave_count * gaussian_count];
+    struct ethsift_image eth_gradients[octave_count*gaussian_count];
+    struct ethsift_image eth_rotations[octave_count*gaussian_count];
+    struct ethsift_image eth_differences[octave_count*dog_count];
+    
+    ethsift_allocate_pyramid(eth_gaussians, eth_img.width, eth_img.height, octave_count, gaussian_count);
+    ethsift_allocate_pyramid(eth_gradients, eth_img.width, eth_img.height, octave_count, gaussian_count);
+    ethsift_allocate_pyramid(eth_rotations, eth_img.width, eth_img.height, octave_count, gaussian_count);
+    ethsift_allocate_pyramid(eth_differences, eth_img.width, eth_img.height, octave_count, dog_count);
+
+    with_repeating({
+        ethsift_generate_gaussian_pyramid(eth_img, octave_count, eth_gaussians, gaussian_count);
+        ethsift_generate_difference_pyramid(eth_gaussians, gaussian_count, eth_differences, dog_count, octave_count);
+        ethsift_generate_gradient_pyramid(eth_gaussians, gaussian_count, eth_gradients, eth_rotations, layers, octave_count);
+        ethsift_detect_keypoints(eth_differences, eth_gradients, eth_rotations, octave_count, gaussian_count, keypoints, &keypoint_count);
+        ethsift_extract_descriptor(eth_gradients, eth_rotations, octave_count, gaussian_count, keypoints, keypoint_count);
+      })
+
+    ethsift_free_pyramid(eth_gaussians);
+    ethsift_free_pyramid(eth_gradients);
+    ethsift_free_pyramid(eth_rotations);
+    ethsift_free_pyramid(eth_differences);
+  })
   
 #endif

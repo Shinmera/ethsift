@@ -77,7 +77,9 @@ int ethsift_generate_all_kernels(int layers_count,
     // NOTE: Could not come up with a better solution for storing the kernels, due to the 
     // sequential dependencies in the section where we calculate the gaussian pyramids.
     // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
-    kernel_ptrs[0] = (float*) calloc(kernel_sizes[0], sizeof(float));
+    if(posix_memalign((void*)&kernel_ptrs[0], ETHSIFT_MEMALIGN, kernel_sizes[0]*sizeof(float)))
+      return 0;
+    
     ethsift_generate_gaussian_kernel(kernel_ptrs[0], kernel_sizes[0], kernel_rads[0], sigma_i); // ggk FLOPs
     inc_mem(5); // 1 write, 4 reads
 
@@ -99,7 +101,8 @@ int ethsift_generate_all_kernels(int layers_count,
 
         // Create kernel and store it in kernels for next step.
         // TEST-NOTE: Test and remove memory allocation in case stack is able to handle all the kernels.
-        kernel_ptrs[i] = (float*) calloc(kernel_sizes[i], sizeof(float)); 
+        if(posix_memalign((void*)&kernel_ptrs[i], ETHSIFT_MEMALIGN, kernel_sizes[i]*sizeof(float)))
+          return 0;
         ethsift_generate_gaussian_kernel(kernel_ptrs[i], kernel_sizes[i], kernel_rads[i], sigma_i); // ggk FLOPs
         inc_mem(5); // 1 write, 4 reads
     }
