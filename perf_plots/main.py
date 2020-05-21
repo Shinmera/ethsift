@@ -118,12 +118,13 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                           color=colors[it],
                           markersize=8,
                           error=np.array(measurements[function][lib]['std'])
-                          )
+                          )            
             if 'eth' in lib:
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
             it += 1
+        
         p.plot_graph(function, autosave=autosave, img_format=img_format)
 
 def make_runtime_plot(measurements, cycle_measurement_method, show_plot=True, autosave=True, img_format='svg', debug=False):

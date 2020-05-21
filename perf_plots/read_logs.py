@@ -1,7 +1,6 @@
 import numpy as np
 import math
 
-from flops_util2 import flops_util2, rw_util
 from flops_util import flops_util
 from architecture_config import config as arch_conf
 
@@ -19,6 +18,8 @@ scriptdir = dirname(realpath(__file__))
 ## Horrible hack to make the other horrible hacks work
 resolution_map = {}
 
+lib_to_fc_rw_map = dict()
+
 def read_logs(logs_folder, measurement_method, mode='performance', flops_util_version=2, version=''):
     # can be 'chrono' or 'rdtsc'
     match = measurement_method
@@ -32,7 +33,14 @@ def read_logs(logs_folder, measurement_method, mode='performance', flops_util_ve
         onlyfiles += [join(folder,f) for f in listdir(folder)
                  if isfile(join(folder, f))
                  and match in f
-                 and version in f]
+                 and version in f
+                 and ".csv" in f]
+        fc_file = [f for f in listdir(folder)
+                if isfile(join(folder, f)) and ".fc" in f]
+        print(fc_file)
+        lib_to_fc_rw_map[lib] = dict()
+        lib_to_fc_rw_map[lib]['fc'], lib_to_fc_rw_map[lib]['rw'] = init_flops_util2(fc_file[0].split('.')[0])
+        
 
     onlyfiles = np.sort(onlyfiles)
 
@@ -41,7 +49,6 @@ def read_logs(logs_folder, measurement_method, mode='performance', flops_util_ve
             resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
     
     
-    init_flops_util2()
 
     if mode == 'runtime':
         return get_runtime_measurements(onlyfiles, libs)
@@ -122,8 +129,10 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
 
             if flops_util_version is 1:
                 flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+            elif func_name == "Downscale":
+                flops = 0
             else:
-                flops = flops_util2[func_name][resolution]
+                flops = lib_to_fc_rw_map[lib]['fc'][func_name][resolution]
 
 
             measurements[func_name][lib]['performance'].append(flops / cycles)
@@ -186,7 +195,7 @@ def get_runtime_bars(log_files, libs):
             std_dev = float(vals[2])
                         
             if func_name in measurements:
-                pass            
+                pass                        
             elif func_name == "MeasureFull" or func_name == "MeasureFullNoAlloc":
                 continue
             else:                
@@ -249,12 +258,16 @@ def get_resolution_in_indices():
     return np.array(all_res)
 
 
-def init_flops_util2():
-    onlyfiles = [f for f in listdir(flops_logs) if isfile(join(flops_logs, f))]    
+def init_flops_util2(folder_name):
+    flops_util2 = dict()
+    rw_util = dict()
+    full_folder= join(flops_logs, folder_name)
+    print(full_folder)
+    onlyfiles = [f for f in listdir(full_folder) if isfile(join(full_folder, f))]    
     onlyfiles = np.sort(onlyfiles)
     
     for f in onlyfiles:
-        stream = open(flops_logs + f,"r")
+        stream = open(join(full_folder, f),"r")
         lines = stream.readlines()
         lines.pop(0)
         resolution = resolution_label(f)
@@ -267,3 +280,5 @@ def init_flops_util2():
 
             flops_util2[vals[0]][resolution] = int(vals[1])
             rw_util[vals[0]][resolution] = int(vals[2])
+    
+    return flops_util2, rw_util
