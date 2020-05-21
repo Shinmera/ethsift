@@ -9,9 +9,10 @@ import numpy as np
 import math
 
 lib_markers = dict()
-lib_markers['ethSIFT -O0'] = '*'
-lib_markers['ethSIFT -O3'] = 'x'
-lib_markers['ezSIFT -O3'] = '^'
+lib_markers['ethSIFT avx full flags'] = '*'
+lib_markers['ethSIFT std-c full flags'] = 'x'
+lib_markers['ethSIFT baseline full flags'] = '^'
+lib_markers['ezSIFT O3'] = 'v'
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 
 def main():
@@ -117,7 +118,7 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                           markersize=8,
                           error=np.array(measurements[function][lib]['std'])
                           )
-            if lib.split('-')[0] == 'eth':
+            if 'eth' in lib:
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
