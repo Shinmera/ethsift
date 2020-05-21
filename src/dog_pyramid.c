@@ -40,7 +40,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
 
         width = gaussians[row_index].width;
         height = gaussians[row_index].height;
-        inc_mem(2); // 2 reads (maybe?)
+        inc_read(2, uint32_t);
         float * dif_layer0 = differences[i * layers].pixels;
         float * dif_layer1 = differences[i * layers + 1].pixels;
         float * dif_layer2 = differences[i * layers + 2].pixels;
@@ -53,7 +53,6 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
         float * gaussian3 = gaussians[row_index + 3].pixels;
         float * gaussian4 = gaussians[row_index + 4].pixels;
         float * gaussian5 = gaussians[row_index + 5].pixels;
-        inc_mem(11);
         
         for(int idx = 0; idx < (width * height); idx+= 16){
             int idx2 = idx + 8;
@@ -71,6 +70,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             gaussian_vec3_1 =  _mm256_loadu_ps(gaussian3 + idx2);
             gaussian_vec4_1 =  _mm256_loadu_ps(gaussian4 + idx2);
             gaussian_vec5_1 =  _mm256_loadu_ps(gaussian5 + idx2);
+            inc_read(2*6*8, float);
 
             dif_vec0_0 = _mm256_sub_ps(gaussian_vec1_0,gaussian_vec0_0);
             dif_vec1_0 = _mm256_sub_ps(gaussian_vec2_0,gaussian_vec1_0);
@@ -83,7 +83,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             dif_vec2_1 = _mm256_sub_ps(gaussian_vec3_1,gaussian_vec2_1);
             dif_vec3_1 = _mm256_sub_ps(gaussian_vec4_1,gaussian_vec3_1);
             dif_vec4_1 = _mm256_sub_ps(gaussian_vec5_1,gaussian_vec4_1);
-
+            inc_adds(10);
 
             _mm256_storeu_ps(dif_layer0 + idx, dif_vec0_0);
             _mm256_storeu_ps(dif_layer1 + idx, dif_vec1_0);
@@ -96,9 +96,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             _mm256_storeu_ps(dif_layer2 + idx2, dif_vec2_1);
             _mm256_storeu_ps(dif_layer3 + idx2, dif_vec3_1);
             _mm256_storeu_ps(dif_layer4 + idx2, dif_vec4_1);
-
-            inc_adds(10);
-            inc_mem(22);
+            inc_write(2*5*8, float);
         }
 
     }

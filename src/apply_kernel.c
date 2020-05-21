@@ -36,15 +36,15 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
-    inc_mem(w); // memcpy 1 read / 1 write
-    inc_mem(w);
+    inc_read(w, float);
+    inc_write(w, float);
     firstData = pixels[row_ind];
     lastData = pixels[row_ind + w - 1];
-    inc_mem(2); // 2 reads
+    inc_read(2, float);
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
-      inc_mem(2); // 2 writes
+      inc_write(2, float);
     }
 
     dst_ind = r;
@@ -58,6 +58,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       for (int i = 0; i < kernel_size; ++i) {
         d_kernel = _mm256_broadcast_ss(kernel + i);
         d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+        inc_read(1+8, float);
 
         d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
 
@@ -65,17 +66,18 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
           
         inc_adds(8);
         inc_mults(8);
-        inc_mem(2);   
       }
 
       _mm256_store_ps(partialSum, d_partialSum);
+      inc_write(8, float);
 
       buf_ind -= 2 * kernel_rad;
       buf_ind += 7;
 
       for (int i = 0; i < 8; ++i) {
         output[dst_ind] = partialSum[i];
-        inc_mem(1);
+        inc_write(1, float);
+        inc_read(1, float);
         dst_ind += h;
       }
     }
@@ -87,13 +89,13 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         s_partialSum += kernel[i] * row_buf[buf_ind];
         inc_adds(1);
         inc_mults(1);
-        inc_mem(2);
+        inc_read(2, float);
         ++buf_ind;
       }
 
       buf_ind -= 2 * kernel_rad;
       output[dst_ind] = s_partialSum;
-      inc_mem(1);
+      inc_write(1, float);
       dst_ind += h;
     }
 
@@ -152,15 +154,15 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
-    inc_mem(w); // memcpy 1 read / 1 write
-    inc_mem(w);
+    inc_read(w, float);
+    inc_write(w, float);
     firstData = pixels[row_ind];
     lastData = pixels[row_ind + w - 1];
-    inc_mem(2); // 2 reads
+    inc_read(2, float);
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
-      inc_mem(2); // 2 writes
+      inc_write(2, float);
     }
 
     dst_ind = r;
@@ -176,6 +178,7 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
       for (j = 0; j < k_lim; j += 8) {
         d_kernel = _mm256_loadu_ps(kernel + j);
         d_row_buf = _mm256_loadu_ps(row_buf + buf_ind);
+        inc_read(16, float);
 
         t = _mm256_fmadd_ps(d_kernel, d_row_buf, t);
         
@@ -183,7 +186,6 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
     
         inc_adds(8);
         inc_mults(8);
-        inc_mem(16);
       }
 
       for (; j < kernel_size; ++j) {
@@ -192,11 +194,12 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
 
         inc_adds(1);
         inc_mults(1);
-        inc_mem(2);
+        inc_read(2, float);
       }
 
       t = _mm256_hadd_ps(t, t);
       _mm256_storeu_ps(t_temp, t);
+      inc_write(8, float);
 
       partialSum += t_temp[0];
       partialSum += t_temp[1];
@@ -209,7 +212,7 @@ int row_filter_transpose_first(float * restrict pixels, float * restrict output,
 
       buf_ind -= 2 * kernel_rad;
       output[dst_ind] = partialSum;
-      inc_mem(1);
+      inc_write(1, float);
       dst_ind += h;
     }
 
@@ -240,15 +243,15 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
-    inc_mem(w); // memcpy 1 read / 1 write
-    inc_mem(w);
+    inc_read(w, float);
+    inc_write(w, float);
     firstData = pixels[row_ind];
     lastData = pixels[row_ind + w - 1];
-    inc_mem(2); // 2 reads
+    inc_read(2, float);
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
-      inc_mem(2); // 2 writes
+      inc_write(2, float);
     }
 
     dst_ind = r;
@@ -272,12 +275,13 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
 
         d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
  
-        inc_mem(3);
+        inc_read(1+8+8, float);
         inc_adds(8);     
         inc_mults(8);
 
         for (int j = 1; j < 8; ++j) {
           d_kernel = _mm256_broadcast_ss(kernel + i + j);
+          inc_read(1, float);
           
           d_rowbuf = _mm256_permutevar8x32_ps(d_rowbuf, permute);
           d_rowbuf = _mm256_blend_ps(d_rowbuf, d_rowbuf1, 0b10000000);
@@ -285,7 +289,6 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
 
           d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
 
-          inc_mem(1);
           inc_adds(8);
           inc_mults(8);
         }
@@ -304,17 +307,18 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
           
         inc_adds(8);
         inc_mults(8);
-        inc_mem(2);   
+        inc_read(1+8, float);   
       }
 
-      _mm256_store_ps(partialSum, d_partialSum);   
+      _mm256_store_ps(partialSum, d_partialSum);
+      inc_write(8, float);
 
       buf_ind -= 2 * kernel_rad;
       buf_ind += 7;
 
       for (i = 0; i < 8; ++i) {
         output[dst_ind] = partialSum[i];
-        inc_mem(1);
+        inc_write(1, float);
         dst_ind += h;
       }
     }
@@ -326,13 +330,13 @@ int row_filter_transpose_useing_shuffles(float * restrict pixels, float * restri
         s_partialSum += kernel[i] * row_buf[buf_ind];
         inc_adds(1);
         inc_mults(1);
-        inc_mem(2);
+        inc_read(2, float);
         ++buf_ind;
       }
 
       buf_ind -= 2 * kernel_rad;
       output[dst_ind] = s_partialSum;
-      inc_mem(1);
+      inc_write(1, float);
       dst_ind += h;
     }
 

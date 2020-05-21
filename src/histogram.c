@@ -47,8 +47,7 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
       const int c = kptc_i + j;
       const float magnitude = gradient_pixels[r * w + c];
       const float angle = rotation_pixels[r * w + c];
-            
-      inc_mem(2);
+      inc_read(2, float);
 
       const float fbin = angle * bin_count * M_1_2PI;
       const float w1 = i-d_kptr;
@@ -67,10 +66,10 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
       const float dmw = d_fbin * mw;// 1 MUL
       tmpHist[(bin + bin_count) % bin_count] += mw - dmw; // 1ADD + 1 SUB
       tmpHist[(bin + 1) % bin_count] += dmw; // 1ADD
+      inc_write(2, float);
 
       inc_mults(2);
       inc_adds(3);
-      inc_mem(4); // 2 reads / 2writes
     }
   }
 
@@ -86,14 +85,16 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     tmpHist0 * div3;
   inc_mults(3);
   inc_adds(4);
-  inc_mem(4);
+  inc_read(4, float);
+  inc_write(1, float);
 
   histogram[1] = (tmpHist0 + tmpHist[3]) * div1 +
     (tmpHist0 + tmpHist[2]) * div2 +
     tmpHist[1] * div3;
   inc_mults(3);
   inc_adds(4);
-  inc_mem(4);
+  inc_read(3, float);
+  inc_write(1, float);
 
   const float tmpHistb1 = tmpHist[bin_count - 1];
   histogram[bin_count - 2] = (tmpHist[bin_count - 4] + tmpHistb1) * div1 +
@@ -101,14 +102,16 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
     tmpHist[bin_count - 2] * div3;
   inc_mults(3);
   inc_adds(4);
-  inc_mem(5);
+  inc_read(3, float);
+  inc_write(1, float);
     
   histogram[bin_count - 1] = (tmpHist[bin_count - 3] + tmpHistb1) * div1 +
     (tmpHist[bin_count - 2] + tmpHistb1) * div2 +
     tmpHistb1 * div3;
   inc_mults(3);
   inc_adds(4);
-  inc_mem(3);
+  inc_read(2, float);
+  inc_write(1, float);
 
   for (int i = 2; i < bin_count - 2; i++) {
     histogram[i] = (tmpHist[i - 2] + tmpHist[i + 2]) * div1 +
@@ -117,13 +120,13 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
 
     inc_mults(3);
     inc_adds(4);
-    inc_mem(6);
+    inc_read(5, float);
+    inc_write(1, float);
   }
 
   // Find the maximum item of the histogram
   float temp = histogram[0];
-
-  inc_mem(1);
+  inc_read(1, float);
 
   int max_i = 0;
   for (int i = 1; i < bin_count; i++) {
@@ -131,12 +134,13 @@ int ethsift_compute_orientation_histogram(struct ethsift_image gradient,
       temp = histogram[i];
       max_i = i;
     }
-    inc_mem(1); // 1 read
+    inc_read(1, float);
   }
   *max_histval = temp;
+  inc_write(1, float);
 
   keypoint->orientation = max_i * M_TWOPI / bin_count; // 1 MUL + 1 DIV
-
+  inc_write(1, float);
   inc_mults(1);
   inc_div(1);
   return 1;

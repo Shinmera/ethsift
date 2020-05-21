@@ -52,23 +52,25 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // Keypoint information
         int octave = kpt->octave;
         int layer = kpt->layer;
+        inc_read(2, int32_t);
 
         float kpt_ori = kpt->orientation;
         float kptr = kpt->layer_pos.y;
         float kptc = kpt->layer_pos.x;
         float kpt_scale = kpt->layer_pos.scale;
+        inc_read(4, float);
 
         // Nearest coordinate of keypoints
         int kptr_i = (int)(kptr + 0.5f);
         int kptc_i = (int)(kptc + 0.5f);
         float d_kptr = kptr_i - kptr;
         float d_kptc = kptc_i - kptc;
-
         inc_adds(4);
 
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
         int h = gradients[layer_index].height;
+        inc_read(2, int32_t);
 
         // Note for Gaussian weighting.
         // OpenCV and vl_feat uses non-fixed size of subregion.
@@ -91,8 +93,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Re-init histBin
         memset(histBin, 0, nHistBins * sizeof(float));
-
-        inc_mem(nHistBins);
+        inc_write(nHistBins, float);
 
         // Start to calculate the histogram in the sample region.
         float rr, cc;
@@ -158,7 +159,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 float angle1 = (angle < 0) ? (M_TWOPI + angle) : angle; // Adjust angle to [0, 2PI)
                 obin = angle1 * nBinsPerSubregionPerDegree;
 
-                inc_mem(2);
+                inc_read(2, float);
                 inc_adds(1);
                 inc_mults(1);
 
@@ -245,7 +246,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 histBin[idx] += vrco111;
 
                 inc_adds(8);
-                inc_mem(16); // 1 read 1 write
+                inc_write(8, float);
             }
         }
 
@@ -273,7 +274,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 histBin[idx2] = histBin[idx2 + nBinsPerSubregion];
                 histBin[idx3] = histBin[idx3 + nBinsPerSubregion];
 
-                inc_mem(8);
+                inc_read(4, float);
+                inc_write(4, float);
 
                 // comments: how this line works.
                 // Suppose you want to write x=-1 y=1, due to circular, it
@@ -281,46 +283,54 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 // the value goes to y=0, x=width, now, we need to get it back.
                 if (idx != 0) {
                     histBin[idx + nBinsPerSubregion + 1] = histBin[idx - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 if (idx1 != 0) {
                     histBin[idx1 + nBinsPerSubregion + 1] = histBin[idx1 - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 if (idx2 != 0) {
                     histBin[idx2 + nBinsPerSubregion + 1] = histBin[idx2 - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 if (idx3 != 0) {
                     histBin[idx3 + nBinsPerSubregion + 1] = histBin[idx3 - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 int idx4 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
                     dstBins[idx4 + k] = histBin[idx + k];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 int idx5 = ((i - 1) * nSubregion + (j+1) - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
                     dstBins[idx5 + k] = histBin[idx1 + k];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 int idx6 = ((i - 1) * nSubregion + (j+2) - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
                     dstBins[idx6 + k] = histBin[idx2 + k];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 int idx7 = ((i - 1) * nSubregion + (j+3) - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
                     dstBins[idx7 + k] = histBin[idx3 + k];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
             }
         }
@@ -331,6 +341,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         for (int i = 0; i < nBins; i+=8) {
 
             vec_dstBins = _mm256_loadu_ps(dstBins+i);
+            inc_read(8, float);
             vec_dstBins = _mm256_mul_ps(vec_dstBins,vec_dstBins);
 
             // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
@@ -385,7 +396,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             
             inc_adds(8);
             inc_mults(8);
-            inc_mem(16);
+            inc_read(8, float);
+            inc_write(8, float);
         }
 
         // Re-normalize
@@ -403,13 +415,14 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             vec_dstBins = _mm256_mul_ps(vec_dstBins, vec_norm_factor);
             _mm256_storeu_ps(dstBins+i, vec_dstBins);
             inc_mults(8);
-            inc_mem(16);
+            inc_read(8, float);
+            inc_write(8, float);
         }
 
         memcpy(kpt->descriptors, dstBins, nBins * sizeof(float));
         
-        inc_mem(nBins); // memcpy nBins reads, nBins writes
-        inc_mem(nBins);
+        inc_read(nBins, float);
+        inc_write(nBins, float);
     }
 
   return 1;
