@@ -90,4 +90,4 @@ class RooflinePlot:
                   transparent=False, bbox_inches=None, pad_inches=0.1,
                   frameon=None, metadata=None)
     else:
-      plt.show()
+      self.fig.show()

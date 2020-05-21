@@ -236,12 +236,37 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
 
 
 def make_roofline_plot(measurements, tot_runtimes, autosave=True, img_format='svg', debug=False):
-    # Only test code because I cannot run the read log files
-    plt = RooflinePlot()
+    if debug:
+        for key1 in measurements:
+            print(key1)
+            print("======================================================\n")
+            for key2 in measurements[key1]:
+                print(key2)
+                for key3 in measurements[key1][key2]:
+                    print(key3 + ":")
+                    print(measurements[key1][key2][key3])
+                print("\n")
+            print("\n")
 
-    plt.plot_bounds()
+    for function in measurements:
+        p = RooflinePlot()
 
-    plt.plot_graph("Banana", autosave=True)
+        nr_libs = len(measurements[function])
+        col_map = cm.get_cmap('Dark2', nr_libs)
+        colors = col_map(np.linspace(0, 1, nr_libs))
+        it = 0
+        for lib in measurements[function]:
+            p.plot_points(x=np.array(measurements[function][lib]['opintensity']),
+                          y=np.array(measurements[function][lib]['performance']),
+                          linewidth=1.5,
+                          marker=lib_markers[lib],
+                          point_label=lib,
+                          color=colors[it],
+                          markersize=8
+                          )
+            it += 1
+        
+        p.plot_graph(function, autosave=autosave, img_format=img_format)
     
 
         

@@ -103,6 +103,7 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
                 lib += " No Memory Allocation"
             median = int(vals[1])
             std_dev = float(vals[2])
+            bytes_accessed = int(vals[3])
                         
             if func_name in measurements:
                 pass
@@ -118,6 +119,7 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
                 measurements[func_name][lib]['performance'] = []
                 measurements[func_name][lib]['resolutions'] = []
                 measurements[func_name][lib]['std'] = []
+                measurements[func_name][lib]['opintensity'] = []
 
             if mode == 'rdtsc':
                 #if we already measured the cycles of the method, simply calculate cycles/flops
@@ -138,6 +140,7 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
             measurements[func_name][lib]['performance'].append(flops / cycles)
             measurements[func_name][lib]['std'].append(flops / (std_dev+cycles) - flops / cycles )
             measurements[func_name][lib]['resolutions'].append(resolution_map[resolution]['tot_pixels'])
+            measurements[func_name][lib]['opintensity'].append(flops / bytes_accessed)
 
     return measurements, dict()
 
