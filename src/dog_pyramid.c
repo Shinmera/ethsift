@@ -97,7 +97,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             _mm256_storeu_ps(dif_layer3 + idx2, dif_vec3_1);
             _mm256_storeu_ps(dif_layer4 + idx2, dif_vec4_1);
 
-            inc_adds(10);
+            inc_adds(80);
             inc_mem(22);
         }
 
