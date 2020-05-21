@@ -116,8 +116,8 @@ def make_performance_plot(measurements, cycle_measurement_method, autosave=True,
                           color=colors[it],
                           markersize=8,
                           error=np.array(measurements[function][lib]['std'])
-                          )
-            if lib.split('-')[0] == 'eth':
+                          )            
+            if 'eth' in lib:
                 temp = np.amax(measurements[function][lib]['performance'])
                 peak_perf = max(temp, peak_perf)
                 p.set_peak_performance(peak_perf)
