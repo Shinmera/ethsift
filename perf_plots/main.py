@@ -241,7 +241,7 @@ def make_roofline_plot(measurements, tot_runtimes, autosave=True, img_format='sv
 
     plt.plot_bounds()
 
-    plt.plot_graph("Banana")
+    plt.plot_graph("Banana", autosave=True)
     
 
         
