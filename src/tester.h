@@ -138,3 +138,7 @@ static inline void end_measurement(){
     __VA_ARGS__;                                \
     end_measurement();                          \
   }
+
+#ifdef SILENT
+#define fprintf(...)
+#endif

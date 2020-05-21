@@ -15,6 +15,11 @@ if(NOT OPT_FLAGS)
   set(OPT_FLAGS "full" CACHE STRING "Choose the set of optimisation flags (full, avx, O3, O0)" FORCE)
 endif()
 
+option(SILENT "Whether to produce output at all. Turning this off is useful for more accurate measurements")
+if(NOT SILENT)
+  set(SLIENT "false" CACHE STRING "Choose whether to be silent or not (true, false)" FORCE)
+endif()
+
 set(EZSIFT_INCLUDE_DIR ezsift/include)
 set(EZSIFT_SRC_DIR ezsift/src)
 file(GLOB_RECURSE EZSIFT_SRC RELATIVE ${PROJECT_SOURCE_DIR} "${EZSIFT_SRC_DIR}/*.cpp")
@@ -120,6 +125,10 @@ target_compile_definitions(count_flops PRIVATE ETHSIFT_DATA="${PROJECT_SOURCE_DI
 target_compile_definitions(count_flops PRIVATE ETHSIFT_LOGS="${PROJECT_SOURCE_DIR}/logs")
 target_compile_definitions(count_flops PRIVATE IS_COUNTING)
 target_compile_definitions(count_flops PRIVATE ETHSIFT_VERSION="${ETHSIFT_VERSION}")
+
+if(SILENT MATCHES true)
+  target_compile_definitions(tester PRIVATE SILENT)
+endif()
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Adding debug flags")
