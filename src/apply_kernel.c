@@ -57,7 +57,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
       for (int i = 0; i < kernel_size; ++i) {
         d_kernel = _mm256_broadcast_ss(kernel + i);
-        d_rowbuf = _mm256_load_ps(row_buf + buf_ind);
+        d_rowbuf = _mm256_loadu_ps(row_buf + buf_ind);
         inc_read(1+8, float);
 
         d_partialSum = _mm256_fmadd_ps(d_kernel, d_rowbuf, d_partialSum);
