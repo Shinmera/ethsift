@@ -135,11 +135,11 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 grad = _mm256_sqrt_ps(sqrt_input);
                 grad1 = _mm256_sqrt_ps(sqrt_input1);                
                 grad2 = _mm256_sqrt_ps(sqrt_input2);
-                
+
 #ifdef __INTEL_COMPILER
-                rot = _mm256_atan2_ps(d_row_m256, d_column_m256);
-                rot1 = _mm256_atan2_ps(d_row1_m256, d_column1_m256);
-                rot2 = _mm256_atan2_ps(d_row2_m256, d_column2_m256);
+                rot = _mm256_atan2_ps(d_column_m256, d_row_m256);
+                rot1 = _mm256_atan2_ps(d_column1_m256, d_row1_m256);
+                rot2 = _mm256_atan2_ps(d_column2_m256, d_row2_m256);
 #else                
                 eth_mm256_atan2_ps(&d_row_m256, &d_column_m256, &rot);
                 eth_mm256_atan2_ps(&d_row1_m256, &d_column1_m256, &rot1);
