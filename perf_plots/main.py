@@ -3,6 +3,7 @@ from read_logs import read_logs
 from performance_plots import PerformancePlot
 from runtime_plots import RuntimePlot
 from stacked_bars_plot import StackedPlot
+from roofline_plots import RooflinePlot
 from matplotlib import cm
 import os
 import numpy as np
@@ -47,7 +48,7 @@ def main():
     #   - runtime
     #   - stacked_runtime
     if os.getenv('PLOT_MODE') == None:
-        for mode in ['performance', 'runtime', 'stacked_runtime']:
+        for mode in ['performance', 'runtime', 'stacked_runtime', 'roofline']:
             make_plots_for(directory, mode, meas_method, version, 
                            save_plots=save_plots, 
                            img_format=img_format, 
@@ -75,6 +76,12 @@ def make_plots_for(logs_folder, plot_mode, meas_method, version="", save_plots=T
     elif plot_mode == 'stacked_runtime':
         print("\nCreate StackedBar Plot\n")
         make_stackedruntime_plot(measurements=measurements, 
+                                 tot_runtimes=tot_runtimes, 
+                                 autosave=save_plots, 
+                                 img_format=img_format)
+    elif plot_mode == 'roofline':
+        print("\nCreate Roofline Plot\n")
+        make_roofline_plot(measurements=measurements, 
                                  tot_runtimes=tot_runtimes, 
                                  autosave=save_plots, 
                                  img_format=img_format)
@@ -226,6 +233,16 @@ def make_stackedruntime_plot(measurements, tot_runtimes, autosave=True, img_form
 
     for lib in plots:
         plots[lib].plot_graph("Stacked Proportional Runtime " + lib, autosave=autosave, img_format=img_format)
+
+
+def make_roofline_plot(measurements, tot_runtimes, autosave=True, img_format='svg', debug=False):
+    # Only test code because I cannot run the read log files
+    plt = RooflinePlot(64)
+
+    plt.plot_bounds()
+
+    plt.plot_graph("Banana")
+    
 
         
 if __name__ == '__main__':
