@@ -30,7 +30,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   int octave = (int) keypoint->octave;
   int layer = (int) keypoint->layer;
-  inc_read(2, float);
+  inc_read(2, int32_t);
   
   int r = keypoint->layer_pos.y;
   int c = keypoint->layer_pos.x;
@@ -198,7 +198,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     Hinvert[9] = (H[2] * H[3] - H[0] * H[5]);
     Hinvert[10] = (H[0] * H[4] - H[1] * H[3]);
 
-    inc_adds(8);
+    inc_adds(6);
     inc_mults(12);
     inc_read(2*3*4, float);
     inc_write(2*3, float);
@@ -234,9 +234,10 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     _mm_store_ps(xD, xc_xr_xs);
 
-    inc_write(8, float);
+    inc_write(1, float);
 
     temp_add = _mm_set_ps(0.0, layer, r, c);
+    inc_write(4, float);
 
     temp_add = _mm_add_ps(xc_xr_xs, temp_add);
 
@@ -244,7 +245,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
     _mm_store_ps(temp, temp_add);
 
-    inc_write(8, float);
+    inc_write(1, float);
 
     // Make sure there is room to move for next iteration.
     xc_i = ((xD[0] >= kpt_subpixel_thr && c < w - 2) ? 1 : 0) +
@@ -296,8 +297,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   float detH = dxx * dyy - dxy * dxy; // 2 MUL
    // 2 ADDs + 1 MUL + 1 DIV
 
-  inc_adds(3);
-  inc_mults(3);
+  inc_adds(2);
+  inc_mults(2);
   inc_div(1);
 
   if (detH > 0) {
@@ -310,10 +311,9 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   
   keypoint->layer_pos.y = temp[1];
   keypoint->layer_pos.x = temp[0];
-  keypoint->layer_pos.scale = sigma * powf(2.0f, temp[2] * inverse_intvls); // 1 ADD + 1 DIV + 1 POW
+  keypoint->layer_pos.scale = sigma * powf(2.0f, temp[2] * inverse_intvls); // 2 MUL + 1 POW
 
-  inc_adds(1);
-  inc_div(1);
+  inc_mults(2);
   inc_read(3, float);
   inc_write(3, float);
 
