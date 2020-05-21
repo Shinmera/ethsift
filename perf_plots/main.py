@@ -10,6 +10,7 @@ import math
 
 lib_markers = dict()
 lib_markers['ethSIFT avx full flags'] = '*'
+lib_markers['ethSIFT avx full flags No Memory Allocation'] = '+'
 lib_markers['ethSIFT std-c full flags'] = 'x'
 lib_markers['ethSIFT baseline full flags'] = '^'
 lib_markers['ezSIFT O3'] = 'v'

@@ -91,6 +91,9 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
             method_name_split = vals[0].split('_')
             lib = get_lib_name(f, libs)
             func_name = method_name_split[1]
+            if func_name == "MeasureFullNoAlloc":
+                func_name = "MeasureFull"
+                lib += " No Memory Allocation"
             median = int(vals[1])
             std_dev = float(vals[2])
                         
@@ -184,7 +187,7 @@ def get_runtime_bars(log_files, libs):
                         
             if func_name in measurements:
                 pass            
-            elif func_name == "MeasureFull":
+            elif func_name == "MeasureFull" or func_name == "MeasureFullNoAlloc":
                 continue
             else:                
                 measurements[func_name] = dict()
