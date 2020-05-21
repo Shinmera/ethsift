@@ -103,7 +103,6 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
                 lib += " No Memory Allocation"
             median = int(vals[1])
             std_dev = float(vals[2])
-            bytes_accessed = int(vals[3])
                         
             if func_name in measurements:
                 pass
@@ -131,10 +130,13 @@ def get_performance_measurements(log_files, libs, mode, flops_util_version):
 
             if flops_util_version is 1:
                 flops = flops_util[lib][func_name](resolution_map[resolution]['width'], resolution_map[resolution]['height'])
+                bytes_accessed = 1
             elif func_name == "Downscale":
                 flops = 0
+                bytes_accessed = 1 # No idea actually
             else:
                 flops = lib_to_fc_rw_map[lib]['fc'][func_name][resolution]
+                bytes_accessed = lib_to_fc_rw_map[lib]['rw'][func_name][resolution]
 
 
             measurements[func_name][lib]['performance'].append(flops / cycles)
