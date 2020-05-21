@@ -265,7 +265,7 @@ def make_roofline_plot(measurements, tot_runtimes, autosave=True, img_format='sv
                           markersize=8
                           )
             it += 1
-        
+        p.plot_bounds()
         p.plot_graph(function, autosave=autosave, img_format=img_format)
     
 
