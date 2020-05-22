@@ -34,7 +34,8 @@ int convert_image(const ezsift::Image<unsigned char> &input,
                   struct ethsift_image *output){
   output->width = input.w;
   output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
+  if(output->pixels == 0)
+    output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
   if(output->pixels == 0) return 0;
   for(int y=0; y<input.h; ++y){
     for(int x=0; x<input.w; ++x){
@@ -49,7 +50,8 @@ int convert_image(const ezsift::Image<float> &input,
                   struct ethsift_image *output){
   output->width = input.w;
   output->height = input.h;
-  output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
+  if(output->pixels == 0)
+    output->pixels = (float*)calloc(sizeof(float), input.w*input.h);
   if(output->pixels == 0) return 0;
   for(int y=0; y<input.h; ++y){
     for(int x=0; x<input.w; ++x){
@@ -111,15 +113,18 @@ int compare_image_approx(struct ethsift_image a, struct ethsift_image b, float e
     printf("COMPARE_IMAGE_APPROX HEIGHT: a.h = %d ; b.h = %d\n", a.height, b.height);
     return 0;
   }
-  for(size_t i=0; i<a.width*a.height; ++i){
-    float diff = a.pixels[i] - b.pixels[i];
-    if(diff < 0.0) diff *= -1;
-    if(eps < diff) {
-      printf("COMPARE_IMAGE_APPROX PIXEL: index = %d ; val a = %f ; val b = %f\n", (int)i, a.pixels[i], b.pixels[i]);
-      return 0;
+  int retval =1;
+  for(size_t i=0; i<a.height; ++i){
+    for(size_t j=0; j<a.width; ++j){
+      float diff = a.pixels[i*a.width + j] - b.pixels[i*a.width + j];
+      if(diff < 0.0) diff *= -1;
+      if(eps < diff) {
+        printf("COMPARE_IMAGE_APPROX PIXEL: col = %d , row = %d ; val a = %f ; val b = %f  DIFFERENCE : %f\n", (int)j, (int)i, a.pixels[i*a.width + j], b.pixels[i*a.width + j], diff);
+        return 0;
+      }
     }
   }
-  return 1;
+  return retval;
 }
 
 // Compare an ezsift kernel with an ethsift kernel for correctness

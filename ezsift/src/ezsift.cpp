@@ -179,8 +179,6 @@ int build_gaussian_pyramid(std::vector<Image<unsigned char>> &octaves,
             }
         }
     }
-    // Release octaves memory.
-    octaves.clear();
     return 0;
 }
 

@@ -1,0 +1,11 @@
+Title,Flops,ReadWrites
+Downscale,0,1036800
+Convolution,74649600,87121200
+GaussianPyramid,876220080,973448065
+DOGPyramid,13820100,82920612
+GradientAndRotationPyramids,94167200,49752372
+Histogram,9275,3221
+ExtremaRefinement,220,187
+KeypointDetection,1985641,11736727
+ExtractDescriptor,8174136,2595518
+MeasureFull,1005618361,1125551249

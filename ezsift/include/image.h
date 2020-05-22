@@ -112,6 +112,9 @@ void Image<T>::init(int _w, int _h)
 {
     w = _w;
     h = _h;
+    if (data) {
+      delete[] data;
+    }
     data = new T[w * h];
 }
 

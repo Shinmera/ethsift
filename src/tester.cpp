@@ -200,7 +200,7 @@ int main(int argc, char *argv[]){
     // Only enable the ones we specify
     for(int i=2; i<argc; ++i){
       for(int j=0; j<test_count; ++j){
-        if(strcmp(argv[i], tests[j].title) == 0)
+        if(strncmp(argv[i], tests[j].title, strlen(argv[i])) == 0)
           tests[j].enabled = true;
       }
     }
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]){
     name = strtok(getenv("TESTS"), " ");
     while(name){
       for(int j=0; j<test_count; ++j){
-        if(strcmp(name, tests[j].title) == 0)
+        if(strncmp(name, tests[j].title, strlen(name)) == 0)
           tests[j].enabled = true;
       }
       name = strtok(0, " ");

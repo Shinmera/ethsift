@@ -52,23 +52,25 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // Keypoint information
         int octave = kpt->octave;
         int layer = kpt->layer;
+        inc_read(2, int32_t);
 
         float kpt_ori = kpt->orientation;
         float kptr = kpt->layer_pos.y;
         float kptc = kpt->layer_pos.x;
         float kpt_scale = kpt->layer_pos.scale;
+        inc_read(4, float);
 
         // Nearest coordinate of keypoints
         int kptr_i = (int)(kptr + 0.5f);
         int kptc_i = (int)(kptc + 0.5f);
         float d_kptr = kptr_i - kptr;
         float d_kptc = kptc_i - kptc;
-
         inc_adds(4);
 
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
         int h = gradients[layer_index].height;
+        inc_read(2, int32_t);
 
         // Note for Gaussian weighting.
         // OpenCV and vl_feat uses non-fixed size of subregion.
@@ -91,8 +93,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         // Re-init histBin
         memset(histBin, 0, nHistBins * sizeof(float));
-
-        inc_mem(nHistBins);
+        inc_write(nHistBins, float);
 
         // Start to calculate the histogram in the sample region.
         float rr, cc;
@@ -103,6 +104,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         float rrotate, crotate;
         float rbin, cbin, obin;
         float d_rbin, d_cbin, d_obin;
+
+        float sin_t_rr, cos_t_rr;
 
         // Boundary of sample region.
         int r, c;
@@ -115,17 +118,23 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         {
             // Accurate position relative to kptr
             rr = i + d_kptr;
+            sin_t_rr = sin_t * rr;
+            cos_t_rr = cos_t * rr;
             inc_adds(1);
+            inc_mults(2);
+            
             for (int j = left; j <= right; j++) // columns
             {
                 // Accurate position relative to kptc
                 cc = j + d_kptc;
-                inc_adds(1);
-                // Rotate the coordinate of (i, j)
-                rrotate = (cos_t * cc + sin_t * rr);
-                crotate = (-sin_t * cc + cos_t * rr);
 
-                inc_mults(4);
+                inc_adds(1);
+
+                // Rotate the coordinate of (i, j)
+                rrotate = (cos_t * cc + sin_t_rr);
+                crotate = (-sin_t * cc + cos_t_rr);
+
+                inc_mults(2);
                 inc_adds(3);
 
                 // Since for a bin array with 4x4 bins, the center is actually
@@ -150,7 +159,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 float angle1 = (angle < 0) ? (M_TWOPI + angle) : angle; // Adjust angle to [0, 2PI)
                 obin = angle1 * nBinsPerSubregionPerDegree;
 
-                inc_mem(2);
+                inc_read(2, float);
                 inc_adds(1);
                 inc_mults(1);
 
@@ -237,26 +246,36 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 histBin[idx] += vrco111;
 
                 inc_adds(8);
-                inc_mem(16); // 1 read 1 write
+                inc_write(8, float);
             }
         }
 
         // Discard all the edges for row and column.
-        // Only retrive edges for orientation bins.
+        // Only retrieve edges for orientation bins.
+
+
+        // NB: mainly int operations - so no AVX on it for the time being
         float dstBins[nBins];
         for (int i = 1; i <= nSubregion; i++) // slice
         {
-            for (int j = 1; j <= nSubregion; j++) // row
+            for (int j = 1; j <= nSubregion; j+=4) // row
             {
                 int idx = i * nSliceStep + j * nRowStep;
+                int idx1 = i * nSliceStep + (j+1) * nRowStep;
+                int idx2 = i * nSliceStep + (j+2) * nRowStep;
+                int idx3 = i * nSliceStep + (j+3) * nRowStep;
                 // comments: how this line works.
                 // Suppose you want to write w=width, y=1, due to circular
                 // buffer, we should write it to w=0, y=1; since we use a
                 // circular buffer, it is written into w=width, y=1. Now, we
                 // fectch the data back.
                 histBin[idx] = histBin[idx + nBinsPerSubregion];
+                histBin[idx1] = histBin[idx1 + nBinsPerSubregion];
+                histBin[idx2] = histBin[idx2 + nBinsPerSubregion];
+                histBin[idx3] = histBin[idx3 + nBinsPerSubregion];
 
-                inc_mem(2); // 1 read 1 write
+                inc_read(4, float);
+                inc_write(4, float);
 
                 // comments: how this line works.
                 // Suppose you want to write x=-1 y=1, due to circular, it
@@ -264,23 +283,75 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 // the value goes to y=0, x=width, now, we need to get it back.
                 if (idx != 0) {
                     histBin[idx + nBinsPerSubregion + 1] = histBin[idx - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
-                int idx1 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
+                if (idx1 != 0) {
+                    histBin[idx1 + nBinsPerSubregion + 1] = histBin[idx1 - 1];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                if (idx2 != 0) {
+                    histBin[idx2 + nBinsPerSubregion + 1] = histBin[idx2 - 1];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                if (idx3 != 0) {
+                    histBin[idx3 + nBinsPerSubregion + 1] = histBin[idx3 - 1];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                int idx4 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
-                    dstBins[idx1 + k] = histBin[idx + k];
-                    inc_mem(2);
+                    dstBins[idx4 + k] = histBin[idx + k];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                int idx5 = ((i - 1) * nSubregion + (j+1) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx5 + k] = histBin[idx1 + k];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                int idx6 = ((i - 1) * nSubregion + (j+2) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx6 + k] = histBin[idx2 + k];
+                    inc_read(1, float);
+                    inc_write(1, float);
+                }
+
+                int idx7 = ((i - 1) * nSubregion + (j+3) - 1) * nBinsPerSubregion;
+                for (int k = 0; k < nBinsPerSubregion; k++) {
+                    dstBins[idx7 + k] = histBin[idx3 + k];
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
             }
         }
 
         // Normalize the histogram
+        __m256 vec_dstBins;
         float sum_square = 0.0f;
-        for (int i = 0; i < nBins; i++) {
-            sum_square += dstBins[i] * dstBins[i];
-            inc_adds(1);
-            inc_mults(1);
+        for (int i = 0; i < nBins; i+=8) {
+
+            vec_dstBins = _mm256_loadu_ps(dstBins+i);
+            inc_read(8, float);
+            vec_dstBins = _mm256_mul_ps(vec_dstBins,vec_dstBins);
+
+            // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
+            const __m128 x128 = _mm_add_ps(_mm256_extractf128_ps(vec_dstBins, 1), _mm256_castps256_ps128(vec_dstBins));
+            const __m128 x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
+            const __m128 x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
+            sum_square += _mm_cvtss_f32(x32);
+
+            inc_adds(8);
+            inc_mults(8);
         }
 
         float thr = sqrtf(sum_square) * ETHSIFT_DESCR_MAG_THR;
@@ -288,16 +359,45 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         inc_mults(1);
 
         float tmp = 0.0;
+        float tmp1 = 0.0;
+        float tmp2 = 0.0;
+        float tmp3 = 0.0;
+        float tmp4 = 0.0;
+        float tmp5 = 0.0;
+        float tmp6 = 0.0;
+        float tmp7 = 0.0;
+
         sum_square = 0.0;
+
+        __m256 vec_float_min;
+
         // Cut off the numbers bigger than 0.2 after normalized.
-        for (int i = 0; i < nBins; i++) {
+        for (int i = 0; i < nBins; i+=8) {
+
             tmp = float_min(thr, dstBins[i]);
-            dstBins[i] = tmp;
-            sum_square += tmp * tmp;
+            tmp1 = float_min(thr, dstBins[i+1]);
+            tmp2 = float_min(thr, dstBins[i+2]);
+            tmp3 = float_min(thr, dstBins[i+3]);
+            tmp4 = float_min(thr, dstBins[i+4]);
+            tmp5 = float_min(thr, dstBins[i+5]);
+            tmp6 = float_min(thr, dstBins[i+6]);
+            tmp7 = float_min(thr, dstBins[i+7]);
+
+            vec_float_min = _mm256_set_ps(tmp7, tmp6, tmp5, tmp4, tmp3, tmp2, tmp1, tmp);
+            _mm256_storeu_ps(dstBins+i, vec_float_min);
+
+            vec_float_min = _mm256_mul_ps(vec_float_min, vec_float_min);
+
+            // https://stackoverflow.com/questions/23189488/horizontal-sum-of-32-bit-floats-in-256-bit-avx-vector
+            const __m128 x128 = _mm_add_ps(_mm256_extractf128_ps(vec_float_min, 1), _mm256_castps256_ps128(vec_float_min));
+            const __m128 x64 = _mm_add_ps(x128, _mm_movehl_ps(x128, x128));
+            const __m128 x32 = _mm_add_ss(x64, _mm_shuffle_ps(x64, x64, 0x55));
+            sum_square += _mm_cvtss_f32(x32);
             
-            inc_adds(1);
-            inc_mults(1);
-            inc_mem(2);
+            inc_adds(8);
+            inc_mults(8);
+            inc_read(8, float);
+            inc_write(8, float);
         }
 
         // Re-normalize
@@ -308,17 +408,21 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
 
         inc_div(1);
 
-        for (int i = 0; i < nBins; i++) {
-            dstBins[i] = dstBins[i] * norm_factor;
-            
-            inc_mults(1);
-            inc_mem(2);
+        __m256 vec_norm_factor;
+        vec_norm_factor = _mm256_set1_ps(norm_factor);
+        for (int i = 0; i < nBins; i+=8) {
+            vec_dstBins = _mm256_loadu_ps(dstBins+i);
+            vec_dstBins = _mm256_mul_ps(vec_dstBins, vec_norm_factor);
+            _mm256_storeu_ps(dstBins+i, vec_dstBins);
+            inc_mults(8);
+            inc_read(8, float);
+            inc_write(8, float);
         }
 
         memcpy(kpt->descriptors, dstBins, nBins * sizeof(float));
         
-        inc_mem(nBins); // memcpy nBins reads, nBins writes
-        inc_mem(nBins);
+        inc_read(nBins, float);
+        inc_write(nBins, float);
     }
 
   return 1;
