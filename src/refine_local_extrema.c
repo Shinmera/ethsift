@@ -85,7 +85,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     int rcw_cl = r_center_w + c_left;
     int rcw_cc = r_center_w + c_center;
     int rcw_cr = r_center_w + c_right;
-    
+
     int rtw_cl = r_top_w + c_left;
     int rtw_cc = r_top_w + c_center;
     int rtw_cr = r_top_w + c_right;
