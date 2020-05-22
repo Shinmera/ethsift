@@ -58,12 +58,13 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   inc_read(2, int32_t);
 
   float temp[4] = {c, r, layer, 0.0};
-  float xD[4] = {0.0, 0.0, 0.0, 0.0};
+  float xD[4];
 
-  float Hinvert[12] = {0.0, 0.0, 0.0, 1.0,
-                       0.0, 0.0, 0.0, 1.0,
-                       0.0, 0.0, 0.0, 1.0};
-
+  float Hinvert[12];
+  
+  curData  = differences[layer_ind].pixels;
+  highData = differences[layer_ind + 1].pixels;
+  lowData  = differences[layer_ind - 1].pixels;
   for (; i < max_interp_steps; i++) {
     
     c += xc_i;
@@ -73,23 +74,33 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     int c_center =  internal_min(internal_max(c, 0), w - 1);
     int c_left =    internal_min(internal_max(c - 1, 0), w - 1);
 
-    int r_top =     internal_min(internal_max(r + 1, 0), h - 1);
-    int r_center =  internal_min(internal_max(r, 0), h - 1);
-    int r_bottom =  internal_min(internal_max(r - 1, 0), h - 1);
+    int r_top_w =     internal_min(internal_max(r + 1, 0), h - 1)*w;
+    int r_center_w =  internal_min(internal_max(r, 0), h - 1) * w;
+    int r_bottom_w =  internal_min(internal_max(r - 1, 0), h - 1)*w;
 
+    int rbw_cl= r_bottom_w + c_left;
+    int rbw_cc = r_bottom_w + c_center;
+    int rbw_cr = r_bottom_w + c_right;
 
-    curData  = differences[layer_ind].pixels;
-    float cur_rb_cl = curData[r_bottom * w + c_left];       // [r - 1, c - 1]
-    float cur_rb_cc = curData[r_bottom * w + c_center];     // [r - 1, c]
-    float cur_rb_cr = curData[r_bottom * w + c_right];      // [r - 1, c + 1]
-
-    float cur_rc_cl = curData[r_center * w + c_left];       // [r, c - 1]
-    float cur_rc_cc = curData[r_center * w + c_center];     // [r, c]
-    float cur_rc_cr = curData[r_center * w + c_right];      // [r, c + 1]
+    int rcw_cl = r_center_w + c_left;
+    int rcw_cc = r_center_w + c_center;
+    int rcw_cr = r_center_w + c_right;
     
-    float cur_rt_cl = curData[r_top * w + c_left];          // [r + 1, c - 1]
-    float cur_rt_cc = curData[r_top * w + c_center];        // [r + 1, c]
-    float cur_rt_cr = curData[r_top * w + c_right];         // [r + 1, c + 1]
+    int rtw_cl = r_top_w + c_left;
+    int rtw_cc = r_top_w + c_center;
+    int rtw_cr = r_top_w + c_right;
+
+    float cur_rb_cl = curData[rbw_cl];       // [r - 1, c - 1]
+    float cur_rb_cc = curData[rbw_cc];     // [r - 1, c]
+    float cur_rb_cr = curData[rbw_cr];      // [r - 1, c + 1]
+
+    float cur_rc_cl = curData[rcw_cl];       // [r, c - 1]
+    float cur_rc_cc = curData[rcw_cc];     // [r, c]
+    float cur_rc_cr = curData[rcw_cr];      // [r, c + 1]
+    
+    float cur_rt_cl = curData[rtw_cl];          // [r + 1, c - 1]
+    float cur_rt_cc = curData[rtw_cc];        // [r + 1, c]
+    float cur_rt_cr = curData[rtw_cr];         // [r + 1, c + 1]
     inc_read(1+3*3, float);
 
     float v2 = 2.0f * cur_rc_cc; //1 MUL
@@ -116,25 +127,23 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     inc_mults(1);
     inc_adds(3);
     
-    highData = differences[layer_ind + 1].pixels;
 
-    float high_rc_cl = highData[r_center * w + c_left];     // [r, c - 1]
-    float high_rc_cc = highData[r_center * w + c_center];   // [r, c]
-    float high_rc_cr = highData[r_center * w + c_right];    // [r, c + 1]
+    float high_rc_cl = highData[rcw_cl];     // [r, c - 1]
+    float high_rc_cc = highData[rcw_cc];   // [r, c]
+    float high_rc_cr = highData[rcw_cr];    // [r, c + 1]
 
     inc_read(1+3, float);
 
-    lowData  = differences[layer_ind - 1].pixels;
 
-    float low_rc_cl = lowData[r_center * w + c_left];       // [r, c - 1]
-    float low_rc_cc = lowData[r_center * w + c_center];     // [r, c]
-    float low_rc_cr = lowData[r_center * w + c_right];      // [r, c + 1]
+    float low_rc_cl = lowData[rcw_cl];       // [r, c - 1]
+    float low_rc_cc = lowData[rcw_cc];     // [r, c]
+    float low_rc_cr = lowData[rcw_cr];      // [r, c + 1]
 
-    float high_rt_cc = highData[r_top * w + c_center];      // [r + 1, c]
-    float high_rb_cc = highData[r_bottom * w + c_center];   // [r - 1, c]
+    float high_rt_cc = highData[rtw_cc];      // [r + 1, c]
+    float high_rb_cc = highData[rbw_cc];   // [r - 1, c]
 
-    float low_rt_cc = lowData[r_top * w + c_center];        // [r + 1, c]
-    float low_rb_cc = lowData[r_bottom * w + c_center];     // [r - 1, c]
+    float low_rt_cc = lowData[rtw_cc];        // [r + 1, c]
+    float low_rb_cc = lowData[rbw_cc];     // [r - 1, c]
 
     inc_read(1+3+2+2, float);
     
@@ -265,7 +274,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   // We MIGHT be able to remove the following two checking conditions.
   // Condition 1
-  if (i >= max_interp_steps) return 0;
+  if (i == max_interp_steps) return 0;
   // Condition 2.
   if (fabsf(xD[0]) >= 1.5 || fabsf(xD[1]) >= 1.5 || fabsf(xD[2]) >= 1.5) return 0; 
 
