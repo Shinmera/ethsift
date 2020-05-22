@@ -46,9 +46,7 @@ def read_logs(logs_folder, measurement_method, mode='performance', flops_util_ve
 
     for f in onlyfiles:
         if resolution_label(f) not in resolution_map:
-            resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))
-    
-    
+            resolution_map[resolution_label(f)] = pgm_resolution(image_file(f))    
 
     if mode == 'runtime':
         return get_runtime_measurements(onlyfiles, libs)
@@ -69,7 +67,7 @@ def image_file(f):
 def get_lib_name(f, libs):
     name = 'unkown_lib'
     for lib in libs:
-        if (lib+'/') in f:
+        if (lib+'/') in f or (lib+'\\') in f:
             name = lib
     return name
 
