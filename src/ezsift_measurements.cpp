@@ -33,6 +33,7 @@ define_test(ez_Convolution, 1, {
     }
     ezsift::Image<float> ez_img_blurred(ez_img.w, ez_img.h);
     with_repeating(ezsift::gaussian_blur(ez_img.to_float(), ez_img_blurred, ez_kernel));
+    free(kernel);
   })
 
 define_test(ez_Octaves, 1, {
@@ -132,6 +133,7 @@ define_test(ez_Histogram, 1, {
     // Calculate histograms
     with_repeating(ezsift::compute_orientation_hist_with_gradient(ez_gradients[kpt.octave * GAUSSIAN_COUNT + kpt.layer],
                                                                   ez_rotations[kpt.octave * GAUSSIAN_COUNT + kpt.layer], kpt, ez_hist));
+    delete[] ez_hist;
   })
 
 define_test(ez_ExtremaRefinement, 1, {
