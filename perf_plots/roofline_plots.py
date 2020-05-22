@@ -45,11 +45,11 @@ class RooflinePlot:
     self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
     self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='#7b0323', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
  
-    self.axes.hlines(self.pi_sisd_fma, self.x_min, self.x_max, colors='#009900', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD with FMA')
-    self.axes.vlines(self.pi_sisd_fma/self.beta, self.y_min, self.pi_sisd_fma, colors='#009900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD with FMA')
+    self.axes.hlines(self.pi_sisd_fma, self.x_min, self.x_max, colors='#009900', linewidth=linewidth, linestyles='solid', label='Max Performance SISD with FMA')
+    self.axes.vlines(self.pi_sisd_fma/self.beta, self.y_min, self.pi_sisd_fma, colors='#009900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD with FMA')
 
-    self.axes.hlines(self.pi_simd_fma, self.x_min, self.x_max, colors='#119900', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD with FMA')
-    self.axes.vlines(self.pi_simd_fma/self.beta, self.y_min, self.pi_simd_fma, colors='#119900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD with FMA')
+    self.axes.hlines(self.pi_simd_fma, self.x_min, self.x_max, colors='#559900', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD with FMA')
+    self.axes.vlines(self.pi_simd_fma/self.beta, self.y_min, self.pi_simd_fma, colors='#559900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD with FMA')
 
     point1 = [1/8, self.beta * 1/8]
     point2 = [4.0, self.beta * 4.0]
