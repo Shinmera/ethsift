@@ -29,8 +29,8 @@ class PerformancePlot:
         x_offset_max = 1000*x_offset_min
         self.x_min = 427*240 - x_offset_min
         self.x_max = 7680*4320 + x_offset_max
-        self.y_min = 1/32
-        self.y_max = self.pi_simd_fma + 0.5
+        self.y_min = 1/128
+        self.y_max = self.pi_simd_fma + 2
         
         self.axes= self.fig.add_axes([0.1,0.1,0.8,0.8])
 
@@ -68,8 +68,8 @@ class PerformancePlot:
             self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD w/o FMAs')
             
             #Plot SIMD_fma and SISD_fma max performance boundary
-            self.axes.hlines(self.pi_fma, self.x_min, self.x_max, colors="#092215", linewidth=linewidth, linestyles='solid', label='Max Performance SISD w/ FMAs')            
-            self.axes.hlines(self.pi_simd_fma, self.x_min, self.x_max, colors='#06170e', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD w/ FMAs')
+            self.axes.hlines(self.pi_fma, self.x_min, self.x_max, colors="#0c2d1c", linewidth=linewidth, linestyles='solid', label='Max Performance SISD w/ FMAs')            
+            self.axes.hlines(self.pi_simd_fma, self.x_min, self.x_max, colors='#092215', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD w/ FMAs')
 
     def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, capsize=10, markersize=8, error=None):
         if(error is None):
