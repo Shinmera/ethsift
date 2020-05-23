@@ -8,7 +8,8 @@ int mat_dot_vec_3x3(float p[], float (*m)[3], float v[]) {
 
   inc_adds(6);
   inc_mults(9);
-  inc_mem(21); 
+  inc_write(3, float);
+  inc_read(18, float);
 
   return 1;
 }
@@ -28,7 +29,8 @@ int scale_adjoint_3x3(float (*a)[3], float (*m)[3], float s) {
 
   inc_adds(9);
   inc_mults(27);
-  inc_mem(45);
+  inc_write(9, float);
+  inc_read(36, float);
 
   return 1;
 }
@@ -61,8 +63,11 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   int octave = (int) keypoint->octave;
   int layer = (int) keypoint->layer;
+  inc_read(2, int32_t);
+
   int r = keypoint->layer_pos.y;
   int c = keypoint->layer_pos.x;
+  inc_read(2, int32_t);
   
   int xs_i = 0, xr_i = 0, xc_i = 0;
   float tmp_r = 0.0f, tmp_c = 0.0f, tmp_layer = 0.0f;
@@ -92,12 +97,12 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     layer_ind = octave * nDoGLayers + layer;
     w = differences[layer_ind].width;
     h = differences[layer_ind].height;
+
+    inc_read(2, uint32_t);
     
     curData  = differences[layer_ind].pixels;
     lowData  = differences[layer_ind - 1].pixels;
     highData = differences[layer_ind + 1].pixels;
-
-    inc_mem(3);
 
     dx = 0.5f * (get_pixel_f(curData, w, h, r, c + 1) - get_pixel_f(curData, w, h, r, c - 1)); //1 MUL + 1 SUB
     dy = 0.5f * (get_pixel_f(curData, w, h, r + 1, c) - get_pixel_f(curData, w, h, r - 1, c)); //1 MUL + 1 SUB
@@ -151,7 +156,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     
     inc_adds(5);
     inc_mults(9);
-    inc_mem(15);
+    inc_read(15, float);
 
     if (fabsf(det) < FLT_MIN)
       break;
@@ -172,7 +177,7 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
     xr = x_hat[1];
     xc = x_hat[0];
 
-    inc_mem(3);
+    inc_read(3, float);
     
     // Update tmp data for keypoint update.
     tmp_r = r + xr;
@@ -234,6 +239,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
 
   inc_mults(1);
   inc_div(1);
+  inc_read(3, float);
+  inc_write(3, float);
 
   float norm = powf(2.0f, (float)(octave)); // 1 POW
 
@@ -243,6 +250,8 @@ int ethsift_refine_local_extrema(struct ethsift_image differences[], uint32_t oc
   keypoint->global_pos.scale = keypoint->layer_pos.scale * norm; // 1 MUL
 
   inc_mults(3);
+  inc_read(2, float);
+  inc_write(3, float);
 
   //22 FLOPS + 2 POWs
   return 1;

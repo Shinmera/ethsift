@@ -27,7 +27,7 @@ static inline int is_local_max(float pixel, int pos, int w, float *curData, floa
         pixel > lowData[pos + w] &&
         pixel > lowData[pos + w + 1];
 
-  inc_mem(26); // worst case
+  inc_read(26, float); // worst case
   return val;
 }
 
@@ -58,7 +58,7 @@ static inline int is_local_min(float pixel, int pos, int w, float *curData, floa
         pixel < lowData[pos + w] &&
         pixel < lowData[pos + w + 1];
   
-  inc_mem(26); // worst case
+  inc_read(26, float); // worst case
   return val;
 }
 
@@ -114,7 +114,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
     w = (int) differences[i * layersDoG].width;
     h = (int) differences[i * layersDoG].height;
 
-    inc_mem(2);
+    inc_read(2, uint32_t);
 
     // (h-10)(w-10)(11 + rle + coh)*layersDoG*
     for (int j = 1; j < layersDoG - 1; ++j) {
@@ -124,7 +124,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
       curData  = differences[layer_ind ].pixels; 
       lowData  = differences[layer_ind - 1].pixels; 
 
-      inc_mem(3);
+      inc_read(3, float);
 
       // (h-10)(w-10)(11 + rle + coh)
       // Iterate over all pixels in image, ignore border values
@@ -134,7 +134,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
           pos = r * w + c;
           pixel = curData[pos];
 
-          inc_mem(1);
+          inc_read(1, float);
 
           // Test if pixel value is an extrema:
           int isExtrema =
@@ -146,9 +146,11 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
             if (keypoints_found < keypoints_required) {
               keypoints[keypoints_current].layer = j;
               keypoints[keypoints_current].octave = i;
+              inc_write(2,uint32_t);
 
               keypoints[keypoints_current].layer_pos.y = (float) r;
               keypoints[keypoints_current].layer_pos.x = (float) c;
+              inc_write(2,float);
   
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
               int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &keypoints[keypoints_current]);
@@ -172,7 +174,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 float lhist = hist[left];
                 float rhist = hist[right];
 
-                inc_mem(3);
+                inc_read(3,float);
 
                 if (currHist > lhist && currHist > rhist &&
                   currHist > hist_threshold) {
@@ -210,6 +212,7 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   keypoints[keypoints_current].magnitude = currHist;
                   keypoints[keypoints_current].orientation = accu_ii * M_TWOPI / nBins; // 1 MUL + 1 DIV
 
+                  inc_write(2,float);
                   inc_mults(1);
                   inc_div(1);
 
@@ -224,19 +227,26 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                   // Copy values of previous keypoint to possible new keypoint
                   keypoints[keypoints_current].layer = keypoints[keypoints_current - 1].layer;
                   keypoints[keypoints_current].octave = keypoints[keypoints_current - 1].octave;
+                  inc_read(2, uint32_t);
+                  inc_write(2, uint32_t);
 
                   keypoints[keypoints_current].layer_pos = keypoints[keypoints_current - 1].layer_pos;
                   keypoints[keypoints_current].global_pos =  keypoints[keypoints_current - 1].global_pos;
-
+                  inc_read(4, struct ethsift_coordinate);
+                  inc_write(4, struct ethsift_coordinate);
                 }
               }    
             } else {
               // Still test keypoint if usable, to find the actual number of keypoints
               temp.layer = j;
               temp.octave = i;
+              
+              inc_write(2, uint32_t);
 
               temp.layer_pos.y = (float) r;
               temp.layer_pos.x = (float) c;
+
+              inc_write(2, float);
 
               // EzSift does the refinement here and decides at this moment if the keypoint is useable
               int isGoodKeypoint = ethsift_refine_local_extrema(differences, octave_count, gaussian_count, &temp);
@@ -251,8 +261,6 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 &temp, 
                 hist, &max_mag);
 
-              inc_mem(2); //?
-
               float hist_threshold = max_mag * orientation_peak_ratio; // 1 MUL
 
               inc_mults(1);
@@ -263,6 +271,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
                 float currHist = hist[ii];
                 float lhist = hist[left];
                 float rhist = hist[right];
+                
+                inc_read(3, float);
 
                 if (currHist > lhist && currHist > rhist &&
                   currHist > hist_threshold) {
@@ -280,6 +290,8 @@ int ethsift_detect_keypoints(struct ethsift_image differences[], struct ethsift_
 
   // Update count with actual number of keypoints found
   *keypoint_count = keypoints_found;
+  
+  inc_write(1, uint32_t);
   
   return 1;
 }

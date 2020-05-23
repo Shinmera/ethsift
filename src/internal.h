@@ -30,22 +30,28 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
     float val;
     if (c >= 0 && c < w && r >= 0 && r < h) {
         val = imageData[r * w + c];
+        inc_read(1, float);
     }
     else if (c < 0) {
         val = imageData[r * w];
+        inc_read(1, float);
     }
     else if (c >= w) {
         val = imageData[r * w + w - 1];
+        inc_read(1, float);
     }
     else if (r < 0) {
         val = imageData[c];
+        inc_read(1, float);
     }
     else if (r >= h) {
         val = imageData[(h - 1) * w + c];
+        inc_read(1, float);
     }
     else {
         val = 0.0f;
     }
+    
     return val;
 }
 
