@@ -100,7 +100,7 @@ class PerformancePlot:
         
         self.axes.set_xticks(get_resolutions_in_pixels())
         self.axes.set_xticklabels(get_resolutions_in_labels())
-        self.axes.set_ylabel(self.y_label, fontsize=15, rotation=0, labelpad=45)
+        self.axes.set_ylabel(self.y_label, fontsize=15, rotation=0, labelpad=25)
         
         if autosave:
             plt.savefig("perfplot_"+func_name.lower().replace(' ', '_') + '.' + img_format,
