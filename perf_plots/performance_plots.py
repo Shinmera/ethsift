@@ -9,8 +9,8 @@ from architecture_config import config as arch_conf
 class PerformancePlot:
     def __init__(self):
         self.pi = arch_conf['maxflops_sisd']
-        self.pi_simd = arch_conf['maxflops_simd_fma']
-        self.pi_fma = arch_conf['maxflops_sisd']
+        self.pi_simd = arch_conf['maxflops_simd']
+        self.pi_fma = arch_conf['maxflops_sisd_fma']
         self.pi_simd_fma = arch_conf['maxflops_simd_fma']
         self.beta = arch_conf['roofline_beta']
         self.title = "Performance "
