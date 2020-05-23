@@ -4,6 +4,8 @@ import numpy as np
 
 from architecture_config import config as arch_conf
 
+from read_logs import get_resolutions_in_pixels, get_resolutions_in_labels
+
 class RooflinePlot:
   
   def __init__(self):
@@ -14,6 +16,8 @@ class RooflinePlot:
     
     self.pi = arch_conf['maxflops_sisd']
     self.pi_simd = arch_conf['maxflops_simd']
+    self.pi_sisd_fma = arch_conf['maxflops_sisd_fma']
+    self.pi_simd_fma = arch_conf['maxflops_simd_fma']
     self.beta = arch_conf['roofline_beta']
 
     self.title_font = {'fontname':'Calibri'}
@@ -22,10 +26,10 @@ class RooflinePlot:
 
   def init_plot(self):
     self.fig = plt.figure( figsize=(20,9))
-    self.x_min = 1/32
-    self.x_max = 16
-    self.y_min = 1/8
-    self.y_max = self.pi_simd + 2
+    self.x_min = 1/66
+    self.x_max = 18
+    self.y_min = 1/16
+    self.y_max = self.pi_simd_fma + 4
     self.handles = []
     self.bar_names = []
     self.axes = self.fig.add_axes([0.1,0.1,0.8,0.8])
@@ -40,6 +44,12 @@ class RooflinePlot:
     
     self.axes.hlines(self.pi_simd, self.x_min, self.x_max, colors='#7b0323', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD')
     self.axes.vlines(self.pi_simd/self.beta, self.y_min, self.pi_simd, colors='#7b0323', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD')
+ 
+    self.axes.hlines(self.pi_sisd_fma, self.x_min, self.x_max, colors='#009900', linewidth=linewidth, linestyles='solid', label='Max Performance SISD with FMA')
+    self.axes.vlines(self.pi_sisd_fma/self.beta, self.y_min, self.pi_sisd_fma, colors='#009900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SISD with FMA')
+
+    self.axes.hlines(self.pi_simd_fma, self.x_min, self.x_max, colors='#559900', linewidth=linewidth, linestyles='solid', label='Max Performance SIMD with FMA')
+    self.axes.vlines(self.pi_simd_fma/self.beta, self.y_min, self.pi_simd_fma, colors='#559900', linewidth=linewidth, linestyles='dashed', label='Memory boundary SIMD with FMA')
 
     point1 = [1/8, self.beta * 1/8]
     point2 = [4.0, self.beta * 4.0]
@@ -61,8 +71,12 @@ class RooflinePlot:
     return l
 
 
-  def plot_points(self, x, y, marker, color='c', linestyle='dashed', point_label='', linewidth=2, capsize=10, markersize=8):
+  def plot_points(self, x, y, marker, res='something', color='c', linestyle='dashed', point_label='', linewidth=2, capsize=10, markersize=8):
     self.axes.plot(x, y, color=color, marker=marker, linestyle=linestyle, linewidth=linewidth, markersize=markersize, label=point_label)
+    
+    labels = get_resolutions_in_labels()
+    for i in range(len(x)):
+      self.axes.annotate('{}'.format(labels[i]), xy = (x[i], y[i]), color=color)
 
 
   def plot_graph(self, func_name, autosave=False, img_format='svg'):  
@@ -74,7 +88,7 @@ class RooflinePlot:
     self.axes.xaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
     self.axes.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(lambda x, _: '{:g}'.format(x)))
     
-    self.fig.suptitle(self.title, **self.title_font, fontsize=25)
+    self.fig.suptitle(self.title + func_name, **self.title_font, fontsize=25)
     
     plt.rcParams['axes.facecolor'] = 'xkcd:light grey'
     self.axes.grid(color='w', linestyle='-', linewidth=0.5)
