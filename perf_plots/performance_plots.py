@@ -103,7 +103,7 @@ class PerformancePlot:
         self.axes.set_ylabel(self.y_label, fontsize=15, rotation=0, labelpad=25)
         
         if autosave:
-            plt.savefig("perfplot_"+func_name.lower().replace(' ', '_') + '.' + img_format,
+            plt.savefig(arch_conf['save_folder']+"perfplot_"+func_name.lower().replace(' ', '_') + '.' + img_format,
                         dpi=None, facecolor='w', edgecolor='w',
                         orientation='portrait', papertype=None, format=img_format,
                         transparent=False, bbox_inches=None, pad_inches=0.1,
