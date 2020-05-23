@@ -22,7 +22,7 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
 
         width = gaussians[row_index].width;
         height = gaussians[row_index].height;
-        inc_mem(2); // 2 reads (maybe?)
+        inc_read(2, uint32_t);
 
         for(int idx = 0; idx < (width * height); idx++){
             differences[i * layers].pixels[idx] = gaussians[row_index + 1].pixels[idx] - gaussians[row_index].pixels[idx]; 
@@ -32,7 +32,8 @@ int ethsift_generate_difference_pyramid(struct ethsift_image gaussians[],
             differences[i * layers + 4].pixels[idx] = gaussians[row_index + 5].pixels[idx] - gaussians[row_index + 4].pixels[idx]; 
             
             inc_adds(5);
-            inc_mem(30);
+            inc_write(5, float);
+            inc_read(10, float);
         }
 
     }

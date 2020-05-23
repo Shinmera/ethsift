@@ -37,6 +37,7 @@ static inline float get_pixel_f(float *imageData, int w, int h, int r, int c)
     int r_mod = internal_min(r, h - 1);
     c_mod = internal_max(0, c_mod);
     r_mod = internal_max(0, r_mod);
+    inc_read(1, float);
     return imageData[r_mod * w + c_mod];
 }
 

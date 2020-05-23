@@ -16,7 +16,8 @@ int ethsift_downscale_half(struct ethsift_image image, struct ethsift_image outp
       int ori_c = c << 1;
       output.pixels[r * dstW + c] = image.pixels[ori_r * srcW + ori_c];
 
-      inc_mem(2); // 1 write / 1 read
+      inc_write(1, float);
+      inc_read(1, float);
     }
   }
   return 1;

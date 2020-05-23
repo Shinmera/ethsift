@@ -40,7 +40,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         
         width = (int) gaussians[i * gaussian_count].width;
         height = (int) gaussians[i * gaussian_count].height;
-        inc_mem(2);
+        inc_read(2, uint32_t);
 
         idx = i * gaussian_count + 1;    
 
@@ -55,8 +55,6 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
         in_gaussian2 = gaussians[idx + 2].pixels;
         out_grads2 = gradients[idx + 2].pixels;
         out_rots2 = rotations[idx + 2].pixels;
-
-        inc_mem(9);
 
         for(int row = 0; row < height; row++){
             for(int column = 0; column < width; column++){
@@ -77,7 +75,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 d_column2 = in_gaussian2[row * width + col_plus_one] - in_gaussian2[row * width + col_minus_one];
                     
                 inc_adds(6); // 2 Subtractions
-                inc_mem(12); // Maybe?
+                inc_read(12, float);
                     
                 out_grads[row * width + column] = sqrtf(d_row * d_row + d_column * d_column);
                 out_rots[row * width + column] = fast_atan2_f(d_row, d_column); 
@@ -87,7 +85,7 @@ int ethsift_generate_gradient_pyramid(struct ethsift_image gaussians[],
                 
                 out_grads2[row * width + column] = sqrtf(d_row2 * d_row2 + d_column2 * d_column2);
                 out_rots2[row * width + column] = fast_atan2_f(d_row2, d_column2); 
-                inc_mem(6); // At least two writes
+                inc_write(2, float); 
             }
         }     
     }

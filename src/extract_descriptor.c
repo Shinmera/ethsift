@@ -52,11 +52,13 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // Keypoint information
         int octave = kpt->octave;
         int layer = kpt->layer;
+        inc_read(2, int32_t);
 
         float kpt_ori = kpt->orientation;
         float kptr = kpt->layer_pos.y;
         float kptc = kpt->layer_pos.x;
         float kpt_scale = kpt->layer_pos.scale;
+        inc_read(4, float);
 
         // Nearest coordinate of keypoints
         int kptr_i = (int)(kptr + 0.5f);
@@ -69,6 +71,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         int layer_index = octave * gaussian_count + layer;
         int w = gradients[layer_index].width;
         int h = gradients[layer_index].height;
+        inc_read(2, int32_t);
 
         // Note for Gaussian weighting.
         // OpenCV and vl_feat uses non-fixed size of subregion.
@@ -92,7 +95,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
         // Re-init histBin
         memset(histBin, 0, nHistBins * sizeof(float));
 
-        inc_mem(nHistBins);
+        inc_write(nHistBins, float);
 
         // Start to calculate the histogram in the sample region.
         float rr, cc;
@@ -150,7 +153,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 float angle1 = (angle < 0) ? (M_TWOPI + angle) : angle; // Adjust angle to [0, 2PI)
                 obin = angle1 * nBinsPerSubregionPerDegree;
 
-                inc_mem(2);
+                inc_read(2, float);
                 inc_adds(1);
                 inc_mults(1);
 
@@ -237,7 +240,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 histBin[idx] += vrco111;
 
                 inc_adds(8);
-                inc_mem(16); // 1 read 1 write
+                inc_write(8, float);
             }
         }
 
@@ -255,8 +258,9 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 // circular buffer, it is written into w=width, y=1. Now, we
                 // fectch the data back.
                 histBin[idx] = histBin[idx + nBinsPerSubregion];
-
-                inc_mem(2); // 1 read 1 write
+                
+                inc_read(1, float);
+                inc_write(1, float);
 
                 // comments: how this line works.
                 // Suppose you want to write x=-1 y=1, due to circular, it
@@ -264,13 +268,15 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
                 // the value goes to y=0, x=width, now, we need to get it back.
                 if (idx != 0) {
                     histBin[idx + nBinsPerSubregion + 1] = histBin[idx - 1];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
 
                 int idx1 = ((i - 1) * nSubregion + j - 1) * nBinsPerSubregion;
                 for (int k = 0; k < nBinsPerSubregion; k++) {
                     dstBins[idx1 + k] = histBin[idx + k];
-                    inc_mem(2);
+                    inc_read(1, float);
+                    inc_write(1, float);
                 }
             }
         }
@@ -281,6 +287,7 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             sum_square += dstBins[i] * dstBins[i];
             inc_adds(1);
             inc_mults(1);
+            inc_read(2, float);
         }
 
         float thr = sqrtf(sum_square) * ETHSIFT_DESCR_MAG_THR;
@@ -297,7 +304,8 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             
             inc_adds(1);
             inc_mults(1);
-            inc_mem(2);
+            inc_read(1, float);
+            inc_write(1, float);
         }
 
         // Re-normalize
@@ -312,13 +320,14 @@ int ethsift_extract_descriptor(struct ethsift_image gradients[],
             dstBins[i] = dstBins[i] * norm_factor;
             
             inc_mults(1);
-            inc_mem(2);
+            inc_read(1, float);
+            inc_write(1, float);
         }
 
         memcpy(kpt->descriptors, dstBins, nBins * sizeof(float));
         
-        inc_mem(nBins); // memcpy nBins reads, nBins writes
-        inc_mem(nBins);
+        inc_read(nBins, float); // memcpy nBins reads, nBins writes
+        inc_write(nBins, float);
     }
 
   return 1;

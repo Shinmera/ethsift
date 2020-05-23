@@ -30,15 +30,15 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
-    inc_mem(w); // memcpy 1 read / 1 write
-    inc_mem(w);
+    inc_read(w, float);
+    inc_write(w, float);
     firstData = pixels[row_ind];
     lastData = pixels[row_ind + w - 1];
-    inc_mem(2); // 2 reads
+    inc_read(2, float); // 2 reads
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
-      inc_mem(2); // 2 writes
+      inc_write(2, float); // 2 writes
     }
 
     dst_ind = r;
@@ -131,7 +131,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
         inc_adds(16);
         inc_mults(16);
-        inc_mem(11);
+        inc_read(11, float);
 
         buf_ind += 4;
       }
@@ -147,7 +147,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
 
         inc_adds(4);
         inc_mults(4);
-        inc_mem(5);
+        inc_read(5, float);
       }
       
       buf_ind -= 2 * kernel_rad - 3;
@@ -161,7 +161,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       output[dst_ind] = partialSum3;
       dst_ind += h;
 
-      inc_mem(4);
+      inc_write(4, float);
     }
 
     for (; c < w; ++c) {
@@ -171,7 +171,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
         partialSum += kernel[i] * row_buf[buf_ind];
         inc_adds(1);
         inc_mults(1);
-        inc_mem(2);
+        inc_read(2, float);
         ++buf_ind;
       }
 
@@ -179,7 +179,7 @@ int row_filter_transpose(float * restrict pixels, float * restrict output, int w
       output[dst_ind] = partialSum;
       dst_ind += h;
 
-      inc_mem(1)
+      inc_write(1, float);
     }
 
     row_ind += w;
@@ -200,15 +200,15 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
   
   for (int r = 0; r < h; r++) {
     memcpy(&row_buf[kernel_rad], &pixels[row_ind], elemSize * w);
-    inc_mem(w); // memcpy 1 read / 1 write
-    inc_mem(w);
+    inc_read(w, float);
+    inc_write(w, float);
     firstData = pixels[row_ind];
     lastData = pixels[row_ind + w - 1];
-    inc_mem(2); // 2 reads
+    inc_read(2, float); // 2 reads
     for (int i = 0; i < kernel_rad; i++) {
       row_buf[i] = firstData;
       row_buf[i + w + kernel_rad] = lastData;
-      inc_mem(2); // 2 writes
+      inc_write(2, float); // 2 writes
     }
 
     dst_ind = r;
@@ -242,7 +242,7 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
     
         inc_adds(8);
         inc_mults(8);
-        inc_mem(16);
+        inc_read(16, float);
       }
 
       for (; j < kernel_size; ++j) {
@@ -251,7 +251,7 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
 
         inc_adds(1);
         inc_mults(1);
-        inc_mem(2);
+        inc_read(2, float);
       }
 
       t1 += t2;
@@ -302,7 +302,7 @@ int row_filter_transpose_single_unroll(float * restrict pixels, float * restrict
 
       buf_ind -= 2 * kernel_rad;
       output[dst_ind] = partialSum;
-      inc_mem(1);
+      inc_write(1, float);
       dst_ind += h;
     }
 
