@@ -12,9 +12,9 @@ class RuntimePlot:
         self.title = "Runtime "
         self.x_label ="Image Resolution [pixels]"
         if meas_method == 'rdtsc':
-            self.y_label = "Runtime [cycles]"
+            self.y_label = "Runtime\n[cycles]"
         else:
-            self.y_label = "Runtime [\u03BCs]"
+            self.y_label = "Runtime\n[\u03BCs]"
 
         self.title_font = {'fontname':'Calibri'}
         self.init_plot(y_max)
