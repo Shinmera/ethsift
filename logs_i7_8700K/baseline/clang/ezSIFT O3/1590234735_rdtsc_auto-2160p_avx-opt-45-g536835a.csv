@@ -1,0 +1,12 @@
+MethodName, Median, Std
+ez_Downscale, 19566826, 622232
+ez_Convolution, 465445178, 588663
+ez_Octaves, 7850512, 2.12308e+06
+ez_GaussianPyramid, 3587934752, 1.13377e+07
+ez_DOGPyramid, 138432904, 5.39794e+06
+ez_GradientAndRotationPyramids, 974354834, 992396
+ez_Histogram, 18812, 2591.58
+ez_ExtremaRefinement, 290, 103.782
+ez_KeypointDetection, 167066196, 282139
+ez_ExtractDescriptor, 66792158, 603300
+ez_MeasureFull, 5694807418, 1.17605e+07
