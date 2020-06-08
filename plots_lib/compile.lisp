@@ -100,6 +100,7 @@ exit
       (multiple-value-bind (perf mad) (compute-performance (getf log :median) (getf log :mad) count)
         (setf (getf log :median) perf)
         (setf (getf log :mad) mad))))
+  (setf (getf log :input-size) (remove-if-not #'digit-char-p (getf log :input)))
   log)
 
 (defun log< (a b)
@@ -111,19 +112,21 @@ exit
 (defun parse (logs counts)
   (let ((logs (parse-all-logs logs))
         (counts (parse-all-counts counts)))
-    (loop for log in logs
-          do (normalise-log log counts))
-    (sort logs #'log<)))
+    (sort (loop for log in logs collect (normalise-log log counts)) #'log<)))
 
 (defun write-all-logs (logs path)
   (with-open-file (stream path :direction :output
                                :if-exists :supersede)
-    (let ((cols '(:library :version :compiler :flags :mode :input :function :median :mad)))
+    (let ((cols '(:library :version :compiler :flags :mode :input :input-size :function :median :mad)))
       (labels ((write-row (cols)
                  (format stream "~{~f~^, ~}~%" cols)))
-        (write-row cols)
+        (write-row (list* :name cols))
         (dolist (row logs)
-          (write-row (filter-cols row cols)))))))
+          (write-row (list* (format NIL "~a ~a ~a ~a ~a ~a"
+                                    (getf row :library) (getf row :version)
+                                    (getf row :compiler) (getf row :flags)
+                                    (getf row :mode) (getf row :function))
+                            (filter-cols row cols))))))))
 
 (defun main ()
   (write-all-logs (parse (log-dir) (count-dir))
