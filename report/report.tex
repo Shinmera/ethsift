@@ -53,7 +53,9 @@
     xmin=180, xmax=5000,
     xtick={240, 360, 480, 720, 1080, 2160, 4320},
     xticklabels={240p, 360p, 480p, 720p, 1080p, 2160p, 4320p},
-    xlabel={image size}
+    xlabel={image size},
+    axis background/.style={fill=gray!20},
+    grid style={white},
   },
   discard if not/.style 2 args={
     x filter/.code={
@@ -68,15 +70,11 @@
 }
 \tikzstyle{nodeDefaults}=[
   pos=-0.05,
-  fill=white,
-  fill opacity=0.75
 ]
 
 \newcommand{\perfPlot}[3]{
   \begin{tikzpicture}
     \begin{axis}[perfDefaults, xmode=log, ymode=log]
-      \addplot[color=black,style=thick] coordinates {(120,2) (5000,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
-      \addplot[color=red,style=thick] coordinates {(120,16) (5000,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
       \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1}]
       table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[nodeDefaults] {avx};
       \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1}]
@@ -85,6 +83,8 @@
       table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[#2,nodeDefaults] {base};
       \addplot+[discard if not={NAME}{ezSIFT baseline icc O3 rdtsc #1}]
       table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[#3,nodeDefaults] {ezsift};
+      \addplot[color=black,style=thick] coordinates {(120,2) (5000,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
+      \addplot[color=red,style=thick] coordinates {(120,16) (5000,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
     \end{axis}
   \end{tikzpicture}
 }
@@ -263,7 +263,7 @@ We achieved huge result. Our results are the best results ever. Noone ever achie
 
 \begin{figure*}[ht]
   \centering
-  \perfPlot{GradientAndRotationPyramids}{}{above}
+  \perfPlot{GradientAndRotationPyramids}{}{}
   \label{fig:grad-opts}
   \caption{Performance comparison of our optimisation steps for the gradient and rotation pyramids}
 \end{figure*}
