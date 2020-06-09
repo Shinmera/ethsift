@@ -13,3 +13,10 @@ tester
 Makefile
 CMakeCache.txt
 .vs/
+_minted-*
+auto/
+*.aux
+*.log
+*.synctex.gz
+*.out
+*.bbl
