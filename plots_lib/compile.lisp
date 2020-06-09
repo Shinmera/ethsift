@@ -65,7 +65,7 @@ exit
          (compiler (nth (- (length dirs) 2) dirs)))
     (destructuring-bind (library version &optional flags) (cl-ppcre:split " " (nth (1- (length dirs)) dirs))
       (unless flags
-        (shiftf flags version NIL))
+        (shiftf flags version "baseline"))
       (setf flags (cl-ppcre:regex-replace "-flags$" flags ""))
       (extend-cols
        (append (parse-filename-info (pathname-name path))

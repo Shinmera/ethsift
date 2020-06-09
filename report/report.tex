@@ -30,6 +30,7 @@
 
 % Better default colours and labelling for plots
 \pgfplotsset{
+  filter discard warning=false,
   compat=newest,
   cycle list/Spectral,
   cycle multiindex* list={
@@ -41,30 +42,51 @@
     anchor=south,
   },
   perfDefaults/.style={
-      width=14cm, height=5cm,
-      grid=major,
-      log basis y=2,
-      ymin=0.25, ymax=32,
-      ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
-      yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
-      ylabel={flops/cycle},
-      xtick={240, 360, 480, 720, 1080, 2160, 4320},
-      xticklabels={240p, 360p, 480p, 720p, 1080p, 2160p, 4320p},
-      xlabel={image size}
+    unbounded coords=discard,
+    width=14cm, height=6cm,
+    grid=major,
+    log basis y=2,
+    ymin=0.25, ymax=32,
+    ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+    yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+    ylabel={flops/cycle},
+    xmin=180, xmax=5000,
+    xtick={240, 360, 480, 720, 1080, 2160, 4320},
+    xticklabels={240p, 360p, 480p, 720p, 1080p, 2160p, 4320p},
+    xlabel={image size}
+  },
+  discard if not/.style 2 args={
+    x filter/.code={
+      \edef\tempa{\thisrow{#1}}
+      \edef\tempb{#2}
+      \ifx\tempa\tempb
+      \else
+      \def\pgfmathresult{inf}
+      \fi
     }
+  }
 }
+\tikzstyle{nodeDefaults}=[
+  pos=-0.05,
+  fill=white,
+  fill opacity=0.75
+]
 
-\pgfplotsset{
-    discard if not/.style 2 args={
-        x filter/.code={
-            \edef\tempa{\thisrow{#1}}
-            \edef\tempb{#2}
-            \ifx\tempa\tempb
-            \else
-                \def\pgfmathresult{inf}
-            \fi
-        }
-    }
+\newcommand{\perfPlot}[3]{
+  \begin{tikzpicture}
+    \begin{axis}[perfDefaults, xmode=log, ymode=log]
+      \addplot[color=black,style=thick] coordinates {(120,2) (5000,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
+      \addplot[color=red,style=thick] coordinates {(120,16) (5000,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[nodeDefaults] {avx};
+      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[nodeDefaults] {stdc};
+      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[#2,nodeDefaults] {base};
+      \addplot+[discard if not={NAME}{ezSIFT baseline icc O3 rdtsc #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[#3,nodeDefaults] {ezsift};
+    \end{axis}
+  \end{tikzpicture}
 }
 
 \title{A SIFT Descriptor for Feature Matching}
@@ -226,49 +248,22 @@ Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx
 We achieved huge result. Our results are the best results ever. Noone ever achieved such great results. 
 
 \begin{figure*}[ht]
-\centering
-  \begin{tikzpicture}
-    \begin{axis}[perfDefaults, xmode=log, ymode=log,]
-      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc MeasureFull}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {avx};
-      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc MeasureFull}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {stdc};
-      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc MeasureFull}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {base};
-    \end{axis}
-  \end{tikzpicture}
+  \centering
+  \perfPlot{MeasureFull}{}{below}
   \label{fig:full-opts}
   \caption{Performance comparison of our optimisation steps for the whole algorithm}
 \end{figure*}
 
 \begin{figure*}[ht]
-\centering
-  \begin{tikzpicture}
-    \begin{axis}[perfDefaults, xmode=log, ymode=log,]
-      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc Convolution}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {avx};
-      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc Convolution}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {stdc};
-      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc Convolution}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {base};
-    \end{axis}
-  \end{tikzpicture}
+  \centering
+  \perfPlot{Convolution}{below}{above}
   \label{fig:convolution-opts}
   \caption{Performance comparison of our optimisation steps for the gaussian kernel convolution}
 \end{figure*}
 
 \begin{figure*}[ht]
-\centering
-  \begin{tikzpicture}
-    \begin{axis}[perfDefaults, xmode=log, ymode=log,]
-      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc GradientAndRotationPyramids}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {avx};
-      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc GradientAndRotationPyramids}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {stdc};
-      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc GradientAndRotationPyramids}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,midway] {base};
-    \end{axis}
-  \end{tikzpicture}
+  \centering
+  \perfPlot{GradientAndRotationPyramids}{}{above}
   \label{fig:grad-opts}
   \caption{Performance comparison of our optimisation steps for the gradient and rotation pyramids}
 \end{figure*}
