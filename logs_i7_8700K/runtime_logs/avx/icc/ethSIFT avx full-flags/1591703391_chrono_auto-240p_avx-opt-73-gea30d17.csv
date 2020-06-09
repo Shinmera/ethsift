@@ -1,0 +1,14 @@
+MethodName, Median, Std
+eth_Downscale, 9, 0
+eth_Convolution, 295, 0
+eth_Octaves, 26, 0
+eth_GaussianKernelGeneration, 1, 0
+eth_GaussianPyramid, 2980, 13.3434
+eth_DOGPyramid, 132, 1.4826
+eth_GradientAndRotationPyramids, 337, 1.4826
+eth_Histogram, 3, 0
+eth_ExtremaRefinement, 0, 0
+eth_KeypointDetection, 897, 1.4826
+eth_ExtractDescriptor, 2442, 2.9652
+eth_MeasureFull, 6919, 54.8562
+eth_MeasureFullNoAlloc, 6883, 62.2692
