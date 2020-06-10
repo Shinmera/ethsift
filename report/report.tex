@@ -97,11 +97,13 @@
         log basis y=10
       ]
       \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono #1}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {avx};
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[pos=-0.05] {avx};
       \addplot+[discard if not={NAME}{ethSIFT std-c icc full chrono #1}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {stdc};
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[pos=-0.05] {stdc};
       \addplot+[discard if not={NAME}{ethSIFT baseline icc full chrono #1}]
-      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {base};
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[pos=-0.05] {base};
+      \addplot+[discard if not={NAME}{ezSIFT baseline icc avx chrono #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=-0.05] {ezsift};
     \end{axis}
   \end{tikzpicture}
 }
