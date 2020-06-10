@@ -267,7 +267,7 @@ Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx
 
 \subsection*{Results}
 \colorbox{red}{\parbox{0.45\textwidth}{TODO}}
-As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradient and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. \\
+As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradient and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. The domination of the gaussian kernel convolution over the rest of the algorithm is clearly shown in \autoref{fig:relative}. \\
 
 During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. For the optimised implementation, changing compiler flags -- such as adding \texttt{-flto} or \texttt{-fno-tree-vectorise} -- only minimally impacted runtime, on the level of measurement noise. Aligning memory to pages or even forcing all memory to be paged in ahead of time did not significantly improve runtime. \\
 
@@ -299,6 +299,44 @@ The Intel VTune profiler showed that our gaussian kernel convolution was primari
   \runtimePlot{MeasureFull}{}{below}
   \caption{Runtime comparison of our optimisation steps for the whole algorithm}
   \label{fig:runtime}
+\end{figure*}
+
+\begin{figure*}[tbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=14cm,
+      height=5cm,
+      ybar stacked,
+      cycle list/Spectral,
+      every axis plot/.append style={fill},
+      bar width=0.75cm,
+      ymin=0, ymax=1,
+      xmode=log,
+      xtick={240, 360, 480, 720, 1080, 2160, 4320},
+      xticklabels={240p, 360p, 480p, 720p, 1080p, 2160p, 4320p},
+      xlabel={image size},
+      legend style={at={(0.5,-0.20)},anchor=north,legend columns=-1},
+      ]
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono GaussianPyramid}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono GradientAndRotationPyramids}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono Histogram}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono ExtremaRefinement}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono KeypointDetection}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono ExtractDescriptor}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono DOGPyramid}]
+      table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
+      \legend{\strut Gaussians, \strut Gradients, \strut Histogram, \strut Extrema, \strut Kepyoint, \strut Descriptor, \strut DOG}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Relative runtime of individual algorithm steps over input size}
+  \label{fig:relative}
 \end{figure*}
 
 \section{Conclusions}
