@@ -266,7 +266,6 @@ Our measurements were performed on a machine running an Intel Core i7-8700K CPU 
 Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx2 -march=skylake -flto -ffast-math -fno-unsafe-math-optimizations} for optimisation flags. We used input images in sizes of 240p, 360p, 480p, 720p, 1080p, 2160p, and 4320p.
 
 \subsection*{Results}
-\colorbox{red}{\parbox{0.45\textwidth}{TODO}}
 As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradient and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. The domination of the gaussian kernel convolution over the rest of the algorithm is clearly shown in \autoref{fig:relative}. \\
 
 During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. For the optimised implementation, changing compiler flags -- such as adding \texttt{-flto} or \texttt{-fno-tree-vectorise} -- only minimally impacted runtime, on the level of measurement noise. Aligning memory to pages or even forcing all memory to be paged in ahead of time did not significantly improve runtime. \\
@@ -358,11 +357,9 @@ SIFT steps that are not on the hot path could also be improved further -- such a
 Finally, the generation of the pyramid levels could be distributed onto multiple processors relatively easily, as many levels are independent. \\
 
 \section{Contributions of Team Members}
-\colorbox{red}{\parbox{0.45\textwidth}{TODO}} \\
+\textbf{Nicolas} Implementation of performance and runtime measurement systems, analysis and optimisation of memory allocations and layout, optimised keypoint detection and histogram computation, helped Jan with analysis and optimisation of the gaussian kernel convolution, as well as with the cycle and memory counters. \\
 
-\textbf{Nicolas} Implementation of performance and runtime measurement systems, analysis and optimisation of memory allocations and layout, optimised keypoint detection, histogram computation, helped Jan with analysis and optimisation of the gaussian kernel convolution, as well as with the cycle and memory counters. \\
-
-\textbf{Zsombor} Base implementation of Gaussian pyramids, Kernel generation, Histograms, Compute Keypoints, large amount of tests and measurement methods. Optimized Rotation/Gradient Pyramids & Difference Pyramids. Wrote a large part of our matplot-lib based plotting library. Performed macro cross-compiler analysis. Implemented initial flop counting system, along with Costanza \\
+\textbf{Zsombor} Base implementation of Gaussian pyramids, Kernel generation, Histograms, Compute Keypoints, large amount of tests and measurement methods. Optimized Rotation/Gradient Pyramids \& Difference Pyramids. Wrote a large part of our matplot-lib based plotting library. Performed macro cross-compiler analysis. Implemented initial flop counting system, along with Costanza \\
 
 \textbf{Jan} Implementation of flop and memory counting system, implemented and optimized gaussian kernel convolution, implemented roofline plots, helped writing tests for ethsift functions, helped Zsombor and Costanza with micro and macro analysis. \\
  
