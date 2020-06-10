@@ -324,11 +324,11 @@ Finally, the generation of the pyramid levels could be distributed onto multiple
 
 \textbf{Nicolas} Implementation of performance and runtime measurement systems, analysis and optimisation of memory allocations and layout, optimised keypoint detection, histogram computation, helped Jan with analysis and optimisation of the gaussian kernel convolution, as well as with the cycle and memory counters. \\
 
-\textbf{Zsombor} Base implementation of Gaussian pyramids, Kernel generation, Histograms, Compute Keypoints, large amount of tests and measurement methods. Optimized Rotation/Gradient Pyramids & Difference Pyramids. Wrote a large part of our matplot-lib based plotting library.  \\
+\textbf{Zsombor} Base implementation of Gaussian pyramids, Kernel generation, Histograms, Compute Keypoints, large amount of tests and measurement methods. Optimized Rotation/Gradient Pyramids & Difference Pyramids. Wrote a large part of our matplot-lib based plotting library. Performed macro cross-compiler analysis. Implemented initial flop counting system, along with Costanza \\
 
 \textbf{Jan} Implementation of flop and memory counting system, implemented and optimized gaussian kernel convolution, implemented roofline plots, helped writing tests for ethsift functions, helped Zsombor and Costanza with micro and macro analysis. \\
-
-\textbf{Costanza} \\
+ 
+\textbf{Costanza} Base implementation of Difference of Gaussian, Gradient and Rotation pyramids, with the relative tests. Performed standard C and ILP optimisations on extrema refinement and descriptor extraction. Performed micro analysis and macro cross-optimisation analysis. Contributed to the plot design of Zsombor's plotting library. Implemented initial flop counting system along with Zsombor, and checked for the correctness of Jan's final counting system after every optimisation step. 
 
 \bibliography{report}
 \end{document}
