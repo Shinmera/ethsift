@@ -238,9 +238,9 @@ here $p$ is the input image, and $ker$ is the 1D Gaussian kernel. This gets appl
 \end{equation}
 In our implementation we used the horizontal row filter only and just transposed its output, this allowed us to reuse the same filter function for the vertical part. After the second row filter, the results gets transposed again.\\
 
-For our standard-C optimizations, we increased ILP by unrolling our loops wherever possible. And, we also applied some tricks, e.g., scalar replacement, to overcome compiler limitations. In our best version, we managed to achieve an up to 2 times speed-up in performance.\\
+For our standard-C optimizations, we increased ILP by unrolling our loops wherever possible. And, we also applied some tricks, e.g., scalar replacement, to overcome compiler limitations. In our best version, we managed to achieve an up to 2x speed-up in performance.\\
 
-We further optimized our implementation using AVX intrinsics. Our best performing optimization applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a speed-up of more than 4 times compared to the baseline.
+We further optimized our implementation using AVX intrinsics. Our best performing optimization applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a speed-up of more than 5x compared to the baseline.
 
 
 \subsection*{Gradient and Rotation Computation}
@@ -267,36 +267,38 @@ Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx
 
 \subsection*{Results}
 \colorbox{red}{\parbox{0.45\textwidth}{TODO}}
-As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradiant and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. \\
+As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradient and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. \\
 
-During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. 
+During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. For the optimised implementation, changing compiler flags -- such as adding \texttt{-flto} or \texttt{-fno-tree-vectorise} -- only minimally impacted runtime, on the level of measurement noise. Aligning memory to pages or even forcing all memory to be paged in ahead of time did not significantly improve runtime. \\
+
+The Intel VTune profiler showed that our gaussian kernel convolution was primarily suffering from performance penalties resulting from split loads -- floats not aligned with vector register boundaries. This is due to a moving window pass in the inner loop.
 
 \begin{figure*}[tbp]
   \centering
   \perfPlot{MeasureFull}{}{below}
-  \label{fig:full-opts}
   \caption{Performance comparison of our optimisation steps for the whole algorithm}
+  \label{fig:full-opts}
 \end{figure*}
 
 \begin{figure*}[tbp]
   \centering
   \perfPlot{Convolution}{below}{above}
-  \label{fig:convolution-opts}
   \caption{Performance comparison of our optimisation steps for the gaussian kernel convolution}
+  \label{fig:convolution-opts}
 \end{figure*}
 
 \begin{figure*}[tbp]
   \centering
   \perfPlot{GradientAndRotationPyramids}{}{}
-  \label{fig:grad-opts}
   \caption{Performance comparison of our optimisation steps for the gradient and rotation pyramids}
+  \label{fig:grad-opts}
 \end{figure*}
 
 \begin{figure*}[tbp]
   \centering
   \runtimePlot{MeasureFull}{}{below}
-  \label{fig:runtime}
   \caption{Runtime comparison of our optimisation steps for the whole algorithm}
+  \label{fig:runtime}
 \end{figure*}
 
 \section{Conclusions}
@@ -306,14 +308,14 @@ The biggest bottlenecks in the SIFT algorithm are by far the Gaussian kernel con
 
 While a large part of the kernel convolution can be vectorised, a big hindrance is the moving window over the kernel, which causes unaligned memory access and thus many split loads that slow down the loading. We attempted to circumvent this by prefetching and shuffling as required instead, but this resulted in overall worse performance as cross-lane shuffles are expensive. \\
 
-Overall, using basic C and AVX optimisations we managed to achieve a speedup of approximately 3x over the baseline implementation, and of up to 10x in select parts of the algorithm. \\
+Overall, using basic C and AVX optimisations we managed to achieve a speedup of approximately 4x over the baseline implementation, and of up to 10x in select parts of the algorithm. \\
 
 The source code for ethSIFT can be found under the zlib license on GitHub: \\\url{https://github.com/shinmera/ethsift}.
 
 \section{Future Work}
 We think it might be possible to replace the Gaussian kernel convolution with an FFT approach to generate the blurred images instead. Whether this would result in improved performance over a fully optimised kernel convolution implementation is not entirely clear to us at this point though. \\
 
-SIFT steps that are not on the hot path could also be improved further, though we don't see a large benefit to doing so, as the time is massively dominated by the Gaussian convolution and rotation/gradient computations. \\
+SIFT steps that are not on the hot path could also be improved further -- such as by fusing consecutive additions with FMAs -- though we don't see a large benefit to doing so, as the time is massively dominated by the Gaussian convolution and rotation/gradient computations. \\
 
 Finally, the generation of the pyramid levels could be distributed onto multiple processors relatively easily, as many levels are independent. \\
 
