@@ -41,15 +41,10 @@
     at={(ticklabel* cs:1.05)},
     anchor=south,
   },
-  perfDefaults/.style={
+  plotDefaults/.style={
     unbounded coords=discard,
-    width=14cm, height=6cm,
+    width=14cm, height=5cm,
     grid=major,
-    log basis y=2,
-    ymin=0.25, ymax=32,
-    ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
-    yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
-    ylabel={flops/cycle},
     xmin=180, xmax=5000,
     xtick={240, 360, 480, 720, 1080, 2160, 4320},
     xticklabels={240p, 360p, 480p, 720p, 1080p, 2160p, 4320p},
@@ -74,7 +69,13 @@
 
 \newcommand{\perfPlot}[3]{
   \begin{tikzpicture}
-    \begin{axis}[perfDefaults, xmode=log, ymode=log]
+    \begin{axis}[plotDefaults, xmode=log, ymode=log,
+        ymin=0.25, ymax=32,
+        ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+        yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+        ylabel={flops/cycle},
+        log basis y=2,
+      ]
       \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1}]
       table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[nodeDefaults] {avx};
       \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1}]
@@ -85,6 +86,22 @@
       table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[#3,nodeDefaults] {ezsift};
       \addplot[color=black,style=thick] coordinates {(120,2) (5000,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
       \addplot[color=red,style=thick] coordinates {(120,16) (5000,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
+    \end{axis}
+  \end{tikzpicture}
+}
+
+\newcommand{\runtimePlot}[3]{
+  \begin{tikzpicture}
+    \begin{axis}[plotDefaults, xmode=log, ymode=log,
+        ylabel={\mu s},
+        log basis y=10
+      ]
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {avx};
+      \addplot+[discard if not={NAME}{ethSIFT std-c icc full chrono #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {stdc};
+      \addplot+[discard if not={NAME}{ethSIFT baseline icc full chrono #1}]
+      table[col sep=comma, x=INPUT-SIZE, y=MEDIAN] {../plots_lib/all.csv} node[above,pos=0.2] {base};
     \end{axis}
   \end{tikzpicture}
 }
@@ -191,7 +208,7 @@ define_test(SampleTest, 1, {
 \label{lst:sample-test}
 \end{listing}
 
-\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body, allowing very convenient definition of repeat measurements. Depending on the presence of the \cc{USE_RDTSC} compiler flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{rdtsc} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code. \\
+\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body, allowing very convenient definition of repeat measurements. Depending on the presence of the \cc{USE_RDTSC} compiler flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{chrono} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code. \\
 
 The tester framework automatically picks up any test definitions and will run them in order of definition. For tests that incur measurement, the measurement values are automatically recorded. The tester will continuously compute and display the median, as well as the median absolute deviation when the tests are run, and finally output the last recorded values to a CSV file for plot generation. \\
 
@@ -208,6 +225,7 @@ Finally we fix many SIFT parameters in place as constants in order to allow bett
 
 \subsection*{Gaussian Kernel Convolution}
 The Convolution function is one of the main building blocks of our SIFT implementation. It gets called several times to generate the Gaussian Pyramid, which is, computationally and time-wise, the main bottleneck in our implementation. And therefore, optimizations to this function promise the biggest payoff. \\
+
 The main goal of the function is to blur an image by applying a 2D-convolution using 2D Gaussian kernel. In our baseline implementation, we made use of the separability of a Gaussian filter. Due to this separability, we could split the 2D-convolution in two 1D-convolutions using 1D Gaussian kernels by first filtering the image horizontally and in a second step vertically. In our implementation, the 1D-convolution for the horizontal row filter can be described as
 \begin{equation}\label{eq_h}
     g_{i,j} = \sum_{k=0}^{K-1} p_{i-\frac{K}{2}+k,j} * ker_{k}
@@ -217,15 +235,20 @@ here $p$ is the input image, and $ker$ is the 1D Gaussian kernel. This gets appl
     f_{i,j} = \sum_{k=0}^{K-1} g_{i,j-\frac{K}{2}+k} * ker_{k}
 \end{equation}
 In our implementation we used the horizontal row filter only and just transposed its output, this allowed us to reuse the same filter function for the vertical part. After the second row filter, the results gets transposed again.\\
+
 For our standard-C optimizations, we increased ILP by unrolling our loops wherever possible. And, we also applied some tricks, e.g., scalar replacement, to overcome compiler limitations. In our best version, we managed to achieve an up to 2 times speed-up in performance.\\
+
 We further optimized our implementation using AVX intrinsics. Our best performing optimization applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a speed-up of more than 4 times compared to the baseline.
 
 
 \subsection*{Gradient and Rotation Computation}
 One of the bottlenecks we found during profiling was the calculation of the Gradient \& Rotation Pyramids. \\
+
 The calculation of the two pyramids involves differences on given row $r$ and column $c$ in the form of two temporary variables $t1 = g(r-1,c) - g(r+1, c)$, $t2 = g(r,c-1) - g(r, c+1)$ where g is some Gaussian filtered image from the Gaussian pyramid and $g(r,c)$ a pixel at row $r$ and column $c$.
 Due to the fact that for each row and column we look at the row (and column) above and below (resp. to the left and to the right) of it, we had in our first implementation an inline method for getting the pixel at a given position and checking for the border. In case we would have exceeded the border in some form, it returned the value at the border. The naive implementation of this method included branching and a worst case of eight conditional checks. \\
+
 In a first step of our Standard-C optimization, we were able to get a performance boost by reducing the worst case checks from eight to a constant amount of four. Also we unrolled an outer loop of three iterations and prevented recalculation of variables which were recyclable. This lead to a more than 2x performance boost.\\
+
 For the AVX2 implementation we then had to come up for a solution regarding the border issue. We decided to calculate the border as we have done before and only parallelize the middle of the image. Since the calculations also required the atan2 function and there was no intrinsics function for that, we also implemented an inline method using AVX2 intel intrinsics which we called "eth\_mm256\_atan2\_ps". Thanks to this implementation, we were able to get an approximate speed-up of factor 11.
 
 
@@ -236,36 +259,42 @@ We implemented an AVX2 vectorized version of the atan2 function, which was mainl
 In this section we detail our performance measurements and discuss how our changes affected the overall runtime and performance of our implementation. We also take a brief look at how different compilers and compiler flags changed the performance.
 
 \subsection*{Experimental Setup}
-Our measurements were performed on a machine running an Intel Core i7-8700K CPU with a fixed clock at 4.4GHz. This model of the CPU is part of the Coffee Lake series and has a 6x32 KB 8-way L1-cache, 6x256 KB 4-way L2-cache, and a 12 MB 16-way shared L3 cache. \\
+Our measurements were performed on a machine running an Intel Core i7-8700K CPU with a fixed clock at 3.7GHz. This model of the CPU is part of the Coffee Lake series and has a 6x32 KB 8-way L1-cache, 6x256 KB 4-way L2-cache, and a 12 MB 16-way shared L3 cache. \\
 
 Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx2 -march=skylake -flto -ffast-math -fno-unsafe-math-optimizations} for optimisation flags. We used input images in sizes of 240p, 360p, 480p, 720p, 1080p, 2160p, and 4320p.
 
 \subsection*{Results}
 \colorbox{red}{\parbox{0.45\textwidth}{TODO}}
-% The plot will contain several lines, one for each relevant code version. 
-% Discuss the plot and extract the overall performance gain from baseline
-% to best code. State the percentage of peak performance for the best code.
-We achieved huge result. Our results are the best results ever. Noone ever achieved such great results. 
+As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradiant and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. \\
 
-\begin{figure*}[ht]
+During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. 
+
+\begin{figure*}[tbp]
   \centering
   \perfPlot{MeasureFull}{}{below}
   \label{fig:full-opts}
   \caption{Performance comparison of our optimisation steps for the whole algorithm}
 \end{figure*}
 
-\begin{figure*}[ht]
+\begin{figure*}[tbp]
   \centering
   \perfPlot{Convolution}{below}{above}
   \label{fig:convolution-opts}
   \caption{Performance comparison of our optimisation steps for the gaussian kernel convolution}
 \end{figure*}
 
-\begin{figure*}[ht]
+\begin{figure*}[tbp]
   \centering
   \perfPlot{GradientAndRotationPyramids}{}{}
   \label{fig:grad-opts}
   \caption{Performance comparison of our optimisation steps for the gradient and rotation pyramids}
+\end{figure*}
+
+\begin{figure*}[tbp]
+  \centering
+  \runtimePlot{MeasureFull}{}{below}
+  \label{fig:runtime}
+  \caption{Runtime comparison of our optimisation steps for the whole algorithm}
 \end{figure*}
 
 \section{Conclusions}
