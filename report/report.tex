@@ -328,7 +328,7 @@ The Intel VTune profiler showed that our gaussian kernel convolution was primari
       table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
       \addplot+[discard if not={NAME}{ethSIFT avx icc full chrono DOGPyramid}]
       table[ybar, col sep=comma, x=INPUT-SIZE, y=RELATIVE] {../plots_lib/all.csv};
-      \legend{\strut Gaussians, \strut Gradients, \strut Histogram, \strut Extrema, \strut Kepyoint, \strut Descriptor, \strut DOG}
+      \legend{\strut Gaussians, \strut Gradients, \strut Kepyoint, \strut Descriptor, \strut DOG}
     \end{axis}
   \end{tikzpicture}
   \caption{Relative runtime of individual algorithm steps over input size. Histogram computation and extrema refinement are not included, as they are insignificant in runtime.}
