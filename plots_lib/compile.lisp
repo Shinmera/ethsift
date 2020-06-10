@@ -41,6 +41,12 @@ exit
                        always (equalp (getf candidate field) (getf entry field)))
              (return candidate))))
 
+(defun find-all-matching (entry candidates &rest fields)
+  (loop for candidate in candidates
+        when (loop for field in fields
+                   always (equalp (getf candidate field) (getf entry field)))
+        collect candidate))
+
 (defun parse-filename-info (filename)
   (destructuring-bind (stamp mode input commit) (cl-ppcre:split "_" filename)
     (list :stamp stamp
@@ -94,12 +100,17 @@ exit
   (let ((perf (float (/ flops cycles)))) ;; Copied from read_logs.py, but this seems weird af to me.
     (values perf (- (/ flops (+ mad cycles)) perf))))
 
-(defun normalise-log (log cycle-counts)
+(defun normalise-log (log logs cycle-counts)
   (when (string= "rdtsc" (getf log :mode))
     (let ((count (getf (find-matching log cycle-counts :version :function :input) :flops 0)))
       (multiple-value-bind (perf mad) (compute-performance (getf log :median) (getf log :mad) count)
         (setf (getf log :median) perf)
         (setf (getf log :mad) mad))))
+  (let* ((others (find-all-matching log logs :library :version :compiler :flags :mode :input))
+         (sum (loop for log in others
+                    when (find (getf log :function) '("GaussianPyramid" "DOGPyramid" "GradientAndrotationpyramids" "Histogram" "ExtremaRefinement" "KeypointDetection" "ExtractDescriptor") :test #'equalp)
+                    sum (getf log :median))))
+    (setf (getf log :relative) (/ (getf log :median) sum)))
   (setf (getf log :input-size) (remove-if-not #'digit-char-p (getf log :input)))
   log)
 
@@ -112,12 +123,12 @@ exit
 (defun parse (logs counts)
   (let ((logs (parse-all-logs logs))
         (counts (parse-all-counts counts)))
-    (sort (loop for log in logs collect (normalise-log log counts)) #'log<)))
+    (sort (loop for log in logs collect (normalise-log log logs counts)) #'log<)))
 
 (defun write-all-logs (logs path)
   (with-open-file (stream path :direction :output
                                :if-exists :supersede)
-    (let ((cols '(:library :version :compiler :flags :mode :input :input-size :function :median :mad)))
+    (let ((cols '(:library :version :compiler :flags :mode :input :input-size :function :median :mad :relative)))
       (labels ((write-row (cols)
                  (format stream "~{~f~^, ~}~%" cols)))
         (write-row (list* :name cols))
