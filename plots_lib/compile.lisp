@@ -101,11 +101,14 @@ exit
     (values perf (- (/ flops (+ mad cycles)) perf))))
 
 (defun normalise-log (log logs cycle-counts)
+  (setf (getf log :intensity) 0)
   (when (string= "rdtsc" (getf log :mode))
-    (let ((count (getf (find-matching log cycle-counts :version :function :input) :flops 0)))
-      (multiple-value-bind (perf mad) (compute-performance (getf log :median) (getf log :mad) count)
-        (setf (getf log :median) perf)
-        (setf (getf log :mad) mad))))
+    (let ((count (find-matching log cycle-counts :version :function :input)))
+      (when count
+        (multiple-value-bind (perf mad) (compute-performance (getf log :median) (getf log :mad) (getf count :flops 0))
+          (setf (getf log :median) perf)
+          (setf (getf log :mad) mad)
+          (setf (getf log :intensity) (/ (getf count :flops) (getf count :bytes)))))))
   (let* ((others (find-all-matching log logs :library :version :compiler :flags :mode :input))
          (sum (loop for log in others
                     when (find (getf log :function) '("GaussianPyramid" "DOGPyramid" "GradientAndrotationpyramids" "Histogram" "ExtremaRefinement" "KeypointDetection" "ExtractDescriptor") :test #'equalp)
@@ -128,7 +131,7 @@ exit
 (defun write-all-logs (logs path)
   (with-open-file (stream path :direction :output
                                :if-exists :supersede)
-    (let ((cols '(:library :version :compiler :flags :mode :input :input-size :function :median :mad :relative)))
+    (let ((cols '(:library :version :compiler :flags :mode :input :input-size :function :median :mad :relative :intensity)))
       (labels ((write-row (cols)
                  (format stream "~{~f~^, ~}~%" cols)))
         (write-row (list* :name cols))
