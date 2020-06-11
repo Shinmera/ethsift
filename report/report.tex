@@ -117,24 +117,33 @@
         grid=major,
         axis background/.style={fill=gray!20},
         grid style={white},
-        xmin=0.03125, xmax=16,
+        xmin=0.03125, xmax=8,
         xtick={0.125, 0.5, 2, 8},
         xticklabels={$\frac{1}{8}$, $\frac{1}{2}$, 2, 8},
         xlabel={Operational Intensity [flops/byte]},
-        ymin=0.25, ymax=32,
-        ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
-        yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+        ymin=0.5, ymax=32,
+        ytick={0.5, 1, 2, 4, 8, 16, 32},
+        yticklabels={0.5, 1, 2, 4, 8, 16, 32},
         ylabel={[flops/cycle]},
         log basis y=2,
         legend style={at={(0.5,-0.20)}},
         legend pos = south west
       ]
-      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1}]
-      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv}; % TODO x=MEDIAN needs to be replaced with OP-INTENSITY (Extend lisp script(?) with opertational intensity)
-      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1}]                         
-      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv};
-      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc #1}]
-      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1},
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.style={anchor=west, font=\tiny}]
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1},
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.style={anchor=west, font=\tiny}]                         
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc #1},
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.style={anchor=west, font=\tiny}]
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
       \addplot[color=black,style=thick] coordinates {(0.03125,2) (16,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
       \addplot[color=red,style=thick] coordinates {(0.03125,16) (16,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
       \addplot[color=orange, style=thick] coordinates {(0.03125,2) (0.5,32)} node[left,pos=0.9] {mem $\beta$ (64 bytes)};
