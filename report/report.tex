@@ -109,6 +109,40 @@
   \end{tikzpicture}
 }
 
+\newcommand{\roofPlot}[3]{
+  \begin{tikzpicture}
+    \begin{axis}[xmode=log, ymode=log,
+        unbounded coords=discard,
+        width=14cm, height=5cm,
+        grid=major,
+        axis background/.style={fill=gray!20},
+        grid style={white},
+        xmin=0.03125, xmax=16,
+        xtick={0.125, 0.5, 2, 8},
+        xticklabels={$\frac{1}{8}$, $\frac{1}{2}$, 2, 8},
+        xlabel={Operational Intensity [flops/byte]},
+        ymin=0.25, ymax=32,
+        ytick={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+        yticklabels={0.25, 0.5, 1, 2, 4, 8, 16, 32},
+        ylabel={[flops/cycle]},
+        log basis y=2,
+        legend style={at={(0.5,-0.20)}},
+        legend pos = south west
+      ]
+      \addplot+[discard if not={NAME}{ethSIFT avx icc full rdtsc #1}]
+      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv}; % TODO x=MEDIAN needs to be replaced with OP-INTENSITY (Extend lisp script(?) with opertational intensity)
+      \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1}]                         
+      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv};
+      \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc #1}]
+      table[col sep=comma, x=MEDIAN, y=MEDIAN] {../plots_lib/all.csv};
+      \addplot[color=black,style=thick] coordinates {(0.03125,2) (16,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
+      \addplot[color=red,style=thick] coordinates {(0.03125,16) (16,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
+      \addplot[color=orange, style=thick] coordinates {(0.03125,2) (0.5,32)} node[left,pos=0.9] {mem $\beta$ (64 bytes)};
+      \legend{\strut avx, \strut stdc, \strut base};
+    \end{axis}
+  \end{tikzpicture}
+}
+
 \title{A SIFT Descriptor for Feature Matching}
 \name{Nicolas Hafner,  Costanza Maria Improta,      Zsombor Kalotay,     Jan Leutwyler} 
 \address{Department of Computer Science\\ ETH Zürich\\Zürich, Switzerland}
@@ -299,6 +333,13 @@ The Intel VTune profiler showed that our gaussian kernel convolution was primari
   \runtimePlot{MeasureFull}{}{below}
   \caption{Runtime comparison of our optimisation steps for the whole algorithm}
   \label{fig:runtime}
+\end{figure*}
+
+\begin{figure*}[tbp]
+  \centering
+  \roofPlot{MeasureFull}{}{below}
+  \caption{Roofline plot of our optimisation steps for the whole algorithm}
+  \label{fig:roofline}
 \end{figure*}
 
 \begin{figure*}[tbp]
