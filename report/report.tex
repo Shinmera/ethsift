@@ -178,6 +178,8 @@ The original SIFT algorithm is outlined in a paper by \citet{lowe2004distinctive
 
 Our implementation is based on the ezSIFT implementation by \citet{ezsift} as well as the implementation in OpenCV\cite{opencv}. Our own implementation is standalone like ezSIFT, but offers a pure C interface that can be used by any other project or language that supports the C calling convention. We also do not depend on any particular image format, but instead leave the loading of image data up to the user.
 
+EzSIFT was chosen as a comparison point as it claims to be faster than the SIFT implementations of both OpenCV and VLfeat.
+
 \section{Background}\label{sec:background}
 In this section we will outline the steps of the SIFT algorithm as detailed in the original paper\cite{lowe2004distinctive}, as well as our overall analysis of the algorithm in terms of asymptotic complexity and cost.
 
@@ -211,8 +213,7 @@ The third stage is the \emph{Orientation Assignment}. Here, one or more orientat
 \end{equation}
 Then, an orientation histogram is formed from the gradient orientations of sample points within a region around the keypoint. This histogram has 36 bins covering the 360° range of orientations. Each sample added to the histogram is weighted by its gradient magnitude. Peaks correspond to dominant directions of local gradients.
 
-The fourth and final stage is the \emph{Extraction of the Keypoint Descriptor}. In the previous stages, an image location, a scale, and an orientation were assigned to each keypoint. As a last step, a highly distinctive descriptor for the local image region is computed. This descriptor is also as invariant as possible to remaining variations (e.g., illumination). This is achieved by taking a 16x16 pixel patch around a keypoint, subdividing this patch into 16 4x4 blocks, and, for each of these smaller blocks, creating an 8-bin orientation histogram. This gives a total of 128 bin values, which are represented as a vector to form the keypoint descriptor.
-
+The fourth and final stage is the \emph{Extraction of the Keypoint Descriptor}. In the previous stages, an image location, a scale, and an orientation were assigned to each keypoint. As a last step, a highly distinctive descriptor for the local image region is computed. This descriptor is also as invariant as possible to remaining variations (e.g., illumination). This is achieved by taking a 16x16 pixel patch around a keypoint, subdividing this patch into 16 4x4 blocks, and, for each of these smaller blocks, creating an 8-bin orientation histogram. This histogram is used to form the keypoint descriptor.
 
 \subsection*{Cost Analysis}
 We analysed the algorithm precisely using a counting system. We separately considered floating point adds, muls, divs, and the amount of memory transferred. You can find the counts for a sample image tabulated in \autoref{tab:flop-counts}. Precise counts for all variants of our implementation and all image sizes are included in the source repository\cite{ethsift}. We make use of this counting scheme in order to automatically generate the performance and roofline plots shown in \autoref{sec:results}. The counting facility is described in more detail in \autoref{sec:testing}.
@@ -257,9 +258,9 @@ define_test(SampleTest, 1, {
 \label{lst:sample-test}
 \end{listing}
 
-\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body, allowing very convenient definition of repeat measurements. Depending on the presence of the \cc{USE_RDTSC} preprocessor flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{rdtsc} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code.
+\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body. Depending on the presence of the \cc{USE_RDTSC} preprocessor flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{rdtsc} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code.
 
-The tester framework automatically picks up any test definitions and will run them in order of definition. For tests that incur measurement, the measurement values are automatically recorded. The tester will continuously compute and display the median, as well as the median absolute deviation when the tests are run, and finally output the last recorded values to a CSV file for plot generation.
+The tester framework automatically picks up any test definitions runs them in order of definition. For tests that incur measurement, the measurement values are automatically recorded, and the resulting median and median absolute deviation are output to CSV for plotting.
 
 In order to capture accurate counts of flops and memory use, we also defined a custom set of macros that can be used to increase a relevant counter. We then manually invoke these macros throughout our code base whenever we explicitly perform a flop or access memory. These counters are only active when compiled with the \cc{IS_COUNTING} flag, to avoid disturbing normal operations of the library. The counter values are output to a separate CSV file for processing in our plot system.
 
