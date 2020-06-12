@@ -184,7 +184,7 @@ In this section we will outline the steps of the SIFT algorithm as detailed in t
 \subsection*{The SIFT Algorithm}
 Our implementation of the SIFT algorithm is based on the work by \citet{lowe2004distinctive}, EZSift\cite{ezsift}, and OpenCV\cite{opencv}. The algorithm can be split into four stages.
 
-The first stage is the \emph{Scale-space extrema detection}. Here the scale space of an image is defined as a function $L(x,y,\sigma)$, that is produced from a convolution of a Gaussian kernel $G(x,y,\sigma)$ with an input image $I(x,y)$
+The first stage is the \emph{Scale-space Extrema Detection}. Here the scale space of an image is defined as a function $L(x,y,\sigma)$, that is produced from a convolution of a Gaussian kernel $G(x,y,\sigma)$ with an input image $I(x,y)$
 \begin{equation}
     L(x,y,\sigma)=G(x,y,\sigma) * I(x,y)
 \end{equation}
@@ -211,7 +211,7 @@ The third stage is the \emph{Orientation Assignment}. Here, one or more orientat
 \end{equation}
 Then, an orientation histogram is formed from the gradient orientations of sample points within a region around the keypoint. This histogram has 36 bins covering the 360° range of orientations. Each sample added to the histogram is weighted by its gradient magnitude. Peaks correspond to dominant directions of local gradients.
 
-The fourth and final stage is the \emph{extraction of the keypoint descriptor}. In the previous stages, an image location, scale, and an orientation was assigned to each keypoint. As a last step a highly distinctive descriptor for the local image region is computed. This descriptor is also as invariant as possible to remaining variations (e.g., illumination). This is achieved by taking a 16x16 pixel patch around a keypoint, subdividing this patch into 16 4x4 blocks, and, for each of these smaller blocks, creating an 8-bin orientation histogram. This gives a total of 128 bin values, which are represented as a vector to form the keypoint descriptor.
+The fourth and final stage is the \emph{Extraction of the Keypoint Descriptor}. In the previous stages, an image location, a scale, and an orientation were assigned to each keypoint. As a last step, a highly distinctive descriptor for the local image region is computed. This descriptor is also as invariant as possible to remaining variations (e.g., illumination). This is achieved by taking a 16x16 pixel patch around a keypoint, subdividing this patch into 16 4x4 blocks, and, for each of these smaller blocks, creating an 8-bin orientation histogram. This gives a total of 128 bin values, which are represented as a vector to form the keypoint descriptor.
 
 
 \subsection*{Cost Analysis}
@@ -264,11 +264,11 @@ The tester framework automatically picks up any test definitions and will run th
 In order to capture accurate counts of flops and memory use, we also defined a custom set of macros that can be used to increase a relevant counter. We then manually invoke these macros throughout our code base whenever we explicitly perform a flop or access memory. These counters are only active when compiled with the \cc{IS_COUNTING} flag, to avoid disturbing normal operations of the library. The counter values are output to a separate CSV file for processing in our plot system.
 
 \subsection*{Overall Architecture}\label{sec:architecture}
-The overall architecture of ethSIFT was designed to allow allocations to be factored out of the primary loops as much as possible, and to allow the user more control over the individual steps where necessary. To this end every step in the SIFT algorithm has a corresponding function in ethSIFT. To minimise heap access, all function arguments that are used as input are passed by value, including image structures. The return value of all ethSIFT functions is normalised to be a success value, though this is only really meaningful for functions that can fail.
+The overall architecture of ethSIFT was designed to allow allocations to be factored out of the primary loops as much as possible, and to allow the user more control over the individual steps where necessary. To this end, every step in the SIFT algorithm has a corresponding function in ethSIFT. To minimise heap access, all function arguments that are used as input are passed by value, including image structures. The return value of all ethSIFT functions is normalised to be a success value, though this is only really meaningful for functions that can fail.
 
 We use a global initialisation function to precompute shared values such as the Gaussian kernels and temporary memory regions. We also provide an image pyramid allocation function that allows allocating all images of a pyramid in adjacent memory. This can be used to pre-allocate the pyramids and re-use them during multiple SIFT analysis runs. With pre-allocated pyramids, the SIFT algorithm does not require any further heap allocations during execution. This makes it much cheaper for use in continuous image feeds or videos.
 
-Finally we fix many SIFT parameters in place as constants in order to allow better static memory allocation and constant folding.
+Finally, we fix many SIFT parameters in place as constants in order to allow better static memory allocation and constant folding.
 
 \subsection*{Gaussian Kernel Convolution}\label{sec:convolution}
 The convolution function is one of the main building blocks of our SIFT implementation. It gets called several times to generate the Gaussian pyramid, which is, computationally and time-wise, the main bottleneck in our implementation. And therefore, optimizations to this function promise the biggest payoff.
@@ -283,7 +283,7 @@ Where $p$ is the input image, and $ker$ is the 1D Gaussian kernel. This gets app
 \end{equation}
 We used the horizontal row filter only and just transposed its output. This allowed us to reuse the same filter function for the vertical part. After the second row filter, the results get transposed again.
 
-For our standard-C optimizations, we increased instruction-level parallelism by using accumulators and unrolling wherever possible. We also applied some tricks like scalar replacement to overcome compiler limitations. In our best version, we managed to achieve up to 2x improvement in performance.
+For our standard-C optimizations, we increased instruction-level parallelism by using accumulators and unrolling wherever possible. We also applied some tricks, like scalar replacement, to overcome compiler limitations. In our best version, we managed to achieve up to 2x improvement in performance.
 
 We further optimized our implementation using AVX intrinsics. Our best performing version applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a performance increase of more than 5x compared to the baseline.
 
@@ -390,18 +390,18 @@ The Intel VTune profiler showed that our gaussian kernel convolution was primari
 \section{Conclusions}
 In this paper we implemented a high performance version of the SIFT algorithm that can deliver results for 1080p full HD images in real-time. This allows analysis of direct high resolution video streams to detect and track objects as they move around the image. This tracking can be used for camera focus adjustment, computer vision in robotics contexts, and other automated recognition systems.
 
-The biggest bottlenecks in the SIFT algorithm are by far the Gaussian kernel convolution and, to a lesser extent, the generation of the rotation and gradient pyramids. The Gaussian kernel convolution in particular becomes increasingly dominant as the size of the input image increases.
+The biggest bottlenecks in the SIFT algorithm are by far the Gaussian kernel convolution and, to a lesser extent, the generation of the rotation and gradient pyramids. In particular, the Gaussian kernel convolution becomes increasingly dominant as the size of the input image increases.
 
 While a large part of the kernel convolution can be vectorised, a big hindrance is the moving window over the kernel, which causes unaligned memory access and thus many split loads that slow down the register filling. We attempted to circumvent this by prefetching and shuffling as required instead, but this resulted in overall worse performance as cross-lane shuffles are expensive.
 
-Overall, using basic C and AVX optimisations we managed to achieve a speedup of approximately 4x over the baseline implementation, and of up to 10x in select parts of the algorithm.
+Overall, using basic C and AVX optimisations, we managed to achieve a speedup of approximately 4x over the baseline implementation, and of up to 10x in select parts of the algorithm.
 
 The source code for ethSIFT can be found under the zlib license on GitHub: \\\url{https://github.com/shinmera/ethsift}.
 
 \section{Future Work}
 We think it might be possible to replace the Gaussian kernel convolution with an FFT approach to generate the blurred images instead. Whether this would result in improved performance over a fully optimised kernel convolution implementation is not entirely clear to us at this point though.
 
-SIFT steps that are not on the hot path could also be improved further -- such as by fusing consecutive additions with FMAs -- though we don't see a large benefit to doing so, as the time is massively dominated by the Gaussian convolution and rotation/gradient computations.
+SIFT steps that are not on the hot path could also be improved further -- such as by fusing consecutive additions with FMAs -- though we do not see a large benefit to doing so, as the time is massively dominated by the Gaussian convolution and rotation/gradient computations.
 
 Finally, the generation of the pyramid levels could be distributed onto multiple processors relatively easily, as many levels are independent.
 
@@ -412,7 +412,7 @@ Finally, the generation of the pyramid levels could be distributed onto multiple
 
 \textbf{Jan} Implementation of flop and memory counting system, base implementation of keypoint detection and extrema refinement, implemented and optimized gaussian kernel convolution, implemented and generated roofline plots, which can be found on our GIT Repository, helped writing tests for ethsift functions, helped Zsombor and Costanza with micro analysis and macro cross-optimisation analysis.
  
-\textbf{Costanza} Base implementation of Difference of Gaussian, Gradient and Rotation pyramids, with the relative tests. Performed standard C and ILP optimisations on extrema refinement and descriptor extraction. Performed micro analysis and macro cross-optimisation analysis. Contributed to the plot design of Zsombor's plotting library. Implemented initial flop counting system along with Zsombor, and checked for the correctness of Jan's final counting system after every optimisation step. 
+\textbf{Costanza} Base implementation of Difference of Gaussian, Gradient and Rotation pyramids, with the relative tests. Optimised Extrema Refinement and Descriptor Extraction. Performed micro analysis and macro cross-optimisation analysis. Contributed to the plot design of Zsombor's plotting library. Implemented initial flop counting system along with Zsombor, and checked for the correctness of Jan's final counting system after every optimisation step. 
 
 \bibliography{report}
 \end{document}
