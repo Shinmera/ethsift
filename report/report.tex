@@ -133,26 +133,28 @@
         nodes near coords,
         point meta=explicit symbolic,
         every node near coord/.style={anchor=west, font=\tiny}]
-      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv}
+      node[left,midway]{avx};
       \addplot+[discard if not={NAME}{ethSIFT std-c icc full rdtsc #1},
         nodes near coords,
         point meta=explicit symbolic,
-        every node near coord/.style={anchor=west, font=\tiny}]                         
-      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
+        every node near coord/.style={anchor=west, font=\tiny}]
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv}
+      node[left,midway]{stdc};
       \addplot+[discard if not={NAME}{ethSIFT baseline icc full rdtsc #1},
         nodes near coords,
         point meta=explicit symbolic,
         every node near coord/.style={anchor=west, font=\tiny}]
-      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv};
+      table[meta=INPUT-SIZE, col sep=comma, x=INTENSITY, y=MEDIAN] {../plots_lib/all.csv}
+      node[left,midway]{baseline};
       \addplot[color=black,style=thick] coordinates {(0.03125,2) (16,2)} node[above,pos=0.9] {sisd $\pi$ (2 flops)};
       \addplot[color=red,style=thick] coordinates {(0.03125,16) (16,16)} node[below,pos=0.9] {simd $\pi$ (16 flops)};
       \addplot[color=orange, style=thick] coordinates {(0.03125,2) (0.5,32)} node[left,pos=0.9] {mem $\beta$ (64 bytes)};
-      \legend{\strut avx, \strut stdc, \strut base};
     \end{axis}
   \end{tikzpicture}
 }
 
-\title{A SIFT Descriptor for Feature Matching}
+\title{Optimisation of a SIFT Descriptor for Feature Matching}
 \name{Nicolas Hafner,  Costanza Maria Improta,      Zsombor Kalotay,     Jan Leutwyler} 
 \address{Department of Computer Science\\ ETH Zürich\\Zürich, Switzerland}
 
@@ -169,31 +171,32 @@ The SIFT algorithm can be used for object recognition and object tracking, both 
 
 Optimisation of SIFT is non-trivial as it is a rather complicated algorithm to begin with. Many of its steps also require a large amount of data access, sometimes over many different sets of data at once, complicating access locality.
 
-In this paper we first design a reasonable architecture for SIFT that is amenable for future optimisations. We then write a straight-forward implementation of SIFT in this architecture, including an automated test suite for verification and performance measurement. From there we perform both standard C optimisations as well as manual single-core vectorisation using AVX2, measuring and comparing along the way.
+In this work we first designed a reasonable architecture for SIFT that is amenable for future optimisations. We then wrote a straight-forward implementation of SIFT in this architecture, including an automated test suite for verification and performance measurement. From there we performed both standard C optimisations as well as manual single-core vectorisation using AVX2, measuring and comparing along the way. In this paper we discuss and describe our methods and results.
 
 \subsection*{Related work}
 The original SIFT algorithm is outlined in a paper by \citet{lowe2004distinctive}\cite{lowe1999object}.
 
-Our implementation is based on the ezSIFT implementation by \citet{ezsift} as well as the implementation in OpenCV\cite{opencv}. Our own implementation is standalone like ezSIFT, but offers a pure C interface that can be used by any other project or language that supports C calling convention. We also do not depend on any particular image format, but instead leave the loading of image data up to the user.
+Our implementation is based on the ezSIFT implementation by \citet{ezsift} as well as the implementation in OpenCV\cite{opencv}. Our own implementation is standalone like ezSIFT, but offers a pure C interface that can be used by any other project or language that supports the C calling convention. We also do not depend on any particular image format, but instead leave the loading of image data up to the user.
 
 \section{Background}\label{sec:background}
 In this section we will outline the steps of the SIFT algorithm as detailed in the original paper\cite{lowe2004distinctive}, as well as our overall analysis of the algorithm in terms of asymptotic complexity and cost.
 
 \subsection*{The SIFT Algorithm}
-Our implementation of the SIFT Algorithm is based on the work of Lowe et al.\cite{lowe2004distinctive} and EZSift\cite{ezsift}. Their algorithm can be split into four stages.\\
+Our implementation of the SIFT algorithm is based on the work by \citet{lowe2004distinctive}, EZSift\cite{ezsift}, and OpenCV\cite{opencv}. The algorithm can be split into four stages.
+
 The first stage is the \emph{Scale-space extrema detection}. Here the scale space of an image is defined as a function $L(x,y,\sigma)$, that is produced from a convolution of a Gaussian kernel $G(x,y,\sigma)$ with an input image $I(x,y)$
 \begin{equation}
     L(x,y,\sigma)=G(x,y,\sigma) * I(x,y)
 \end{equation}
-To efficiently detect extrema in scale space, they generate a difference-of-gaussian pyramid, where $k$ represents a constant multiplicative factor
+To efficiently detect extrema in scale space, a difference-of-gaussian pyramid is generated, where $k$ represents a constant multiplicative factor
 \begin{equation}
     D(x,y,\sigma) = L(x,y,k\sigma) - L(x,y,\sigma)
 \end{equation}
-To detect local minima and maxima in $D(x,y,\sigma)$, they compare the pixel to all 8 neighbours in the same scale, as well as to each 9 neighbours in the scale above and below of the pyramid.\\
+To detect local minima and maxima in $D(x,y,\sigma)$, each pixel is compared to all 8 neighbours in the same scale, as well as to each 9 neighbours in the scale above and below of the pyramid.
 
-The second stage is \emph{Keypoint Localization}. In this stage they use the Taylor Expansion of the scale-space function $D(x,y,\sigma)$ to determine the interpolated location and the scale of the extrema candidates. Also, final keypoints are selected based on measures of their stability. Hence, they eliminate edge responses to guarantee a high measure of stability.\\
+The second stage is \emph{Keypoint Localization}. In this stage a Taylor Expansion of the scale-space function $D(x,y,\sigma)$ is used to determine the interpolated location and the scale of the extrema candidates. Also, final keypoints are selected based on measures of their stability. Hence, edge responses are eliminated to guarantee a high measure of stability.
 
-The third stage is the \emph{Orientation Assignment}. Here, one or more orientations are assigned to each keypoint location based on local image gradient directions. They use pixel differences to calculate gradient magnitude $m(x,y)$ and orientation $\Theta(x,y)$ from the Gaussian pyramid.
+The third stage is the \emph{Orientation Assignment}. Here, one or more orientations are assigned to each keypoint location based on local image gradient directions. Pixel differences are used to calculate gradient magnitude $m(x,y)$ and orientation $\Theta(x,y)$ from the Gaussian pyramid.
 \begin{equation}
     P(x,y)=L(x+1,y,\sigma) - L(x-1,y,\sigma)
 \end{equation}
@@ -206,13 +209,13 @@ The third stage is the \emph{Orientation Assignment}. Here, one or more orientat
 \begin{equation}
     \Theta(x,y)=\arctan{\frac{Q(x,y)}{P(x,y)}}
 \end{equation}
-Then, they form an orientation histogram from gradient orientations of sample points within a region around the keypoint. This histogram has 36 bins covering the 360° range of orientations. Each sample added to the histogram is weighted by its gradient magnitude. Peaks correspond to dominant directions of local gradients.
+Then, an orientation histogram is formed from the gradient orientations of sample points within a region around the keypoint. This histogram has 36 bins covering the 360° range of orientations. Each sample added to the histogram is weighted by its gradient magnitude. Peaks correspond to dominant directions of local gradients.
 
-The fourth and final stage is the \emph{extraction of the keypoint descriptor}. In the previous stages, they have assigned an image location, scale, and an orientation to each keypoint. As a last step they compute a descriptor for the local image region that is highly distinctive, but also as invariant as possible to remaining variations (e.g., illumination). They achieved this by taking a 16x16 pixels patch around a keypoint, subdividing this patch into 16 4x4 blocks, and creating for each of these smaller blocks an 8-bin orientation histogram. This gives a total of 128 bin values, which they represented as a vector to form the keypoint descriptor.
+The fourth and final stage is the \emph{extraction of the keypoint descriptor}. In the previous stages, an image location, scale, and an orientation was assigned to each keypoint. As a last step a highly distinctive descriptor for the local image region is computed. This descriptor is also as invariant as possible to remaining variations (e.g., illumination). This is achieved by taking a 16x16 pixel patch around a keypoint, subdividing this patch into 16 4x4 blocks, and, for each of these smaller blocks, creating an 8-bin orientation histogram. This gives a total of 128 bin values, which are represented as a vector to form the keypoint descriptor.
 
 
 \subsection*{Cost Analysis}
-We analysed the algorithm precisely using a counting system. We separately considered floating point adds, muls, divs, and the amount of memory transferred. You can find the counts for a sample image tabulated in \autoref{tab:flop-counts}. We make use of this counting scheme in order to automatically generate the performance and roofline plots shown in \autoref{sec:results}. The counting facility is described in more detail in \autoref{sec:testing}.
+We analysed the algorithm precisely using a counting system. We separately considered floating point adds, muls, divs, and the amount of memory transferred. You can find the counts for a sample image tabulated in \autoref{tab:flop-counts}. Precise counts for all variants of our implementation and all image sizes are included in the source repository\cite{ethsift}. We make use of this counting scheme in order to automatically generate the performance and roofline plots shown in \autoref{sec:results}. The counting facility is described in more detail in \autoref{sec:testing}.
 
 \begin{table*}[ht]
 \centering
@@ -254,67 +257,66 @@ define_test(SampleTest, 1, {
 \label{lst:sample-test}
 \end{listing}
 
-\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body, allowing very convenient definition of repeat measurements. Depending on the presence of the \cc{USE_RDTSC} compiler flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{chrono} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code.
+\cc{with_repeating} automatically sets up a warmup loop followed by a loop of measurements of its body, allowing very convenient definition of repeat measurements. Depending on the presence of the \cc{USE_RDTSC} preprocessor flag, a measurement section will either measure the runtime using C++' \cc{std::chrono}, or the cycle count using the \cc{rdtsc} instruction. This allows us to measure both in separate runs with minimal noise, without having to manually change or duplicate any of our code.
 
 The tester framework automatically picks up any test definitions and will run them in order of definition. For tests that incur measurement, the measurement values are automatically recorded. The tester will continuously compute and display the median, as well as the median absolute deviation when the tests are run, and finally output the last recorded values to a CSV file for plot generation.
 
 In order to capture accurate counts of flops and memory use, we also defined a custom set of macros that can be used to increase a relevant counter. We then manually invoke these macros throughout our code base whenever we explicitly perform a flop or access memory. These counters are only active when compiled with the \cc{IS_COUNTING} flag, to avoid disturbing normal operations of the library. The counter values are output to a separate CSV file for processing in our plot system.
 
 \subsection*{Overall Architecture}\label{sec:architecture}
-The overall architecture of ethSIFT was designed to allow allocations to be factored out of the primary loops as much as possible, and to allow the user more control over the individual steps where necessary. To this end every step in the SIFT algorithm has a corresponding function in ethSIFT. To minimise heap access, all function arguments that are used as input are passed by value, including image structures. The return value of all ethSIFT functions is normalised to be a success value, though this is only really meaningful for functions that can fail, such as allocations.
+The overall architecture of ethSIFT was designed to allow allocations to be factored out of the primary loops as much as possible, and to allow the user more control over the individual steps where necessary. To this end every step in the SIFT algorithm has a corresponding function in ethSIFT. To minimise heap access, all function arguments that are used as input are passed by value, including image structures. The return value of all ethSIFT functions is normalised to be a success value, though this is only really meaningful for functions that can fail.
 
-We use a global initialisation function to precompute shared values such as the Gaussian kernels and temporary memory regions that are used during kernel convolution. Finally we provide an optimised image pyramid allocation function that allows allocating all images of a pyramid in a single allocation call. A user may use this function to pre-allocate the pyramids and re-use them during multiple SIFT analysis runs. With pre-allocated pyramids, the SIFT algorithm does not require any further heap allocations during execution. This makes it much cheaper for use in continuous image feeds or videos.
+We use a global initialisation function to precompute shared values such as the Gaussian kernels and temporary memory regions. We also provide an image pyramid allocation function that allows allocating all images of a pyramid in adjacent memory. This can be used to pre-allocate the pyramids and re-use them during multiple SIFT analysis runs. With pre-allocated pyramids, the SIFT algorithm does not require any further heap allocations during execution. This makes it much cheaper for use in continuous image feeds or videos.
 
 Finally we fix many SIFT parameters in place as constants in order to allow better static memory allocation and constant folding.
 
-%  TODO: talk about memory optimisations and analysis (split-loads, paging, etc.)
+\subsection*{Gaussian Kernel Convolution}\label{sec:convolution}
+The convolution function is one of the main building blocks of our SIFT implementation. It gets called several times to generate the Gaussian pyramid, which is, computationally and time-wise, the main bottleneck in our implementation. And therefore, optimizations to this function promise the biggest payoff.
 
-\subsection*{Gaussian Kernel Convolution}
-The Convolution function is one of the main building blocks of our SIFT implementation. It gets called several times to generate the Gaussian Pyramid, which is, computationally and time-wise, the main bottleneck in our implementation. And therefore, optimizations to this function promise the biggest payoff.
-
-The main goal of the function is to blur an image by applying a 2D-convolution using 2D Gaussian kernel. In our baseline implementation, we made use of the separability of a Gaussian filter. Due to this separability, we could split the 2D-convolution in two 1D-convolutions using 1D Gaussian kernels by first filtering the image horizontally and in a second step vertically. In our implementation, the 1D-convolution for the horizontal row filter can be described as
+The main goal of the function is to blur an image by applying a 2D-convolution using a 2D Gaussian kernel. In our baseline implementation, we made use of the separability of the Gaussian filter. Due to this separability, we could split the 2D-convolution into two 1D-convolutions using 1D Gaussian kernels by first filtering the image horizontally and in a second step vertically. In our implementation, the 1D-convolution for the horizontal row filter can be described as
 \begin{equation}\label{eq_h}
     g_{i,j} = \sum_{k=0}^{K-1} p_{i-\frac{K}{2}+k,j} * ker_{k}
 \end{equation}
-here $p$ is the input image, and $ker$ is the 1D Gaussian kernel. This gets applied to every pixel in the input image. The vertical col filter can be described as
+Where $p$ is the input image, and $ker$ is the 1D Gaussian kernel. This gets applied to every pixel in the input image. The vertical column filter can be described as
 \begin{equation}\label{eq_v}
     f_{i,j} = \sum_{k=0}^{K-1} g_{i,j-\frac{K}{2}+k} * ker_{k}
 \end{equation}
-In our implementation we used the horizontal row filter only and just transposed its output, this allowed us to reuse the same filter function for the vertical part. After the second row filter, the results gets transposed again.
+We used the horizontal row filter only and just transposed its output. This allowed us to reuse the same filter function for the vertical part. After the second row filter, the results get transposed again.
 
-For our standard-C optimizations, we increased ILP by unrolling our loops wherever possible. And, we also applied some tricks, e.g., scalar replacement, to overcome compiler limitations. In our best version, we managed to achieve an up to 2x speed-up in performance.
+For our standard-C optimizations, we increased instruction-level parallelism by using accumulators and unrolling wherever possible. We also applied some tricks like scalar replacement to overcome compiler limitations. In our best version, we managed to achieve up to 2x improvement in performance.
 
-We further optimized our implementation using AVX intrinsics. Our best performing optimization applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a speed-up of more than 5x compared to the baseline.
+We further optimized our implementation using AVX intrinsics. Our best performing version applies the 1D convolution to 8 pixels at once. Further, we made use of FMAs to calculate the sums in equation \ref{eq_h} and \ref{eq_v}. This way we managed to achieve a performance increase of more than 5x compared to the baseline.
 
+Due to our measurements showing problems with split loads, we also experimented with replacing the inner moving window by a batched application. However, the shuffling required to replace the moving window gave an overall worse performance penalty than the split loads did. We also experimented with other blocking and unrolling factors, but were not able to get further performance improvements.
 
 \subsection*{Gradient and Rotation Computation}
-One of the bottlenecks we found during profiling was the calculation of the Gradient \& Rotation Pyramids.
+One of the bottlenecks we found during profiling was the calculation of the gradient and rotation pyramids.
 
-The calculation of the two pyramids involves differences on given row $r$ and column $c$ in the form of two temporary variables $t1 = g(r-1,c) - g(r+1, c)$, $t2 = g(r,c-1) - g(r, c+1)$ where g is some Gaussian filtered image from the Gaussian pyramid and $g(r,c)$ a pixel at row $r$ and column $c$.
-Due to the fact that for each row and column we look at the row (and column) above and below (resp. to the left and to the right) of it, we had in our first implementation an inline method for getting the pixel at a given position and checking for the border. In case we would have exceeded the border in some form, it returned the value at the border. The naive implementation of this method included branching and a worst case of eight conditional checks.
+The calculation of the two pyramids involves differences on a given row $r$ and column $c$ in the form of two temporary variables $t1 = g(r-1,c) - g(r+1, c)$, $t2 = g(r,c-1) - g(r, c+1)$ where g is some Gaussian filtered image from the Gaussian pyramid and $g(r,c)$ a pixel at row $r$ and column $c$.
 
-In a first step of our Standard-C optimization, we were able to get a performance boost by reducing the worst case checks from eight to a constant amount of four. Also we unrolled an outer loop of three iterations and prevented recalculation of variables which were recyclable. This lead to a more than 2x performance boost.
+Due to the fact that for each row and column we look at the row (and column) above and below (resp. to the left and to the right) of it, in our first implementation we used a function to get the pixel at a given position with border clamping. The naive implementation of this function included branching and a worst case of eight conditional checks.
 
-For the AVX2 implementation we then had to come up for a solution regarding the border issue. We decided to calculate the border as we have done before and only parallelize the middle of the image. Since the calculations also required the atan2 function and there was no intrinsics function for that, we also implemented an inline method using AVX2 intel intrinsics which we called "eth\_mm256\_atan2\_ps". Thanks to this implementation, we were able to get an approximate speed-up of factor 11.
+In a first step of our Standard-C optimization, we were able to get a performance boost by reducing the worst case checks from eight to a constant amount of four. We also unrolled an outer loop of three iterations and prevented recalculation of variables which were recyclable. This lead to a performance increase of more than 2x.
 
+For the AVX2 implementation we then had to come up for a solution that worked with border clamping. We decided to calculate the border as we have done before and only parallelize the middle of the image. Since the calculations also made use of the atan2 function a lot, and there was no intrinsic for that, we also implemented an inline method using AVX2 intel intrinsics which we called \cc{eth_mm256_atan2_ps}. Thanks to this implementation, we were able to get an approximate performance increase of about 10x in total.
 
 \subsection*{Vectorising atan2}
-We implemented an AVX2 vectorized version of the atan2 function, which was mainly used in the Gradient and Rotation Pyramid Computation. Our implementation is able to take \_\_m256 float vectors x and y as input and compute the eight corresponding values in parallel. Difficulties regarding branching in the atan2 function we overcame by calculating and applying vector masks instead.
+We implemented an AVX2 vectorized version of the atan2 function, which was mainly used in the Gradient and Rotation Pyramid Computation. Our implementation is able to take \cc{__m256} float vectors x and y as input and compute the eight corresponding values in parallel. Difficulties regarding branching in the atan2 function were overcome by calculating and applying vector masks instead.
 
 \section{Experimental Results}\label{sec:results}
-In this section we detail our performance measurements and discuss how our changes affected the overall runtime and performance of our implementation. We also take a brief look at how different compilers and compiler flags changed the performance.
+In this section we detail our performance measurements and discuss how our changes affected the overall runtime and performance of our implementation.
 
 \subsection*{Experimental Setup}
-Our measurements were performed on a machine running an Intel Core i7-8700K CPU with a fixed clock at 3.7GHz. This model of the CPU is part of the Coffee Lake series and has a 6x32 KB 8-way L1-cache, 6x256 KB 4-way L2-cache, and a 12 MB 16-way shared L3 cache.
+Our measurements were performed on a machine running an Intel Core i7-8700K CPU with a fixed clock at 3.7GHz, with TurboBoost disabled. This model of the CPU is part of the Coffee Lake series and has a 6x32 KB 8-way L1-cache, 6x256 KB 4-way L2-cache, and a 12 MB 16-way shared L3 cache.
 
 Unless otherwise stated, we used ICC 19.1.1.217, with \texttt{-g -O3 -mfma -mavx2 -march=skylake -flto -ffast-math -fno-unsafe-math-optimizations} for optimisation flags. We used input images in sizes of 240p, 360p, 480p, 720p, 1080p, 2160p, and 4320p.
 
 \subsection*{Results}
 As shown in \autoref{fig:full-opts} we managed to achieve an overall speedup factor of about 4x over the reference implementation. This is with speedups of over 5x for the gaussian kernel convolution as shown in \autoref{fig:convolution-opts}, and of about 10x for the gradient and rotation pyramids, as shown in \autoref{fig:grad-opts}. As shown in \autoref{fig:runtime}, runtime scales linearly with the size of the image, with diminishing effects as the image size increases. The domination of the gaussian kernel convolution over the rest of the algorithm is clearly shown in \autoref{fig:relative}.
 
-During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. For the optimised implementation, changing compiler flags -- such as adding \texttt{-flto} or \texttt{-fno-tree-vectorise} -- only minimally impacted runtime, on the level of measurement noise. Aligning memory to pages or even forcing all memory to be paged in ahead of time did not significantly improve runtime.
+During evaluation we noticed the following interesting factors: for our baseline implementation, GCC produced the fastest code, whereas for our fully optimised implementation, ICC produced the fastest code. For the optimised implementation, changing compiler flags -- such as adding \texttt{-flto} or \texttt{-fno-tree-vectorise} -- only minimally impacted runtime, on the level of measurement noise. Aligning memory to pages or even forcing all memory to be paged in ahead of time did not significantly improve runtime. Further measurements and plots detailing all of these comparisons can be found in our repository\cite{ethsift}.
 
-The Intel VTune profiler showed that our gaussian kernel convolution was primarily suffering from performance penalties resulting from split loads -- floats not aligned with vector register boundaries. This is due to a moving window pass in the inner loop.
+The Intel VTune profiler showed that our gaussian kernel convolution was primarily suffering from performance penalties resulting from split loads -- floats not aligned with vector register boundaries. This is due to a moving window pass in the inner loop, as mentioned in \autoref{sec:convolution}.
 
 \begin{figure*}[tbp]
   \centering
@@ -388,9 +390,9 @@ The Intel VTune profiler showed that our gaussian kernel convolution was primari
 \section{Conclusions}
 In this paper we implemented a high performance version of the SIFT algorithm that can deliver results for 1080p full HD images in real-time. This allows analysis of direct high resolution video streams to detect and track objects as they move around the image. This tracking can be used for camera focus adjustment, computer vision in robotics contexts, and other automated recognition systems.
 
-The biggest bottlenecks in the SIFT algorithm are by far the Gaussian kernel convolution and the generation of the rotation and gradient pyramids. The Gaussian kernel convolution in particular becomes increasingly dominant as the size of the input image increases.
+The biggest bottlenecks in the SIFT algorithm are by far the Gaussian kernel convolution and, to a lesser extent, the generation of the rotation and gradient pyramids. The Gaussian kernel convolution in particular becomes increasingly dominant as the size of the input image increases.
 
-While a large part of the kernel convolution can be vectorised, a big hindrance is the moving window over the kernel, which causes unaligned memory access and thus many split loads that slow down the loading. We attempted to circumvent this by prefetching and shuffling as required instead, but this resulted in overall worse performance as cross-lane shuffles are expensive.
+While a large part of the kernel convolution can be vectorised, a big hindrance is the moving window over the kernel, which causes unaligned memory access and thus many split loads that slow down the register filling. We attempted to circumvent this by prefetching and shuffling as required instead, but this resulted in overall worse performance as cross-lane shuffles are expensive.
 
 Overall, using basic C and AVX optimisations we managed to achieve a speedup of approximately 4x over the baseline implementation, and of up to 10x in select parts of the algorithm.
 
